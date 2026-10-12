@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Accounting</span> / <span class="text-[#00a884]">General Ledger</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-100">General Ledger & Double-Entry Journal Register</h1>
+        <p class="text-xs text-slate-400">Strictly balanced double-entry vouchers with immutable audit records</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'accounting:journal_create' %}" class="btn-primary">+ Create Journal Entry</a>
+        <a href="{% url 'accounting:financial_reports' %}" class="btn-secondary">📊 Financial Reports</a>
+    </div>
+</div>
+
+<!-- DataTables Table -->
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Entry #</th>
+                <th>Posting Date</th>
+                <th>Source Module</th>
+                <th>Description / Narration</th>
+                <th>Total Debit</th>
+                <th>Total Credit</th>
+                <th>Ledger Status</th>
+                <th data-sortable="false">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for je in journals %}
+            <tr>
+                <td>
+                    <a href="{% url 'accounting:journal_detail' je.id %}" class="font-mono text-[#00a884] font-bold hover:underline">
+                        {{ je.entry_number }}
+                    </a>
+                </td>
+                <td>{{ je.date }}</td>
+                <td><span class="text-[10px] bg-[#090d12] border border-white/10 px-2 py-0.5 rounded text-slate-300 font-mono">{{ je.source_module }}</span></td>
+                <td class="font-medium text-slate-200">{{ je.description }}</td>
+                <td class="font-extrabold text-slate-100">₹{{ je.total_debit }}</td>
+                <td class="font-extrabold text-slate-100">₹{{ je.total_credit }}</td>
+                <td>
+                    <span class="status-pill {% if je.status == 'POSTED' %}status-success{% elif je.status == 'REVERSED' %}status-danger{% else %}status-warning{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {{ je.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'accounting:journal_detail' je.id %}" class="btn-secondary text-xs py-1 px-2.5">
+                        View Lines
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row">
+                <td colspan="8" class="text-center text-slate-500 py-8">No journal entries recorded.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-100">Management Reports & Analytics</h1>
+    <p class="text-xs text-gray-400">Cross-module operational and financial performance reporting</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <a href="{% url 'accounting:financial_reports' %}" class="card hover:border-emerald-500 transition block">
+        <h3 class="text-base font-bold text-emerald-400 mb-2">📊 Financial Statements</h3>
+        <p class="text-xs text-gray-400">Profit & Loss, Balance Sheet, Trial Balance, and General Ledger reports.</p>
+    </a>
+    <a href="{% url 'invoicing:invoice_list' %}" class="card hover:border-emerald-500 transition block">
+        <h3 class="text-base font-bold text-blue-400 mb-2">📄 Invoicing & Receivables</h3>
+        <p class="text-xs text-gray-400">Outstanding invoice balances, GST tax breakdowns, and customer payment logs.</p>
+    </a>
+    <a href="{% url 'crm:lead_list' %}" class="card hover:border-emerald-500 transition block">
+        <h3 class="text-base font-bold text-purple-400 mb-2">🎯 Sales & Lead Pipeline</h3>
+        <p class="text-xs text-gray-400">Lead conversion efficiency, staff follow-ups, and sales channel analytics.</p>
+    </a>
+</div>
+{% endblock %}

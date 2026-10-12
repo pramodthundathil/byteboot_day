@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-gray-100">Manual Double-Entry Journal</h1>
+            <p class="text-xs text-gray-400">Total debits must strictly equal total credits</p>
+        </div>
+        <a href="{% url 'accounting:journal_list' %}" class="btn-secondary">Back to Journals</a>
+    </div>
+
+    <form method="POST" class="card">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="form-group">
+                <label class="form-label">Posting Date</label>
+                <input type="date" name="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Reference / Voucher No</label>
+                <input type="text" name="reference" class="form-control" placeholder="e.g. VOUCH-101">
+            </div>
+            <div class="form-group col-span-2">
+                <label class="form-label">Entry Description / Narration</label>
+                <input type="text" name="description" class="form-control" placeholder="e.g. Capital Contribution / Rent Payment" required>
+            </div>
+        </div>
+
+        <!-- Journal Lines -->
+        <h3 class="text-sm font-bold text-gray-200 mb-2 border-t border-gray-800 pt-3">Journal Lines</h3>
+        <div class="flex flex-col gap-3 mb-4">
+            <!-- Line 1 -->
+            <div class="grid grid-cols-12 gap-2 items-center bg-gray-900 p-2.5 rounded-lg border border-gray-800">
+                <div class="col-span-6">
+                    <label class="form-label">Account 1 (Debit)</label>
+                    <select name="account_1" class="form-control text-xs" required>
+                        <option value="">-- Select Account --</option>
+                        {% for a in accounts %}
+                        <option value="{{ a.id }}">{{ a.code }} - {{ a.name }} ({{ a.account_type }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-span-3">
+                    <label class="form-label">Debit (₹)</label>
+                    <input type="number" step="0.01" name="debit_1" class="form-control text-xs" value="50000.00">
+                </div>
+                <div class="col-span-3">
+                    <label class="form-label">Credit (₹)</label>
+                    <input type="number" step="0.01" name="credit_1" class="form-control text-xs" value="0.00">
+                </div>
+            </div>
+
+            <!-- Line 2 -->
+            <div class="grid grid-cols-12 gap-2 items-center bg-gray-900 p-2.5 rounded-lg border border-gray-800">
+                <div class="col-span-6">
+                    <label class="form-label">Account 2 (Credit)</label>
+                    <select name="account_2" class="form-control text-xs" required>
+                        <option value="">-- Select Account --</option>
+                        {% for a in accounts %}
+                        <option value="{{ a.id }}">{{ a.code }} - {{ a.name }} ({{ a.account_type }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-span-3">
+                    <label class="form-label">Debit (₹)</label>
+                    <input type="number" step="0.01" name="debit_2" class="form-control text-xs" value="0.00">
+                </div>
+                <div class="col-span-3">
+                    <label class="form-label">Credit (₹)</label>
+                    <input type="number" step="0.01" name="credit_2" class="form-control text-xs" value="50000.00">
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center border-t border-gray-800 pt-3">
+            <label class="flex items-center gap-2 text-xs text-gray-300">
+                <input type="checkbox" name="auto_post" checked class="rounded bg-gray-900 border-gray-700">
+                Validate and Post Immediately to Ledger
+            </label>
+            <button type="submit" class="btn-primary">Save Journal Entry</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

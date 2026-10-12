@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto" x-data="{ 
+    createUser: {% if employee.user %}true{% else %}false{% endif %},
+    selectedRole: '{% if membership.role == "COMPANY_ADMIN" %}COMPANY_ADMIN{% elif membership.custom_role %}CUSTOM:{{ membership.custom_role.id }}{% else %}DIRECT{% endif %}'
+}">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'hr:employee_list' %}" class="hover:text-white">HR</a> / 
+                <a href="{% url 'hr:employee_detail' employee.id %}" class="hover:text-white">{{ employee.employee_id }}</a> / 
+                <span class="text-[#00a884]">Edit Profile</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+                <i data-lucide="edit" class="w-6 h-6 text-[#00a884]"></i>
+                Edit Employee & System Access
+            </h1>
+            <p class="text-xs text-slate-400">Update profile details, salary structure, and system role & permissions for {{ employee.full_name }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'hr:employee_detail' employee.id %}" class="btn-secondary flex items-center gap-1 text-xs">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i> View Profile
+            </a>
+            <a href="{% url 'hr:employee_list' %}" class="btn-secondary flex items-center gap-1 text-xs">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Directory
+            </a>
+        </div>
+    </div>
+
+    <form method="POST" class="card space-y-6">
+        {% csrf_token %}
+        <!-- Employee Profile Details -->
+        <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between">
+                <span>1. Basic Profile Details</span>
+                <span class="font-mono text-xs text-[#00a884]">{{ employee.employee_id }}</span>
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ employee.first_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ employee.last_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Work Email Address</label>
+                    <input type="email" name="email" class="form-control" value="{{ employee.email }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone" class="form-control" value="{{ employee.phone|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input type="text" name="department" class="form-control" value="{{ employee.department }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designation</label>
+                    <input type="text" name="designation" class="form-control" value="{{ employee.designation }}">
+                </div>
+                <div class="form-group col-span-1 sm:col-span-2">
+                    <label class="form-label">Employment Status</label>
+                    <select name="status" class="form-control">
+                        <option value="ACTIVE" {% if employee.status == 'ACTIVE' %}selected{% endif %}>Active Employee</option>
+                        <option value="ON_LEAVE" {% if employee.status == 'ON_LEAVE' %}selected{% endif %}>On Leave</option>
+                        <option value="PROBATION" {% if employee.status == 'PROBATION' %}selected{% endif %}>Probation Period</option>
+                        <option value="TERMINATED" {% if employee.status == 'TERMINATED' %}selected{% endif %}>Terminated / Resigned</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- System User Account & Role Permissions -->
+        <div class="border-t border-white/10 pt-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> 2. Platform System User & Role Permissions
+                </h3>
+                <label class="flex items-center gap-2 text-xs font-semibold text-[#00a884] cursor-pointer">
+                    <input type="checkbox" name="create_user" x-model="createUser" class="rounded bg-[#090d12] border-white/20 text-[#00a884] focus:ring-0">
+                    Grant Platform System Access
+                </label>
+            </div>
+
+            <div x-show="createUser" class="space-y-4 bg-[#090d12] p-4 rounded-xl border border-white/10">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">System Username</label>
+                        <input type="text" name="username" class="form-control font-mono" value="{{ employee.user.username|default:'' }}" placeholder="e.g. jsmith">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reset Password <span class="text-[10px] text-slate-400 font-normal">(Leave blank to keep current)</span></label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="form-group border-t border-white/5 pt-3">
+                    <label class="form-label font-bold text-slate-200">System Role Policy</label>
+                    <select name="role_choice" x-model="selectedRole" class="form-control">
+                        <option value="COMPANY_ADMIN">🔑 Company Admin (Full Unrestricted Access)</option>
+                        {% for r in custom_roles %}
+                            <option value="CUSTOM:{{ r.id }}">🛡️ Custom Role: {{ r.name }}</option>
+                        {% endfor %}
+                        <option value="DIRECT">⚙️ Direct Custom Permissions (No Custom Role)</option>
+                    </select>
+                </div>
+
+                <!-- Direct Permission Matrix (Shown when DIRECT selected) -->
+                <div x-show="selectedRole === 'DIRECT'" class="border-t border-white/5 pt-3 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                            <i data-lucide="sliders" class="w-3.5 h-3.5 text-[#00a884]"></i> Direct Action Permission Matrix
+                        </h4>
+                        <a href="{% url 'tenants:role_create' %}" target="_blank" class="text-[11px] text-[#00a884] hover:underline flex items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-3 h-3"></i> Create New Custom Role
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-3 text-xs">
+                        <!-- Projects & Tasks -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="check-square" class="w-3.5 h-3.5 text-[#00a884]"></i> Projects & Task Tracker
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_view" {% if membership.permissions.projects and membership.permissions.projects.view %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_create" {% if membership.permissions.projects and membership.permissions.projects.create %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_edit" {% if membership.permissions.projects and membership.permissions.projects.edit %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_assign" {% if membership.permissions.projects and membership.permissions.projects.assign %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Assign Tasks
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_delete" {% if membership.permissions.projects and membership.permissions.projects.delete %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- HR & Employees -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="users" class="w-3.5 h-3.5 text-[#00a884]"></i> HR Employees & Leave Approvals
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_view" {% if membership.permissions.hr and membership.permissions.hr.view %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Staff
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_create" {% if membership.permissions.hr and membership.permissions.hr.create %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create Profile
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_edit" {% if membership.permissions.hr and membership.permissions.hr.edit %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit Access
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_approve" {% if membership.permissions.hr and membership.permissions.hr.approve %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Approve Leave
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_delete" {% if membership.permissions.hr and membership.permissions.hr.delete %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- CRM -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="target" class="w-3.5 h-3.5 text-[#00a884]"></i> CRM & Sales Leads
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_view" {% if membership.permissions.crm and membership.permissions.crm.view %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_create" {% if membership.permissions.crm and membership.permissions.crm.create %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_edit" {% if membership.permissions.crm and membership.permissions.crm.edit %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_convert" {% if membership.permissions.crm and membership.permissions.crm.convert %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Convert
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_delete" {% if membership.permissions.crm and membership.permissions.crm.delete %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Invoicing & Accounting -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#00a884]"></i> Invoicing & Accounting Ledger
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_view" {% if membership.permissions.invoicing and membership.permissions.invoicing.view %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Invoices
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_create" {% if membership.permissions.invoicing and membership.permissions.invoicing.create %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create Invoice
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_record_payment" {% if membership.permissions.invoicing and membership.permissions.invoicing.record_payment %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Record Payment
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_accounting_view" {% if membership.permissions.accounting and membership.permissions.accounting.view %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Ledger
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_accounting_post" {% if membership.permissions.accounting and membership.permissions.accounting.post %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Post Manual JE
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex items-center justify-between border-t border-white/5">
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" name="user_active" {% if membership and membership.is_active %}checked{% elif not membership %}checked{% endif %} class="rounded bg-[#090d12] border-white/20 text-[#00a884] focus:ring-0">
+                        Enable User Account Status (Can log into platform)
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Salary & Compensation Structure -->
+        <div class="border-t border-white/10 pt-4">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">3. Monthly Compensation Structure & Bank Info</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Basic Monthly Salary (₹)</label>
+                    <input type="number" step="0.01" name="basic_salary" class="form-control" value="{{ employee.basic_salary }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">HRA Allowance (₹)</label>
+                    <input type="number" step="0.01" name="hra" class="form-control" value="{{ employee.hra }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Special Allowance (₹)</label>
+                    <input type="number" step="0.01" name="allowance" class="form-control" value="{{ employee.allowance }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bank Name</label>
+                    <input type="text" name="bank_name" class="form-control" value="{{ employee.bank_name }}">
+                </div>
+                <div class="form-group sm:col-span-2">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" name="account_number" class="form-control" value="{{ employee.account_number }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-white/10 flex justify-end gap-3">
+            <a href="{% url 'hr:employee_detail' employee.id %}" class="btn-secondary">Cancel</a>
+            <button type="submit" class="btn-primary px-6">Save & Update Profile</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

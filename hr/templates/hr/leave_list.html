@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load permissions %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">Leave Management & Approvals</h1>
+        <p class="text-xs text-gray-400">Employee leave requests, edits, cancellations, and manager approval workflows</p>
+    </div>
+    <a href="{% url 'hr:leave_request' %}" class="btn-primary">+ Apply for Leave</a>
+</div>
+
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Employee</th>
+                <th>Leave Type</th>
+                <th>Dates</th>
+                <th>Days</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for l in leaves %}
+            <tr>
+                <td class="font-semibold">{{ l.employee.full_name }}</td>
+                <td>{{ l.leave_type.name }}</td>
+                <td>{{ l.start_date }} to {{ l.end_date }}</td>
+                <td class="font-bold">{{ l.duration_days }}</td>
+                <td class="text-xs text-gray-400">{{ l.reason }}</td>
+                <td>
+                    <span class="status-pill {% if l.status == 'APPROVED' %}status-success{% elif l.status == 'REJECTED' %}status-danger{% elif l.status == 'CANCELLED' %}status-secondary{% else %}status-warning{% endif %}">
+                        {{ l.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        {% if l.status == 'PENDING' %}
+                            {% if request|has_perm:'hr.approve' or is_hr_admin %}
+                                <a href="{% url 'hr:leave_action' l.id 'approve' %}" class="btn-primary text-xs py-0.5 px-2 bg-emerald-600 hover:bg-emerald-500">Approve</a>
+                                <a href="{% url 'hr:leave_action' l.id 'reject' %}" class="btn-secondary text-xs py-0.5 px-2 text-red-400 hover:text-red-300">Reject</a>
+                            {% endif %}
+                            
+                            {% if user_employee and l.employee.id == user_employee.id or is_hr_admin %}
+                                <a href="{% url 'hr:leave_edit' l.id %}" class="btn-secondary text-xs py-0.5 px-2 text-indigo-400 hover:text-indigo-300">Edit</a>
+                                <a href="{% url 'hr:leave_action' l.id 'cancel' %}" class="btn-secondary text-xs py-0.5 px-2 text-amber-400 hover:text-amber-300">Cancel</a>
+                                <a href="{% url 'hr:leave_action' l.id 'delete' %}" onclick="return confirm('Delete this leave application?')" class="btn-secondary text-xs py-0.5 px-2 text-red-400 hover:text-red-300">Delete</a>
+                            {% endif %}
+                        {% else %}
+                            {% if user_employee and l.employee.id == user_employee.id or is_hr_admin %}
+                                <a href="{% url 'hr:leave_action' l.id 'revert' %}" class="btn-secondary text-xs py-0.5 px-2 text-sky-400 hover:text-sky-300">Revert to Pending</a>
+                                <a href="{% url 'hr:leave_edit' l.id %}" class="btn-secondary text-xs py-0.5 px-2 text-indigo-400 hover:text-indigo-300">Edit</a>
+                                <a href="{% url 'hr:leave_action' l.id 'delete' %}" onclick="return confirm('Delete leave record?')" class="btn-secondary text-xs py-0.5 px-2 text-red-400 hover:text-red-300">Delete</a>
+                            {% endif %}
+                            {% if l.approver %}
+                                <span class="text-xs text-gray-500 ml-1">Decided by {{ l.approver.username }}</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-gray-500 py-6">No leave applications submitted.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

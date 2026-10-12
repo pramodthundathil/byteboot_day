@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="h-[calc(100vh-100px)] -m-6 flex overflow-hidden bg-[#0b141a]">
+    <!-- Left Project Chat List Column (WhatsApp Desktop Style) -->
+    <div class="w-80 bg-[#111b21] border-r border-white/10 flex flex-col">
+        <div class="p-4 border-b border-white/10 flex justify-between items-center">
+            <h2 class="text-base font-bold text-gray-100">Project Chats</h2>
+            <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">WhatsApp OS</span>
+        </div>
+
+        <div class="p-3">
+            <input type="text" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a884]">
+        </div>
+
+        <!-- Project List Items -->
+        <div class="flex-1 overflow-y-auto flex flex-col">
+            {% for prj in projects %}
+            <a href="?project_id={{ prj.id }}" class="flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a884]{% endif %}">
+                <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white">
+                    {{ prj.code|slice:":3" }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-xs font-bold text-gray-100 truncate">{{ prj.name }}</h4>
+                        <span class="text-[10px] text-gray-500 font-mono">{{ prj.code }}</span>
+                    </div>
+                    <p class="text-[11px] text-gray-400 truncate mt-0.5">{{ prj.description|default:"Team conversation room" }}</p>
+                </div>
+            </a>
+            {% empty %}
+            <div class="p-6 text-xs text-gray-500 text-center flex flex-col items-center">
+                <span class="text-base mb-1">🔒</span>
+                <span>No project rooms assigned to you.</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Right Workspace Chat Area -->
+    <div class="flex-1 flex flex-col bg-[#0b141a] relative">
+        {% if active_project %}
+        <!-- Chat Room Header -->
+        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
+                    {{ active_project.code|slice:":3" }}
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-gray-100">{{ active_project.name }}</h3>
+                    <p class="text-[11px] text-gray-400 font-mono">{{ active_project.code }} | Manager: {{ active_project.manager.username }}</p>
+                </div>
+            </div>
+            <a href="{% url 'projects:project_detail' active_project.id %}" class="btn-secondary text-xs py-1 px-3">View Project Board</a>
+        </div>
+
+        <!-- Chat Feed Messages -->
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+            {% for msg in chat_messages %}
+            <div class="flex flex-col {% if msg.sender == request.user %}items-end{% else %}items-start{% endif %}">
+                <div class="text-[10px] text-gray-400 mb-1 px-1">{{ msg.sender.username }} • {{ msg.created_at|date:"H:i" }}</div>
+                <div class="max-w-md p-3 rounded-xl text-xs shadow {% if msg.sender == request.user %}bg-[#005c4b] text-white rounded-tr-none{% else %}bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10{% endif %}">
+                    <div>{{ msg.message_text }}</div>
+
+                    <!-- Entity Tag Link (Clicking opens item detail) -->
+                    {% if msg.related_entity_type != 'NONE' and msg.related_entity_id %}
+                    <div class="mt-2 pt-2 border-t border-white/20 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-bold text-emerald-300 bg-black/30 px-1.5 py-0.5 rounded">
+                            🔗 Linked {{ msg.related_entity_type }}
+                        </span>
+                        {% if msg.related_entity_type == 'TASK' %}
+                        <a href="{% url 'projects:task_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}
+                        </a>
+                        {% elif msg.related_entity_type == 'INVOICE' %}
+                        <a href="{% url 'invoicing:invoice_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}
+                        </a>
+                        {% elif msg.related_entity_type == 'LEAD' %}
+                        <a href="{% url 'crm:lead_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="my-auto text-center text-gray-500 text-xs">No team messages sent in {{ active_project.code }} yet. Start the conversation below!</div>
+            {% endfor %}
+        </div>
+
+        <!-- Chat Input Form with Entity Link Dropdown -->
+        <div class="p-4 bg-[#111b21] border-t border-white/10">
+            <form method="POST" class="flex flex-col gap-2">
+                {% csrf_token %}
+                <div class="flex items-center gap-2">
+                    <select name="entity_type" class="bg-[#202c33] text-gray-300 text-xs rounded border border-white/10 px-2 py-1 outline-none">
+                        <option value="NONE">No Entity Link</option>
+                        <option value="TASK">Link Task (#TSK)</option>
+                        <option value="INVOICE">Link Invoice (#INV)</option>
+                        <option value="LEAD">Link Lead (#LD)</option>
+                    </select>
+                    <input type="text" name="entity_id" placeholder="Entity ID (e.g. TSK-501)" class="bg-[#202c33] text-gray-300 text-xs rounded border border-white/10 px-2 py-1 outline-none w-40">
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" name="message_text" placeholder="Type a message to project team..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a884]" required autofocus>
+                    <button type="submit" class="btn-primary px-5">Send</button>
+                </div>
+            </form>
+        </div>
+        {% else %}
+        <div class="m-auto text-center text-gray-500 text-sm max-w-sm p-6">
+            <div class="w-12 h-12 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-3 text-xl text-gray-400">🔒</div>
+            <h4 class="text-sm font-bold text-gray-300 mb-1">No Accessible Project Conversation</h4>
+            <p class="text-xs text-gray-500 leading-relaxed">Only assigned team members can access project chat rooms. Select an assigned room on the left to start messaging.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

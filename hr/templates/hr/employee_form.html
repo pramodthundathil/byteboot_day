@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto" x-data="{ 
+    createUser: true,
+    selectedRole: 'DIRECT'
+}">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-6 h-6 text-[#00a884]"></i>
+                Add New Employee Profile
+            </h1>
+            <p class="text-xs text-slate-400">Configure staff profile, salary structure, and system user access permissions</p>
+        </div>
+        <a href="{% url 'hr:employee_list' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Employees
+        </a>
+    </div>
+
+    <form method="POST" class="card space-y-6">
+        {% csrf_token %}
+        <!-- Employee Details -->
+        <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">1. Basic Employee Profile</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-control" required placeholder="Jane">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-control" required placeholder="Smith">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Work Email Address</label>
+                    <input type="email" name="email" class="form-control" required placeholder="jane@byteboot.tech">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="text" name="phone" class="form-control" placeholder="+91 9876543210">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input type="text" name="department" class="form-control" value="Engineering">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Designation</label>
+                    <input type="text" name="designation" class="form-control" value="Senior Full Stack Engineer">
+                </div>
+                <div class="form-group col-span-1 sm:col-span-2">
+                    <label class="form-label">Joining Date</label>
+                    <input type="date" name="joining_date" class="form-control" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- System User Account & Role Permission Assignment -->
+        <div class="border-t border-white/10 pt-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> 2. Platform System User & Role Access
+                </h3>
+                <label class="flex items-center gap-2 text-xs font-semibold text-[#00a884] cursor-pointer">
+                    <input type="checkbox" name="create_user" x-model="createUser" class="rounded bg-[#090d12] border-white/20 text-[#00a884] focus:ring-0">
+                    Grant Platform Login Access
+                </label>
+            </div>
+
+            <div x-show="createUser" class="space-y-4 bg-[#090d12] p-4 rounded-xl border border-white/10">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">System Username</label>
+                        <input type="text" name="username" class="form-control font-mono" placeholder="e.g. jsmith">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Initial Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" value="Byteboot@123">
+                    </div>
+                </div>
+
+                <div class="form-group border-t border-white/5 pt-3">
+                    <label class="form-label font-bold text-slate-200">System Role Policy</label>
+                    <select name="role_choice" x-model="selectedRole" class="form-control">
+                        <option value="COMPANY_ADMIN">🔑 Company Admin (Full Unrestricted Access)</option>
+                        {% for r in custom_roles %}
+                            <option value="CUSTOM:{{ r.id }}">🛡️ Custom Role: {{ r.name }}</option>
+                        {% endfor %}
+                        <option value="DIRECT" selected>⚙️ Direct Custom Permissions (No Custom Role)</option>
+                    </select>
+                </div>
+
+                <!-- Direct Permission Matrix (Shown when DIRECT selected) -->
+                <div x-show="selectedRole === 'DIRECT'" class="border-t border-white/5 pt-3 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                            <i data-lucide="sliders" class="w-3.5 h-3.5 text-[#00a884]"></i> Direct Action Permission Matrix
+                        </h4>
+                        <a href="{% url 'tenants:role_create' %}" target="_blank" class="text-[11px] text-[#00a884] hover:underline flex items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-3 h-3"></i> Create New Custom Role
+                        </a>
+                    </div>
+                    
+                    <div class="space-y-3 text-xs">
+                        <!-- Projects & Tasks -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="check-square" class="w-3.5 h-3.5 text-[#00a884]"></i> Projects & Task Tracker
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_view" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_create" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_edit" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_assign" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Assign Tasks
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_projects_delete" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- HR & Employees -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="users" class="w-3.5 h-3.5 text-[#00a884]"></i> HR Employees & Leave Approvals
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_view" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Staff
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_create" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create Profile
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_edit" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit Access
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_approve" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Approve Leave
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_hr_delete" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- CRM -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="target" class="w-3.5 h-3.5 text-[#00a884]"></i> CRM & Sales Leads
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_view" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_create" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_edit" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Edit
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_convert" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Convert
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_crm_delete" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Delete
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Invoicing & Accounting -->
+                        <div class="p-3 rounded bg-[#101720] border border-white/10">
+                            <div class="font-bold text-slate-200 mb-1.5 flex items-center gap-1">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#00a884]"></i> Invoicing & Accounting Ledger
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_view" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Invoices
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_create" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Create Invoice
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_invoicing_record_payment" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Record Payment
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_accounting_view" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> View Ledger
+                                </label>
+                                <label class="flex items-center gap-1.5 cursor-pointer text-slate-300">
+                                    <input type="checkbox" name="perm_accounting_post" class="rounded bg-[#090d12] border-white/20 text-[#00a884]"> Post Manual JE
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex items-center justify-between border-t border-white/5">
+                    <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                        <input type="checkbox" name="user_active" checked class="rounded bg-[#090d12] border-white/20 text-[#00a884] focus:ring-0">
+                        Enable User Account Status (Can log into platform)
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Salary Structure -->
+        <div class="border-t border-white/10 pt-4">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">3. Monthly Compensation & Bank Details</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="form-group">
+                    <label class="form-label">Basic Monthly Salary (₹)</label>
+                    <input type="number" step="0.01" name="basic_salary" class="form-control" value="50000.00" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">HRA Allowance (₹)</label>
+                    <input type="number" step="0.01" name="hra" class="form-control" value="20000.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Special Allowance (₹)</label>
+                    <input type="number" step="0.01" name="allowance" class="form-control" value="5000.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bank Name</label>
+                    <input type="text" name="bank_name" class="form-control" value="HDFC Bank">
+                </div>
+                <div class="form-group sm:col-span-2">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" name="account_number" class="form-control" value="502000000123">
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-2 flex justify-end">
+            <button type="submit" class="btn-primary px-6">Save Employee & Create System Account</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

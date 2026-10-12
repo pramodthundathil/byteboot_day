@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto pb-12">
+    <!-- Header -->
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-gray-100">Create New Project</h1>
+            <p class="text-xs text-gray-400 mt-1">Initialize a client software development project and assign team members</p>
+        </div>
+        <a href="{% url 'projects:project_list' %}" class="btn-secondary">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Projects
+        </a>
+    </div>
+
+    <form method="POST" class="space-y-6" id="projectCreateForm">
+        {% csrf_token %}
+
+        <!-- Project Details Card -->
+        <div class="card">
+            <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                Project Information & Timeline
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="form-group md:col-span-2">
+                    <label class="form-label">Project Name <span class="text-red-400">*</span></label>
+                    <input type="text" name="name" class="form-control" required placeholder="e.g. Byteboot Business OS SaaS Core">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Client / Customer (Optional)</label>
+                    <select name="customer_id" class="form-control">
+                        <option value="">-- Internal / No External Customer --</option>
+                        {% for c in customers %}
+                        <option value="{{ c.id }}">{{ c.customer_code }} - {{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Project Manager <span class="text-red-400">*</span></label>
+                    <select name="manager_id" id="managerSelect" class="form-control" required>
+                        {% for u in assignable_users %}
+                        <option value="{{ u.id }}" {% if u == request.user %}selected{% endif %}>
+                            {% if u.employee_profile %}{{ u.employee_profile.full_name }} ({{ u.employee_profile.employee_id }}){% elif u.get_full_name %}{{ u.get_full_name }} ({{ u.username }}){% else %}{{ u.username }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control">
+                        {% for code, label in status_choices %}
+                        <option value="{{ code }}" {% if code == 'IN_PROGRESS' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <select name="priority" class="form-control">
+                        {% for code, label in priority_choices %}
+                        <option value="{{ code }}" {% if code == 'MEDIUM' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Start Date <span class="text-red-400">*</span></label>
+                    <input type="date" name="start_date" class="form-control" required value="{% now 'Y-m-d' %}">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target End Date</label>
+                    <input type="date" name="target_end_date" class="form-control">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Budget (₹)</label>
+                    <input type="number" step="0.01" name="budget" class="form-control" value="250000.00">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Estimated Effort (Hours)</label>
+                    <input type="number" step="0.5" name="estimated_hours" class="form-control" value="200.00">
+                </div>
+
+                <div class="form-group md:col-span-2 lg:col-span-3">
+                    <label class="form-label">Description & Scope</label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Project deliverables, technical specifications, and milestones..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Team Members Card -->
+        <div class="card" id="team-members">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4 mb-4">
+                <div>
+                    <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                        Assign Team Members
+                        <span id="assignedCountBadge" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                            0 assigned
+                        </span>
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">
+                        Only assigned team members can access and see this project in the project dashboard and team discussions.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="selectAllBtn" class="btn-secondary text-xs py-1 px-2.5">
+                        Select All
+                    </button>
+                    <button type="button" id="clearAllBtn" class="btn-secondary text-xs py-1 px-2.5">
+                        Clear Non-Managers
+                    </button>
+                </div>
+            </div>
+
+            <!-- Employee Live Search Filter -->
+            <div class="relative mb-4">
+                <input type="text" id="memberSearchInput" placeholder="Filter employees by name, employee ID, or designation..." 
+                       class="form-control pl-9 bg-slate-900 text-xs focus:ring-[#00a884]" autocomplete="off" />
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
+            </div>
+
+            <!-- Team Members Selection Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="membersGrid">
+                {% for u in assignable_users %}
+                <div class="member-card p-3 rounded-xl border border-gray-800 bg-[#0c1319] hover:border-gray-700 transition flex flex-col justify-between gap-3"
+                     data-user-id="{{ u.id }}"
+                     data-search="{% if u.employee_profile %}{{ u.employee_profile.full_name }} {{ u.employee_profile.employee_id }} {{ u.employee_profile.designation }}{% else %}{{ u.username }} {{ u.get_full_name }}{% endif %}">
+                    
+                    <div class="flex items-start justify-between gap-2">
+                        <label class="flex items-start gap-3 cursor-pointer flex-1 select-none">
+                            <input type="checkbox" name="member_ids" value="{{ u.id }}" 
+                                   class="member-checkbox mt-1 w-4 h-4 rounded border-gray-700 bg-gray-900 text-[#00a884] focus:ring-[#00a884] focus:ring-offset-gray-900 cursor-pointer"
+                                   {% if u == request.user %}checked{% endif %}>
+                            
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                    {{ u.first_name|default:u.username|slice:":1"|upper }}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="text-xs font-bold text-gray-200 truncate">
+                                        {% if u.employee_profile %}
+                                            {{ u.employee_profile.full_name }}
+                                        {% elif u.get_full_name %}
+                                            {{ u.get_full_name }}
+                                        {% else %}
+                                            {{ u.username }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-[11px] text-gray-400 font-mono truncate">
+                                        {% if u.employee_profile %}
+                                            {{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}
+                                        {% else %}
+                                            @{{ u.username }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <span class="manager-indicator hidden px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800 shrink-0">
+                            Project Lead
+                        </span>
+                    </div>
+
+                    <!-- Role Dropdown -->
+                    <div class="flex items-center justify-between pt-2 border-t border-gray-800/80 gap-2">
+                        <span class="text-[11px] text-gray-400">Assigned Role:</span>
+                        <select name="role_{{ u.id }}" class="role-select bg-gray-900 border border-gray-800 text-gray-200 text-xs rounded-lg px-2.5 py-1 outline-none focus:border-[#00a884]">
+                            {% for r_code, r_label in role_choices %}
+                            <option value="{{ r_code }}" {% if u == request.user and r_code == 'MANAGER' %}selected{% elif u != request.user and r_code == 'DEVELOPER' %}selected{% endif %}>
+                                {{ r_label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-2 text-center text-gray-500 py-6">
+                    No active company employees or users found.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <a href="{% url 'projects:project_list' %}" class="btn-secondary">
+                Cancel
+            </a>
+            <button type="submit" class="btn-primary px-6">
+                <i data-lucide="check" class="w-4 h-4"></i> Initialize Project & Assign Team
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const managerSelect = document.getElementById('managerSelect');
+    const memberCards = document.querySelectorAll('.member-card');
+    const assignedCountBadge = document.getElementById('assignedCountBadge');
+    const searchInput = document.getElementById('memberSearchInput');
+    const selectAllBtn = document.getElementById('selectAllBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+
+    function updateCardStyles() {
+        let count = 0;
+        const currentManagerId = managerSelect ? managerSelect.value : null;
+
+        memberCards.forEach(card => {
+            const userId = card.getAttribute('data-user-id');
+            const checkbox = card.querySelector('.member-checkbox');
+            const roleSelect = card.querySelector('.role-select');
+            const managerIndicator = card.querySelector('.manager-indicator');
+
+            if (userId === currentManagerId) {
+                checkbox.checked = true;
+                if (managerIndicator) managerIndicator.classList.remove('hidden');
+                if (roleSelect) roleSelect.value = 'MANAGER';
+            } else {
+                if (managerIndicator) managerIndicator.classList.add('hidden');
+            }
+
+            if (checkbox.checked) {
+                count++;
+                card.classList.add('border-emerald-600/60', 'bg-emerald-950/20');
+                card.classList.remove('border-gray-800', 'bg-[#0c1319]');
+                if (roleSelect) roleSelect.disabled = false;
+            } else {
+                card.classList.remove('border-emerald-600/60', 'bg-emerald-950/20');
+                card.classList.add('border-gray-800', 'bg-[#0c1319]');
+                if (roleSelect) roleSelect.disabled = true;
+            }
+        });
+
+        if (assignedCountBadge) {
+            assignedCountBadge.textContent = `${count} assigned`;
+        }
+    }
+
+    memberCards.forEach(card => {
+        const checkbox = card.querySelector('.member-checkbox');
+        if (checkbox) {
+            checkbox.addEventListener('change', updateCardStyles);
+        }
+    });
+
+    if (managerSelect) {
+        managerSelect.addEventListener('change', updateCardStyles);
+    }
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            memberCards.forEach(card => {
+                if (!card.classList.contains('hidden')) {
+                    const cb = card.querySelector('.member-checkbox');
+                    if (cb) cb.checked = true;
+                }
+            });
+            updateCardStyles();
+        });
+    }
+
+    if (clearAllBtn) {
+        clearAllBtn.addEventListener('click', function() {
+            const currentManagerId = managerSelect ? managerSelect.value : null;
+            memberCards.forEach(card => {
+                const userId = card.getAttribute('data-user-id');
+                const cb = card.querySelector('.member-checkbox');
+                if (cb && userId !== currentManagerId) {
+                    cb.checked = false;
+                }
+            });
+            updateCardStyles();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            memberCards.forEach(card => {
+                const term = (card.getAttribute('data-search') || '').toLowerCase();
+                if (term.includes(query)) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+        });
+    }
+
+    updateCardStyles();
+
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+});
+</script>
+{% endblock %}

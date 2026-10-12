@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'hr:employee_list' %}" class="hover:text-white">HR</a> / <span class="text-[#00a884]">{{ employee.employee_id }}</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-extrabold text-slate-100">{{ employee.full_name }}</h1>
+            <span class="status-pill status-success">{{ employee.get_status_display }}</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">{{ employee.designation }} | Department: {{ employee.department }}</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'hr:employee_edit' employee.id %}" class="btn-primary">
+            <i data-lucide="edit" class="w-4 h-4"></i> Edit Profile & Access
+        </a>
+        <a href="{% url 'hr:employee_list' %}" class="btn-secondary">Back to Directory</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Employee Overview -->
+    <div class="card space-y-4">
+        <h3 class="text-sm font-bold text-slate-100 border-b border-white/10 pb-3 flex items-center justify-between">
+            <span>Basic Profile Info</span>
+            <span class="font-mono text-xs text-[#00a884]">{{ employee.employee_id }}</span>
+        </h3>
+
+        <div class="space-y-3 text-xs">
+            <div>
+                <span class="text-slate-400 block">Work Email:</span>
+                <span class="font-semibold text-slate-200">{{ employee.email }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Phone:</span>
+                <span class="font-semibold text-slate-200">{{ employee.phone|default:"N/A" }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Joining Date:</span>
+                <span class="font-semibold text-slate-200">{{ employee.joining_date }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Bank Account:</span>
+                <span class="font-mono text-slate-200">{{ employee.bank_name }} - {{ employee.account_number }}</span>
+            </div>
+            <div class="pt-3 border-t border-white/10">
+                <span class="text-slate-400 block">Total Monthly Compensation:</span>
+                <span class="text-xl font-extrabold text-[#25d366]">₹{{ employee.total_monthly_ctc }}</span>
+                <span class="text-[10px] text-slate-500 block">(Basic: ₹{{ employee.basic_salary }} | HRA: ₹{{ employee.hra }} | Allowance: ₹{{ employee.allowance }})</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- System User Login & Role Permission Settings -->
+    <div class="card lg:col-span-2 space-y-4">
+        <div class="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> Platform System User & Role Permissions
+            </h3>
+            <a href="{% url 'hr:employee_edit' employee.id %}" class="text-xs text-[#00a884] hover:underline">Manage Role →</a>
+        </div>
+
+        {% if employee.user %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#090d12] p-4 rounded-xl border border-white/10 text-xs">
+            <div>
+                <span class="text-slate-400 block">System Username:</span>
+                <span class="font-mono text-[#25d366] font-bold text-sm">{{ employee.user.username }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Assigned Role:</span>
+                <span class="bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold text-xs inline-block mt-0.5">
+                    {% if membership.role == 'CUSTOM' and membership.custom_role %}
+                        Custom Role: {{ membership.custom_role.name }}
+                    {% else %}
+                        {{ membership.get_role_display|default:"Staff Member" }}
+                    {% endif %}
+                </span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Platform Login Access:</span>
+                <span class="font-bold text-emerald-400">Enabled ✓</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Company Access Context:</span>
+                <span class="font-semibold text-slate-200">{{ current_company.name }}</span>
+            </div>
+        </div>
+
+        <!-- Custom Permission Breakdown -->
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4">Module Permission Policy Overview</h4>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div class="p-2.5 rounded bg-[#090d12] border border-white/5 flex items-center justify-between">
+                <span>CRM & Sales</span>
+                {% if perms.crm %}<span class="text-[#25d366] font-bold">Allowed ✓</span>{% else %}<span class="text-slate-500">Restricted</span>{% endif %}
+            </div>
+            <div class="p-2.5 rounded bg-[#090d12] border border-white/5 flex items-center justify-between">
+                <span>Tax Invoicing</span>
+                {% if perms.invoicing %}<span class="text-[#25d366] font-bold">Allowed ✓</span>{% else %}<span class="text-slate-500">Restricted</span>{% endif %}
+            </div>
+            <div class="p-2.5 rounded bg-[#090d12] border border-white/5 flex items-center justify-between">
+                <span>General Ledger</span>
+                {% if perms.accounting %}<span class="text-[#25d366] font-bold">Allowed ✓</span>{% else %}<span class="text-slate-500">Restricted</span>{% endif %}
+            </div>
+            <div class="p-2.5 rounded bg-[#090d12] border border-white/5 flex items-center justify-between">
+                <span>HR & Leave</span>
+                {% if perms.hr %}<span class="text-[#25d366] font-bold">Allowed ✓</span>{% else %}<span class="text-slate-500">Restricted</span>{% endif %}
+            </div>
+            <div class="p-2.5 rounded bg-[#090d12] border border-white/5 flex items-center justify-between">
+                <span>Projects & Tasks</span>
+                {% if perms.projects %}<span class="text-[#25d366] font-bold">Allowed ✓</span>{% else %}<span class="text-slate-500">Restricted</span>{% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="bg-[#090d12] p-6 rounded-xl border border-white/10 text-center text-xs">
+            <p class="text-amber-400 font-semibold mb-3">No System User Account linked to this employee.</p>
+            <a href="{% url 'hr:employee_edit' employee.id %}" class="btn-primary text-xs">Enable System Access & Assign Role</a>
+        </div>
+        {% endif %}
+
+        <!-- Leave Requests History -->
+        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mt-6 border-t border-white/10 pt-4">Recent Leave Requests</h4>
+        <div class="space-y-2">
+            {% for l in leaves %}
+            <div class="p-3 rounded-lg bg-[#090d12] border border-white/5 text-xs flex justify-between items-center">
+                <div>
+                    <span class="font-bold text-slate-200">{{ l.leave_type.name }} ({{ l.duration_days }} days)</span>
+                    <p class="text-slate-400 mt-0.5">{{ l.start_date }} to {{ l.end_date }} - {{ l.reason }}</p>
+                </div>
+                <span class="status-pill {% if l.status == 'APPROVED' %}status-success{% elif l.status == 'REJECTED' %}status-danger{% else %}status-warning{% endif %}">
+                    {{ l.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <div class="text-slate-500 text-xs text-center py-4">No leave requests submitted yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

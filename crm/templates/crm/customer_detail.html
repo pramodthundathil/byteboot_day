@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">{{ customer.customer_code }} - {{ customer.name }}</h1>
+        <p class="text-xs text-gray-400">{{ customer.email }} | {{ customer.phone }} | {{ customer.city }}, {{ customer.state }}</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'invoicing:invoice_create' %}" class="btn-primary">+ Issue Tax Invoice</a>
+        <a href="{% url 'crm:customer_list' %}" class="btn-secondary">Back to Customers</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Invoices List -->
+    <div class="card">
+        <h3 class="text-sm font-bold text-gray-200 mb-4">Customer Tax Invoices</h3>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inv in invoices %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                                {{ inv.invoice_number }}
+                            </a>
+                        </td>
+                        <td>{{ inv.date }}</td>
+                        <td class="font-semibold">₹{{ inv.grand_total }}</td>
+                        <td><span class="status-pill status-info">{{ inv.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-gray-500 py-4">No invoices issued to this customer.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payments List -->
+    <div class="card">
+        <h3 class="text-sm font-bold text-gray-200 mb-4">Recorded Payments</h3>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Payment #</th>
+                        <th>Date</th>
+                        <th>Method</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pay in payments %}
+                    <tr>
+                        <td class="font-mono text-emerald-400 font-bold">{{ pay.payment_number }}</td>
+                        <td>{{ pay.payment_date }}</td>
+                        <td>{{ pay.get_payment_method_display }}</td>
+                        <td class="font-semibold text-emerald-400">₹{{ pay.amount }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-gray-500 py-4">No payments recorded yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

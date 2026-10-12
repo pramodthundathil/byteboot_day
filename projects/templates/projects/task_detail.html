@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load permissions %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center flex-wrap gap-4">
+    <div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-100">{{ task.task_number }}: {{ task.title }}</h1>
+            <span class="status-pill {% if task.status == 'DONE' %}status-success{% elif task.status == 'IN_PROGRESS' %}status-warning{% else %}status-info{% endif %}">
+                {{ task.get_status_display }}
+            </span>
+        </div>
+        <p class="text-xs text-gray-400 mt-1 flex items-center gap-2">
+            <span>Project: <strong class="text-gray-200">{{ task.project.name }} ({{ task.project.code }})</strong></span>
+            <span>•</span>
+            <span class="flex items-center gap-1">
+                <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i>
+                Assigned Team: 
+                <strong class="text-emerald-400">
+                    {% with assignees=task.get_all_assignees %}
+                        {% if assignees %}
+                            {{ assignees|length }} Employee(s)/User(s) Assigned
+                        {% else %}
+                            Unassigned
+                        {% endif %}
+                    {% endwith %}
+                </strong>
+            </span>
+        </p>
+    </div>
+    <div class="flex items-center gap-2">
+        {% if request|has_perm:'projects.edit' %}
+        <a href="{% url 'projects:task_edit' task.id %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+            <i data-lucide="edit" class="w-4 h-4 text-emerald-400"></i>
+            Edit Task & Assignee
+        </a>
+        {% endif %}
+        <a href="{% url 'projects:task_list' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to Tasks
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Task Description & Work Logs -->
+    <div class="card lg:col-span-2">
+        <h3 class="text-sm font-bold text-gray-200 mb-2 flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
+            Task Description & Acceptance Criteria
+        </h3>
+        <p class="text-xs text-gray-300 mb-6 bg-gray-900 p-3.5 rounded-lg border border-gray-800 leading-relaxed">{{ task.description|default:"No detailed description provided." }}</p>
+
+        <!-- Status Transition Bar -->
+        <h3 class="text-sm font-bold text-gray-200 mb-2 flex items-center gap-1.5">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+            Update Task Status
+        </h3>
+        <form method="POST" class="flex flex-wrap gap-2 mb-6">
+            {% csrf_token %}
+            <button type="submit" name="status" value="TO_DO" class="btn-secondary text-xs {% if task.status == 'TO_DO' %}border-emerald-500 text-emerald-400{% endif %}">To Do</button>
+            <button type="submit" name="status" value="IN_PROGRESS" class="btn-secondary text-xs {% if task.status == 'IN_PROGRESS' %}border-emerald-500 text-emerald-400{% endif %}">In Progress</button>
+            <button type="submit" name="status" value="IN_REVIEW" class="btn-secondary text-xs {% if task.status == 'IN_REVIEW' %}border-emerald-500 text-emerald-400{% endif %}">In Review</button>
+            <button type="submit" name="status" value="BLOCKED" class="btn-secondary text-xs {% if task.status == 'BLOCKED' %}border-red-500 text-red-400{% endif %}">Blocked</button>
+            <button type="submit" name="status" value="DONE" class="btn-primary text-xs flex items-center gap-1 {% if task.status == 'DONE' %}bg-emerald-600{% endif %}">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Mark Done
+            </button>
+        </form>
+
+        <!-- Work Log History -->
+        <h3 class="text-sm font-bold text-gray-200 mb-3 flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+            Logged Effort & History (Total: {{ task.total_actual_hours }}h)
+        </h3>
+        <div class="flex flex-col gap-2">
+            {% for wl in work_logs %}
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs flex justify-between items-center">
+                <div>
+                    <span class="font-bold text-emerald-400">{{ wl.user.get_full_name|default:wl.user.username }} logged {{ wl.hours_spent }}h</span>
+                    <p class="text-gray-300 mt-1">{{ wl.description }}</p>
+                </div>
+                <span class="text-gray-500 font-mono text-[11px]">{{ wl.work_date }}</span>
+            </div>
+            {% empty %}
+            <div class="text-xs text-gray-500 py-2">No work log hours recorded yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar: Assigned Team & Log Work Hours -->
+    <div class="flex flex-col gap-6">
+        <!-- Assigned Team Card -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-bold text-gray-200 flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                    Assigned Employees & Users
+                </h3>
+                {% if request|has_perm:'projects.edit' %}
+                <a href="{% url 'projects:task_edit' task.id %}" class="text-[11px] text-emerald-400 hover:underline flex items-center gap-1">
+                    <i data-lucide="user-plus" class="w-3 h-3"></i> Edit
+                </a>
+                {% endif %}
+            </div>
+            <div class="flex flex-col gap-2">
+                {% for u in task.get_all_assignees %}
+                <div class="flex items-center justify-between p-2 rounded bg-gray-900 border border-gray-800 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold flex items-center justify-center text-[10px]">
+                            {{ u.username|slice:":2"|upper }}
+                        </div>
+                        <div>
+                            <span class="font-semibold text-gray-200 block">
+                                {% if u.employee_profile %}
+                                    {{ u.employee_profile.full_name }}
+                                {% elif u.get_full_name %}
+                                    {{ u.get_full_name }}
+                                {% else %}
+                                    {{ u.username }}
+                                {% endif %}
+                            </span>
+                            <span class="text-[10px] text-gray-400 font-mono block">
+                                {% if u.employee_profile %}
+                                    {{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}
+                                {% else %}
+                                    Username: {{ u.username }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-xs text-gray-500 py-1">No assignees assigned to this task.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Log Work Hours Form -->
+        <div class="card">
+            <h3 class="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+                Log Work Hours
+            </h3>
+            <form method="POST" class="flex flex-col gap-3">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Hours Spent</label>
+                    <input type="number" step="0.25" name="hours_spent" class="form-control text-xs" value="2.0" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Work Summary</label>
+                    <textarea name="log_description" class="form-control text-xs" rows="3" placeholder="Summary of progress made..." required></textarea>
+                </div>
+                <button type="submit" class="btn-primary text-xs flex items-center justify-center gap-1.5">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                    Record Work Log
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

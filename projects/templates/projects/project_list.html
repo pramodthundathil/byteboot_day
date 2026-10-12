@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">Client Projects Dashboard</h1>
+        <p class="text-xs text-gray-400">Software development, client deliverables tracking, and assigned team workspaces</p>
+    </div>
+    {% if can_create or is_admin %}
+    <a href="{% url 'projects:project_create' %}" class="btn-primary">
+        <i data-lucide="plus" class="w-4 h-4"></i> Create New Project
+    </a>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for prj in projects %}
+    <div class="card flex flex-col justify-between hover:border-emerald-500/70 transition shadow-lg group">
+        <div>
+            <!-- Top Bar: Code, Priority, Status -->
+            <div class="flex justify-between items-start mb-2">
+                <span class="font-mono text-emerald-400 text-xs font-bold bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+                    {{ prj.code }}
+                </span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase {% if prj.priority == 'URGENT' %}bg-red-950 text-red-300 border border-red-800{% elif prj.priority == 'HIGH' %}bg-orange-950 text-orange-300 border border-orange-800{% elif prj.priority == 'MEDIUM' %}bg-blue-950 text-blue-300 border border-blue-800{% else %}bg-gray-800 text-gray-400 border border-gray-700{% endif %}">
+                        {{ prj.get_priority_display }}
+                    </span>
+                    <span class="status-pill status-info text-xs">
+                        {{ prj.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Project Name -->
+            <h3 class="text-base font-bold text-gray-100 mb-1 mt-2 group-hover:text-emerald-300 transition">
+                <a href="{% url 'projects:project_detail' prj.id %}" class="hover:underline">{{ prj.name }}</a>
+            </h3>
+
+            <!-- Customer / Client Tag -->
+            <div class="text-[11px] text-gray-400 mb-2 flex items-center gap-1">
+                <i data-lucide="building" class="w-3.5 h-3.5 text-gray-500"></i>
+                <span>Client: <strong class="text-gray-300">{{ prj.customer.name|default:"Internal Initiative" }}</strong></span>
+            </div>
+
+            <!-- Description -->
+            <p class="text-xs text-gray-400 mb-4 line-clamp-2 leading-relaxed">
+                {{ prj.description|default:"No scope description provided." }}
+            </p>
+
+            <!-- Assigned Team Members Preview -->
+            <div class="mb-4 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs">
+                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between items-center">
+                    <span class="flex items-center gap-1">
+                        <i data-lucide="users" class="w-3 h-3 text-emerald-400"></i>
+                        Assigned Team
+                    </span>
+                    <span class="font-mono text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded text-[10px] border border-emerald-800">
+                        {{ prj.members.count }} member{{ prj.members.count|pluralize }}
+                    </span>
+                </div>
+                <div class="flex flex-wrap gap-1.5 items-center">
+                    {% for m in prj.members.all|slice:":4" %}
+                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-slate-800 text-slate-300 border border-slate-700/80" title="{{ m.user.get_full_name|default:m.user.username }} ({{ m.get_role_display }})">
+                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-900 text-emerald-300 text-[9px] flex items-center justify-center font-bold">
+                            {{ m.user.first_name|default:m.user.username|slice:":1"|upper }}
+                        </span>
+                        <span class="font-medium truncate max-w-[80px]">
+                            {% if m.user.employee_profile %}{{ m.user.employee_profile.first_name }}{% elif m.user.first_name %}{{ m.user.first_name }}{% else %}{{ m.user.username }}{% endif %}
+                        </span>
+                        <span class="text-emerald-400 text-[9px] font-mono">({{ m.get_role_display|slice:":3" }})</span>
+                    </span>
+                    {% empty %}
+                    <span class="text-slate-500 text-[11px] italic">No members assigned yet.</span>
+                    {% endfor %}
+                    {% if prj.members.count > 4 %}
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-400 border border-slate-700">
+                        +{{ prj.members.count|add:"-4" }} more
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Action Buttons -->
+        <div class="border-t border-gray-800/80 pt-3 text-xs flex justify-between items-center gap-2">
+            <span class="text-gray-400 truncate">Lead: <strong class="text-gray-200">{% if prj.manager %}{{ prj.manager.get_full_name|default:prj.manager.username }}{% else %}Unassigned{% endif %}</strong></span>
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="{% url 'projects:project_edit' prj.id %}" class="btn-secondary text-xs py-1 px-2.5 hover:border-emerald-500/50" title="Edit project and assign team members">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
+                </a>
+                <a href="{% url 'projects:project_detail' prj.id %}" class="btn-secondary text-xs py-1 px-2.5" title="Open project workspace">
+                    Workspace →
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-span-3 text-center text-gray-500 py-12 card">
+        <div class="w-12 h-12 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-3 text-xl text-gray-400">
+            📂
+        </div>
+        <h3 class="text-sm font-bold text-gray-300 mb-1">No Projects Accessible</h3>
+        <p class="text-xs text-gray-500 max-w-md mx-auto">
+            You do not have any assigned projects in this workspace. Only assigned team members can see and access projects in this dashboard.
+        </p>
+        {% if can_create or is_admin %}
+        <div class="mt-4">
+            <a href="{% url 'projects:project_create' %}" class="btn-primary">
+                + Create New Project
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

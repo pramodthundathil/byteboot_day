@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-100">{{ lead.lead_number }} - {{ lead.company_name }}</h1>
+            <span class="status-pill {% if lead.status == 'WON' %}status-success{% elif lead.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
+                {{ lead.get_status_display }}
+            </span>
+        </div>
+        <p class="text-xs text-gray-400">Contact: {{ lead.contact_person }} | {{ lead.phone }} | {{ lead.email }}</p>
+    </div>
+    <div class="flex gap-2">
+        {% if lead.status != 'WON' %}
+        <form action="{% url 'crm:lead_convert' lead.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary">🏆 Convert to Customer</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'crm:lead_list' %}" class="btn-secondary">Back to Leads</a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Lead Overview -->
+    <div class="card lg:col-span-1">
+        <h3 class="text-sm font-bold text-gray-200 mb-4">Lead Overview</h3>
+        <div class="flex flex-col gap-3 text-xs">
+            <div>
+                <span class="text-gray-400">Estimated Value:</span>
+                <span class="font-bold text-emerald-400 text-sm block">₹{{ lead.estimated_value }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Service Interested:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.service_interested }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Lead Source:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.source }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Assigned Staff:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.assigned_to.username|default:"Unassigned" }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity & Followup Timeline -->
+    <div class="card lg:col-span-2">
+        <h3 class="text-sm font-bold text-gray-200 mb-4">Log Followup Activity</h3>
+        <form method="POST" class="mb-6 border-b border-gray-800 pb-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="form-label">Interaction Method</label>
+                    <select name="method" class="form-control text-xs">
+                        <option value="PHONE">Phone Call</option>
+                        <option value="EMAIL">Email</option>
+                        <option value="MEETING">In-Person Meeting</option>
+                        <option value="WHATSAPP">WhatsApp</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">Update Stage / Status</label>
+                    <select name="status" class="form-control text-xs">
+                        <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>New</option>
+                        <option value="CONTACTED" {% if lead.status == 'CONTACTED' %}selected{% endif %}>Contacted</option>
+                        <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>Follow-up Required</option>
+                        <option value="QUALIFIED" {% if lead.status == 'QUALIFIED' %}selected{% endif %}>Qualified</option>
+                        <option value="PROPOSAL_SENT" {% if lead.status == 'PROPOSAL_SENT' %}selected{% endif %}>Proposal Sent</option>
+                        <option value="WON" {% if lead.status == 'WON' %}selected{% endif %}>Won</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Discussion Summary</label>
+                <textarea name="summary" class="form-control text-xs" rows="2" placeholder="Summary of discussion with client..." required></textarea>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="btn-primary text-xs">Record Followup</button>
+            </div>
+        </form>
+
+        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Followup History</h4>
+        <div class="flex flex-col gap-3">
+            {% for f in followups %}
+            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="font-bold text-emerald-400">{{ f.get_method_display }} by {{ f.staff.username }}</span>
+                    <span class="text-gray-500">{{ f.interaction_time|date:"d M Y, H:i" }}</span>
+                </div>
+                <div class="text-gray-200 mb-1">{{ f.summary }}</div>
+                {% if f.outcome %}
+                <div class="text-gray-400 italic">Outcome: {{ f.outcome }}</div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="text-gray-500 text-xs py-2">No follow-ups recorded yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

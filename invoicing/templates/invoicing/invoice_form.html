@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-gray-100">Create Tax Invoice</h1>
+            <p class="text-xs text-gray-400">Generate GST compliant invoice for client billing</p>
+        </div>
+        <a href="{% url 'invoicing:invoice_list' %}" class="btn-secondary">Back to Invoices</a>
+    </div>
+
+    <form method="POST" class="card">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-4">
+            <div class="form-group col-span-2">
+                <label class="form-label">Select Customer</label>
+                <select name="customer_id" class="form-control" required>
+                    <option value="">-- Choose Customer --</option>
+                    {% for c in customers %}
+                    <option value="{{ c.id }}">{{ c.customer_code }} - {{ c.name }} ({{ c.city }}, {{ c.state }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Invoice Date</label>
+                <input type="date" name="date" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Payment Due Date</label>
+                <input type="date" name="due_date" class="form-control" required>
+            </div>
+            <div class="form-group col-span-2">
+                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+                    <input type="checkbox" name="is_interstate" class="rounded bg-gray-900 border-gray-700">
+                    Inter-state Supply (Apply IGST @ 18% instead of CGST 9% + SGST 9%)
+                </label>
+            </div>
+            <div class="form-group col-span-2 border-t border-gray-800 pt-4 mt-2">
+                <label class="form-label font-bold text-gray-200">Line Item Description</label>
+                <input type="text" name="description" class="form-control mb-2" value="Byteboot ERP Software Development Services" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="form-label">Quantity / Units</label>
+                        <input type="number" step="0.01" name="quantity" class="form-control" value="1.00" required>
+                    </div>
+                    <div>
+                        <label class="form-label">Rate per Unit (₹)</label>
+                        <input type="number" step="0.01" name="rate" class="form-control" value="150000.00" required>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group col-span-2">
+                <label class="form-label">Terms & Notes</label>
+                <textarea name="notes" class="form-control" rows="2">Thank you for your business! Please remit payment via bank transfer.</textarea>
+            </div>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+            <button type="submit" class="btn-primary">Generate Tax Invoice</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

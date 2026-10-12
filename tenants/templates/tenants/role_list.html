@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div x-data="{ 
+    deleteModalOpen: false, 
+    deleteRoleId: null, 
+    deleteRoleName: '', 
+    deleteMemberCount: 0,
+    openDeleteModal(id, name, count) {
+        this.deleteRoleId = id;
+        this.deleteRoleName = name;
+        this.deleteMemberCount = count;
+        this.deleteModalOpen = true;
+    }
+}">
+    <!-- Header & Action Toolbar -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'tenants:company_settings' %}" class="hover:text-white">Settings</a> / 
+                <span class="text-[#00a884]">Roles & Permissions</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+                <i data-lucide="shield" class="w-6 h-6 text-[#00a884]"></i>
+                Roles & Permission Policies
+            </h1>
+            <p class="text-xs text-slate-400">Configure fine-grained module access, granular action permissions, and custom system roles.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'tenants:role_create' %}" class="btn-primary flex items-center gap-1.5 shadow-md shadow-[#00a884]/20">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i> Create Custom Role
+            </a>
+            <a href="{% url 'tenants:company_settings' %}" class="btn-secondary flex items-center gap-1.5">
+                <i data-lucide="settings" class="w-4 h-4"></i> Company Settings
+            </a>
+        </div>
+    </div>
+
+    <!-- Custom Roles Section -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-[#00a884]"></i>
+                Custom Workspace Roles
+                <span class="text-[11px] font-normal px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">
+                    {{ roles|length }} role{{ roles|length|pluralize }}
+                </span>
+            </h2>
+        </div>
+
+        <div class="table-wrap overflow-x-auto">
+            <table class="app-table w-full">
+                <thead>
+                    <tr>
+                        <th class="min-w-[180px]">Role Name & Info</th>
+                        <th class="min-w-[130px]">Projects & Tasks</th>
+                        <th class="min-w-[130px]">CRM Pipeline</th>
+                        <th class="min-w-[140px]">Invoicing</th>
+                        <th class="min-w-[120px]">Accounting</th>
+                        <th class="min-w-[120px]">HR & Staff</th>
+                        <th class="min-w-[90px]">Created</th>
+                        <th class="text-right min-w-[160px]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in roles %}
+                    <tr class="hover:bg-white/[0.02] transition">
+                        <td>
+                            <div class="flex flex-col">
+                                <a href="{% url 'tenants:role_edit' r.id %}" class="font-bold text-slate-100 hover:text-[#00a884] flex items-center gap-1.5 group transition">
+                                    <span>{{ r.name }}</span>
+                                    <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-500 group-hover:text-[#00a884] transition"></i>
+                                </a>
+                                <span class="text-xs text-slate-400 line-clamp-1 mt-0.5">{{ r.description|default:"Custom defined role" }}</span>
+                                <div class="mt-1">
+                                    <span class="text-[10px] bg-slate-800/80 text-slate-300 border border-slate-700/60 px-2 py-0.5 rounded-full font-mono inline-flex items-center gap-1">
+                                        <i data-lucide="users" class="w-2.5 h-2.5 text-slate-400"></i>
+                                        {{ r.member_count|default:"0" }} assigned user{{ r.member_count|pluralize }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Projects Perms -->
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                {% if r.permissions.projects.view %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">View</span>{% endif %}
+                                {% if r.permissions.projects.create %}<span class="text-[10px] bg-blue-950/80 text-blue-300 border border-blue-800/60 px-1.5 py-0.5 rounded font-mono">Create</span>{% endif %}
+                                {% if r.permissions.projects.edit %}<span class="text-[10px] bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded font-mono">Edit</span>{% endif %}
+                                {% if r.permissions.projects.assign %}<span class="text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-1.5 py-0.5 rounded font-mono">Assign</span>{% endif %}
+                                {% if r.permissions.projects.delete %}<span class="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800/60 px-1.5 py-0.5 rounded font-mono">Del</span>{% endif %}
+                                {% if not r.permissions.projects.view and not r.permissions.projects.create and not r.permissions.projects.edit and not r.permissions.projects.assign and not r.permissions.projects.delete %}
+                                    <span class="text-[11px] text-slate-500 italic">None</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- CRM Perms -->
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                {% if r.permissions.crm.view %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">View</span>{% endif %}
+                                {% if r.permissions.crm.create %}<span class="text-[10px] bg-blue-950/80 text-blue-300 border border-blue-800/60 px-1.5 py-0.5 rounded font-mono">Create</span>{% endif %}
+                                {% if r.permissions.crm.edit %}<span class="text-[10px] bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded font-mono">Edit</span>{% endif %}
+                                {% if r.permissions.crm.convert %}<span class="text-[10px] bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded font-mono">Convert</span>{% endif %}
+                                {% if r.permissions.crm.delete %}<span class="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800/60 px-1.5 py-0.5 rounded font-mono">Del</span>{% endif %}
+                                {% if not r.permissions.crm.view and not r.permissions.crm.create and not r.permissions.crm.edit and not r.permissions.crm.convert and not r.permissions.crm.delete %}
+                                    <span class="text-[11px] text-slate-500 italic">None</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Invoicing Perms -->
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                {% if r.permissions.invoicing.view %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">View</span>{% endif %}
+                                {% if r.permissions.invoicing.create %}<span class="text-[10px] bg-blue-950/80 text-blue-300 border border-blue-800/60 px-1.5 py-0.5 rounded font-mono">Create</span>{% endif %}
+                                {% if r.permissions.invoicing.record_payment %}<span class="text-[10px] bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 px-1.5 py-0.5 rounded font-mono">Payment</span>{% endif %}
+                                {% if r.permissions.invoicing.post %}<span class="text-[10px] bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded font-mono">Post</span>{% endif %}
+                                {% if r.permissions.invoicing.delete %}<span class="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800/60 px-1.5 py-0.5 rounded font-mono">Del</span>{% endif %}
+                                {% if not r.permissions.invoicing.view and not r.permissions.invoicing.create and not r.permissions.invoicing.record_payment and not r.permissions.invoicing.post and not r.permissions.invoicing.delete %}
+                                    <span class="text-[11px] text-slate-500 italic">None</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- Accounting Perms -->
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                {% if r.permissions.accounting.view %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">Ledger</span>{% endif %}
+                                {% if r.permissions.accounting.create %}<span class="text-[10px] bg-blue-950/80 text-blue-300 border border-blue-800/60 px-1.5 py-0.5 rounded font-mono">Add A/C</span>{% endif %}
+                                {% if r.permissions.accounting.post %}<span class="text-[10px] bg-purple-950/80 text-purple-300 border border-purple-800/60 px-1.5 py-0.5 rounded font-mono">Post JE</span>{% endif %}
+                                {% if r.permissions.accounting.delete %}<span class="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800/60 px-1.5 py-0.5 rounded font-mono">Del</span>{% endif %}
+                                {% if not r.permissions.accounting.view and not r.permissions.accounting.create and not r.permissions.accounting.post and not r.permissions.accounting.delete %}
+                                    <span class="text-[11px] text-slate-500 italic">None</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <!-- HR Perms -->
+                        <td>
+                            <div class="flex flex-wrap gap-1">
+                                {% if r.permissions.hr.view %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">View</span>{% endif %}
+                                {% if r.permissions.hr.create %}<span class="text-[10px] bg-blue-950/80 text-blue-300 border border-blue-800/60 px-1.5 py-0.5 rounded font-mono">Create</span>{% endif %}
+                                {% if r.permissions.hr.edit %}<span class="text-[10px] bg-amber-950/80 text-amber-300 border border-amber-800/60 px-1.5 py-0.5 rounded font-mono">Edit</span>{% endif %}
+                                {% if r.permissions.hr.approve %}<span class="text-[10px] bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-1.5 py-0.5 rounded font-mono">Approve</span>{% endif %}
+                                {% if r.permissions.hr.delete %}<span class="text-[10px] bg-rose-950/80 text-rose-300 border border-rose-800/60 px-1.5 py-0.5 rounded font-mono">Del</span>{% endif %}
+                                {% if not r.permissions.hr.view and not r.permissions.hr.create and not r.permissions.hr.edit and not r.permissions.hr.approve and not r.permissions.hr.delete %}
+                                    <span class="text-[11px] text-slate-500 italic">None</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td class="font-mono text-xs text-slate-400 whitespace-nowrap">
+                            {{ r.created_at|date:"d M Y" }}
+                        </td>
+
+                        <!-- Action Buttons -->
+                        <td class="text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <a href="{% url 'tenants:role_edit' r.id %}" 
+                                   class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1.5 whitespace-nowrap"
+                                   title="Edit role name and configure permissions">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit Permissions
+                                </a>
+                                <button type="button" 
+                                        @click="openDeleteModal('{{ r.id }}', '{{ r.name|escapejs }}', {{ r.member_count|default:0 }})"
+                                        class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"
+                                        title="Delete custom role">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="8" class="text-center text-slate-400 py-10">
+                            <div class="max-w-md mx-auto space-y-3">
+                                <i data-lucide="shield-alert" class="w-10 h-10 text-slate-600 mx-auto"></i>
+                                <div class="font-bold text-slate-200">No Custom Roles Configured Yet</div>
+                                <p class="text-xs text-slate-400">Create custom roles to assign tailored permissions across Projects, CRM, HR, Invoicing, and Accounting for your team members.</p>
+                                <a href="{% url 'tenants:role_create' %}" class="btn-primary inline-flex items-center gap-1.5 text-xs py-2 px-4 mt-2">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Create First Custom Role
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Built-in System Roles Reference -->
+    <div class="card bg-[#0d131a] border border-white/10 p-5 rounded-2xl">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4 text-[#00a884]"></i>
+                    Standard Built-in System Roles
+                </h3>
+                <p class="text-xs text-slate-400 mt-0.5">Predefined default roles automatically enforced when employees are assigned without a custom role.</p>
+            </div>
+            <a href="{% url 'hr:employee_list' %}" class="text-xs text-[#00a884] hover:underline flex items-center gap-1">
+                <i data-lucide="users" class="w-3.5 h-3.5"></i> Manage Employee Assignments
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for sr in system_roles %}
+            <div class="p-4 rounded-xl bg-[#090d12] border border-white/5 hover:border-white/15 transition flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-bold text-sm text-slate-200 flex items-center gap-1.5">
+                            <i data-lucide="award" class="w-4 h-4 text-[#00a884]"></i>
+                            {{ sr.name }}
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded font-mono bg-emerald-950/60 text-emerald-300 border border-emerald-800/40">
+                            {{ sr.scope }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed mb-3">{{ sr.desc }}</p>
+                </div>
+                <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                    <span>Role Code: {{ sr.code }}</span>
+                    <span class="text-emerald-500/80">Built-in Preset</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div x-show="deleteModalOpen" 
+         x-cloak 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+         style="display: none;">
+        <div class="bg-[#121922] border border-white/10 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
+             @click.outside="deleteModalOpen = false">
+            <div class="flex items-center gap-3 mb-4 text-rose-400">
+                <div class="p-3 bg-rose-500/10 rounded-xl border border-rose-500/20">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100">Delete Custom Role</h3>
+                    <p class="text-xs text-slate-400">This action cannot be undone</p>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-300 mb-4 leading-relaxed">
+                Are you sure you want to delete role <strong class="text-white" x-text="deleteRoleName"></strong>?
+                <template x-if="deleteMemberCount > 0">
+                    <span class="block mt-2 text-amber-300 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
+                        ⚠️ Note: <strong x-text="deleteMemberCount"></strong> user(s) currently have this role. Their membership will automatically revert to default <strong>Staff Member</strong> access.
+                    </span>
+                </template>
+            </p>
+
+            <form :action="'/roles/' + deleteRoleId + '/delete/'" method="POST" class="flex justify-end gap-3 mt-6">
+                {% csrf_token %}
+                <button type="button" @click="deleteModalOpen = false" class="btn-secondary text-xs">
+                    Cancel
+                </button>
+                <button type="submit" class="btn-primary bg-rose-600 hover:bg-rose-500 text-white text-xs px-4">
+                    Confirm Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<div class="p-6">
+    <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+        <div>
+            <span class="text-xs font-mono text-[#00a884] font-bold">{{ lead.lead_number }}</span>
+            <h2 class="text-lg font-bold text-gray-100 mt-0.5">{{ lead.company_name }}</h2>
+        </div>
+        <span class="status-pill {% if lead.status == 'WON' %}status-success{% elif lead.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
+            {{ lead.get_status_display }}
+        </span>
+    </div>
+
+    <div class="space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3 bg-[#111b21] p-3 rounded-lg border border-white/10">
+            <div>
+                <span class="text-gray-400">Contact Person:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.contact_person }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Phone:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.phone }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Est. Value:</span>
+                <span class="font-bold text-[#00a884] text-sm block">₹{{ lead.estimated_value }}</span>
+            </div>
+            <div>
+                <span class="text-gray-400">Service:</span>
+                <span class="font-semibold text-gray-200 block">{{ lead.service_interested }}</span>
+            </div>
+        </div>
+
+        <div>
+            <h4 class="font-bold text-gray-300 mb-2 uppercase text-[10px] tracking-wider">Followup History</h4>
+            <div class="space-y-2 max-h-60 overflow-y-auto">
+                {% for f in followups %}
+                <div class="p-2.5 rounded bg-[#111b21] border border-white/5">
+                    <div class="flex justify-between text-emerald-400 font-semibold mb-1">
+                        <span>{{ f.get_method_display }}</span>
+                        <span class="text-gray-500 font-mono">{{ f.interaction_time|date:"d M, H:i" }}</span>
+                    </div>
+                    <p class="text-gray-300">{{ f.summary }}</p>
+                </div>
+                {% empty %}
+                <div class="text-gray-500 text-center py-4">No followups recorded yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-white/10 flex gap-2 justify-end">
+            {% if lead.status != 'WON' %}
+            <form action="{% url 'crm:lead_convert' lead.id %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn-primary text-xs">🏆 Convert to Customer</button>
+            </form>
+            {% endif %}
+            <a href="{% url 'crm:lead_detail' lead.id %}" class="btn-secondary text-xs">Full Page View →</a>
+        </div>
+    </div>
+</div>

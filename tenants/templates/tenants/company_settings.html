@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <h1 class="text-xl font-bold text-gray-100">Company Settings</h1>
+            <p class="text-xs text-gray-400">Manage tenant profile, branding, and registration details</p>
+        </div>
+    </div>
+
+    <form method="POST" class="card">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-4">
+            <div class="form-group col-span-2">
+                <label class="form-label">Company Name</label>
+                <input type="text" name="name" class="form-control" value="{{ company.name }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Company Code / Tag</label>
+                <input type="text" class="form-control bg-gray-900" value="{{ company.code }}" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tagline / Motto</label>
+                <input type="text" name="tagline" class="form-control" value="{{ company.tagline }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ company.email }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input type="text" name="phone" class="form-control" value="{{ company.phone }}">
+            </div>
+            <div class="form-group col-span-2">
+                <label class="form-label">GSTIN (India Tax Registration)</label>
+                <input type="text" name="gstin" class="form-control font-mono" value="{{ company.gstin }}" placeholder="e.g. 32AAAAA0000A1Z5">
+            </div>
+            <div class="form-group col-span-2">
+                <label class="form-label">Address</label>
+                <textarea name="address" class="form-control" rows="3">{{ company.address }}</textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">City</label>
+                <input type="text" name="city" class="form-control" value="{{ company.city }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">State</label>
+                <input type="text" name="state" class="form-control" value="{{ company.state }}">
+            </div>
+        </div>
+
+        <div class="mt-4 flex justify-end">
+            <button type="submit" class="btn-primary">Save Company Settings</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

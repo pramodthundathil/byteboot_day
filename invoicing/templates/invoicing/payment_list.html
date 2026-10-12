@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">Customer Payment Receipts</h1>
+        <p class="text-xs text-gray-400">Track collections, bank deposits, and payment allocations</p>
+    </div>
+    <a href="{% url 'invoicing:payment_create' %}" class="btn-primary">+ Record Customer Payment</a>
+</div>
+
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Payment #</th>
+                <th>Customer</th>
+                <th>Payment Date</th>
+                <th>Method</th>
+                <th>Reference / UTR</th>
+                <th>Amount</th>
+                <th>Unallocated</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pay in payments %}
+            <tr>
+                <td class="font-mono text-emerald-400 font-bold">{{ pay.payment_number }}</td>
+                <td class="font-semibold">{{ pay.customer.name }}</td>
+                <td>{{ pay.payment_date }}</td>
+                <td>{{ pay.get_payment_method_display }}</td>
+                <td class="font-mono text-xs">{{ pay.reference_number|default:"N/A" }}</td>
+                <td class="font-bold text-emerald-400">₹{{ pay.amount }}</td>
+                <td class="text-yellow-400 font-mono">₹{{ pay.unallocated_amount }}</td>
+                <td><span class="status-pill status-success">{{ pay.get_status_display }}</span></td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center text-gray-500 py-6">No payment records entered yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

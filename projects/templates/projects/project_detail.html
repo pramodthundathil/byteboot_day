@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+        <div class="flex flex-wrap items-center gap-3">
+            <span class="font-mono text-emerald-400 text-xs font-bold bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+                {{ project.code }}
+            </span>
+            <h1 class="text-xl font-bold text-gray-100">{{ project.name }}</h1>
+            <span class="text-xs px-2 py-0.5 rounded font-bold uppercase {% if project.priority == 'URGENT' %}bg-red-950 text-red-300 border border-red-800{% elif project.priority == 'HIGH' %}bg-orange-950 text-orange-300 border border-orange-800{% elif project.priority == 'MEDIUM' %}bg-blue-950 text-blue-300 border border-blue-800{% else %}bg-gray-800 text-gray-400 border border-gray-700{% endif %}">
+                {{ project.get_priority_display }}
+            </span>
+            <span class="status-pill status-info text-xs">{{ project.get_status_display }}</span>
+        </div>
+        <p class="text-xs text-gray-400 mt-1">
+            Manager: <strong class="text-gray-200">{% if project.manager %}{{ project.manager.get_full_name|default:project.manager.username }}{% else %}Unassigned{% endif %}</strong> 
+            | Customer: <strong class="text-gray-200">{{ project.customer.name|default:"Internal Initiative" }}</strong>
+            | Timeline: <span class="font-mono text-gray-300">{{ project.start_date|date:"d M Y" }}</span> to <span class="font-mono text-gray-300">{% if project.target_end_date %}{{ project.target_end_date|date:"d M Y" }}{% else %}Ongoing{% endif %}</span>
+        </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+        {% if can_edit or is_admin %}
+        <a href="{% url 'projects:project_edit' project.id %}" class="btn-secondary" title="Edit project and assign team members">
+            <i data-lucide="edit-3" class="w-4 h-4 text-emerald-400"></i> Edit Project & Team
+        </a>
+        {% endif %}
+        <a href="{% url 'projects:task_create' %}?project_id={{ project.id }}" class="btn-primary">
+            <i data-lucide="plus" class="w-4 h-4"></i> Create Task
+        </a>
+        <a href="{% url 'projects:conversations' %}?project_id={{ project.id }}" class="btn-secondary">
+            💬 Project Chat
+        </a>
+        <a href="{% url 'projects:project_list' %}" class="btn-secondary">
+            Back
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Tasks List -->
+    <div class="card lg:col-span-2">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i>
+                Project Task Tracker
+            </h3>
+            <span class="text-xs text-gray-400 font-mono">{{ tasks.count }} task{{ tasks.count|pluralize }}</span>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Task #</th>
+                        <th>Title</th>
+                        <th>Assignee</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tasks %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'projects:task_detail' t.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                                {{ t.task_number }}
+                            </a>
+                        </td>
+                        <td class="font-semibold">{{ t.title }}</td>
+                        <td>
+                            {% if t.assigned_to %}
+                                {{ t.assigned_to.get_full_name|default:t.assigned_to.username }}
+                            {% else %}
+                                <span class="text-gray-500 italic">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="text-xs px-2 py-0.5 rounded font-bold {% if t.priority == 'URGENT' %}bg-red-900/60 text-red-300{% elif t.priority == 'HIGH' %}bg-orange-900/60 text-orange-300{% else %}bg-gray-800 text-gray-300{% endif %}">
+                                {{ t.get_priority_display }}
+                            </span>
+                        </td>
+                        <td><span class="status-pill status-warning">{{ t.get_status_display }}</span></td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-gray-500 py-8">
+                            No tasks created for this project yet.
+                            <div class="mt-2">
+                                <a href="{% url 'projects:task_create' %}?project_id={{ project.id }}" class="btn-primary text-xs py-1 px-3">
+                                    + Add First Task
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Project Members & Details -->
+    <div class="space-y-6">
+        <!-- Overview Card -->
+        <div class="card">
+            <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
+                Project Overview
+            </h3>
+            <div class="flex flex-col gap-3 text-xs mb-4">
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                    <span class="text-gray-400">Total Budget:</span>
+                    <span class="font-bold text-emerald-400 font-mono text-sm">₹{{ project.budget }}</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                    <span class="text-gray-400">Estimated Effort:</span>
+                    <span class="font-semibold text-gray-200 font-mono">{{ project.estimated_hours }} Hours</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
+                    <span class="text-gray-400">Logged Hours:</span>
+                    <span class="font-semibold text-emerald-400 font-mono">{{ project.total_logged_hours }} Hours</span>
+                </div>
+                <div class="pt-1">
+                    <span class="text-gray-400 block mb-1">Scope & Objectives:</span>
+                    <p class="text-gray-300 leading-relaxed bg-slate-900/60 p-2.5 rounded-lg border border-slate-800/80 text-[11px]">
+                        {{ project.description|default:"No description recorded for this project." }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assigned Team Members Card -->
+        <div class="card">
+            <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-3">
+                <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    Assigned Team ({{ members|length }})
+                </h4>
+                {% if can_edit or is_admin %}
+                <a href="{% url 'projects:project_edit' project.id %}#team-members" class="text-xs text-[#00a884] hover:underline font-semibold flex items-center gap-1">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Assign Members
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-col gap-2 max-h-96 overflow-y-auto">
+                {% for m in members %}
+                <div class="flex justify-between items-center p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-xs hover:border-gray-700 transition">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-7 h-7 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                            {{ m.user.first_name|default:m.user.username|slice:":1" }}
+                        </div>
+                        <div class="min-w-0">
+                            <span class="font-semibold text-gray-200 block truncate">
+                                {% if m.user.employee_profile %}
+                                    {{ m.user.employee_profile.full_name }}
+                                {% elif m.user.get_full_name %}
+                                    {{ m.user.get_full_name }}
+                                {% else %}
+                                    {{ m.user.username }}
+                                {% endif %}
+                            </span>
+                            <span class="text-[10px] text-gray-400 font-mono block truncate">
+                                {% if m.user.employee_profile %}
+                                    {{ m.user.employee_profile.employee_id }} • {{ m.user.employee_profile.designation }}
+                                {% else %}
+                                    @{{ m.user.username }}
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0 {% if m.role == 'MANAGER' %}bg-purple-950 text-purple-300 border border-purple-800{% elif m.role == 'DEVELOPER' %}bg-emerald-950 text-emerald-300 border border-emerald-800{% elif m.role == 'DESIGNER' %}bg-pink-950 text-pink-300 border border-pink-800{% elif m.role == 'QA' %}bg-amber-950 text-amber-300 border border-amber-800{% else %}bg-gray-800 text-gray-300 border border-gray-700{% endif %}">
+                        {{ m.get_role_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="text-xs text-gray-500 p-3 text-center bg-gray-900/50 rounded-lg">
+                    Manager: {{ project.manager.username|default:"Unassigned" }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

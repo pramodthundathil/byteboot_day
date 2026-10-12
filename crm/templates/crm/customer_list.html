@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">Customer Directory</h1>
+        <p class="text-xs text-gray-400">Converted clients and account profiles</p>
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Customer Code</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City / State</th>
+                <th>GSTIN</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>
+                    <a href="{% url 'crm:customer_detail' customer.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                        {{ customer.customer_code }}
+                    </a>
+                </td>
+                <td class="font-semibold">{{ customer.name }}</td>
+                <td>{{ customer.email }}</td>
+                <td>{{ customer.phone }}</td>
+                <td>{{ customer.city }}, {{ customer.state }}</td>
+                <td class="font-mono text-xs">{{ customer.gstin|default:"N/A" }}</td>
+                <td>
+                    <a href="{% url 'crm:customer_detail' customer.id %}" class="btn-secondary text-xs py-1 px-2">View 360° Profile</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-gray-500 py-6">No customers registered yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

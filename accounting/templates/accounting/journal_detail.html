@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-xl font-bold text-gray-100">Journal #{self.journal.entry_number}</h1>
+            <span class="status-pill {% if journal.status == 'POSTED' %}status-success{% elif journal.status == 'REVERSED' %}status-danger{% else %}status-warning{% endif %}">
+                {{ journal.get_status_display }}
+            </span>
+        </div>
+        <p class="text-xs text-gray-400">Date: {{ journal.date }} | Ref: {{ journal.reference|default:"N/A" }} | Source: {{ journal.source_module }}</p>
+    </div>
+    <div class="flex gap-2">
+        {% if journal.status == 'POSTED' %}
+        <form action="{% url 'accounting:journal_reverse' journal.id %}" method="POST" onsubmit="return confirm('Reverse this journal entry?')">
+            {% csrf_token %}
+            <button type="submit" class="btn-secondary text-red-400 border-red-900 hover:bg-red-950">↩ Reverse Journal</button>
+        </form>
+        {% endif %}
+        <a href="{% url 'accounting:journal_list' %}" class="btn-secondary">Back to Register</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="text-xs text-gray-300 mb-4 bg-gray-900 p-3 rounded-lg border border-gray-800">
+        <strong>Narration:</strong> {{ journal.description }}
+    </div>
+
+    <h3 class="text-sm font-bold text-gray-200 mb-3">Debit & Credit Lines</h3>
+    <div class="table-wrap mb-4">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th>Account Type</th>
+                    <th>Debit (₹)</th>
+                    <th>Credit (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in lines %}
+                <tr>
+                    <td class="font-mono text-emerald-400 font-bold">{{ line.account.code }}</td>
+                    <td class="font-semibold">{{ line.account.name }}</td>
+                    <td><span class="text-xs text-gray-400">{{ line.account.get_account_type_display }}</span></td>
+                    <td class="font-bold text-gray-100">{% if line.debit > 0 %}₹{{ line.debit }}{% else %}-{% endif %}</td>
+                    <td class="font-bold text-gray-100">{% if line.credit > 0 %}₹{{ line.credit }}{% else %}-{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="flex justify-between items-center text-xs font-bold bg-gray-900 p-3 rounded-lg border border-gray-800">
+        <span>Balance Verification:</span>
+        <div class="flex gap-6">
+            <span class="text-gray-300">Total Debit: <strong class="text-emerald-400">₹{{ journal.total_debit }}</strong></span>
+            <span class="text-gray-300">Total Credit: <strong class="text-emerald-400">₹{{ journal.total_credit }}</strong></span>
+            <span class="text-emerald-400 font-mono">Balanced ✓</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

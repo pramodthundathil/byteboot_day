@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load permissions %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>HR</span> / <span class="text-[#00a884]">Employees</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-100">HR & Employee Directory</h1>
+        <p class="text-xs text-slate-400">Manage staff profiles, monthly compensation, and system user access permissions</p>
+    </div>
+    <div class="flex items-center gap-2">
+        {% if request|has_perm:'roles.view' %}
+        <a href="{% url 'tenants:role_list' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+            <i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> Roles & Permissions
+        </a>
+        {% endif %}
+        {% if request|has_perm:'hr.create' %}
+        <a href="{% url 'hr:employee_create' %}" class="btn-primary flex items-center gap-1.5 text-xs">
+            <i data-lucide="user-plus" class="w-4 h-4"></i> Add New Employee
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Emp ID</th>
+                <th>Employee Name</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>System Access</th>
+                <th>Joining Date</th>
+                <th>Monthly CTC</th>
+                <th>Status</th>
+                <th data-sortable="false">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr class="cursor-pointer" hx-get="{% url 'hr:employee_ajax_detail' emp.id %}" hx-target="#drawer-content" @click="drawerOpen = true">
+                <td class="font-mono text-[#00a884] font-bold">{{ emp.employee_id }}</td>
+                <td class="font-semibold text-slate-100">
+                    <a href="{% url 'hr:employee_detail' emp.id %}" class="hover:text-[#00a884] transition" @click.stop>{{ emp.full_name }}</a>
+                </td>
+                <td>{{ emp.department }}</td>
+                <td>{{ emp.designation }}</td>
+                <td>
+                    {% if emp.user %}
+                    <span class="text-[10px] bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold">
+                        User: {{ emp.user.username }}
+                    </span>
+                    {% else %}
+                    <span class="text-[10px] text-slate-500 italic">No User Linked</span>
+                    {% endif %}
+                </td>
+                <td>{{ emp.joining_date }}</td>
+                <td class="font-extrabold text-[#00a884]">₹{{ emp.total_monthly_ctc }}</td>
+                <td>
+                    <span class="status-pill status-success">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {{ emp.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="flex items-center gap-1.5" @click.stop>
+                        <a href="{% url 'hr:employee_detail' emp.id %}" class="btn-secondary text-[11px] py-1 px-2 flex items-center gap-1" title="View Full Profile">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> View
+                        </a>
+                        {% if request|has_perm:'hr.edit' %}
+                        <a href="{% url 'hr:employee_edit' emp.id %}" class="btn-primary text-[11px] py-1 px-2 flex items-center gap-1" title="Edit Profile & System Access">
+                            <i data-lucide="edit" class="w-3.5 h-3.5"></i> Edit & Access
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row">
+                <td colspan="9" class="text-center text-slate-500 py-8">No employee profiles created yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

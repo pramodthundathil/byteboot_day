@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-gray-100">Financial Statements & Trial Balance</h1>
+        <p class="text-xs text-gray-400">Reconciled double-entry financial statements for {{ current_company.name }}</p>
+    </div>
+</div>
+
+<!-- Financial Summary Cards -->
+<div class="stat-grid mb-6">
+    <div class="stat-card">
+        <div class="stat-label">Total Assets</div>
+        <div class="stat-val text-blue-400">₹{{ total_assets }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Liabilities</div>
+        <div class="stat-val text-red-400">₹{{ total_liabilities }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total Operating Revenue</div>
+        <div class="stat-val text-emerald-400">₹{{ total_income }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Net Profit / Loss</div>
+        <div class="stat-val {% if net_profit >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">₹{{ net_profit }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="text-sm font-bold text-gray-200 mb-4">Trial Balance Summary</h3>
+    <div class="table-wrap">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name</th>
+                    <th>Type</th>
+                    <th>Calculated Balance (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in trial_balance %}
+                <tr>
+                    <td class="font-mono text-emerald-400 font-bold">{{ item.account.code }}</td>
+                    <td class="font-semibold">{{ item.account.name }}</td>
+                    <td><span class="text-xs text-gray-400">{{ item.account.get_account_type_display }}</span></td>
+                    <td class="font-bold text-gray-100">₹{{ item.balance }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

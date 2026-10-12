@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="mb-6 flex justify-between items-center">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'projects:task_list' %}" class="hover:text-white">Tasks</a> / 
+                <a href="{% url 'projects:task_detail' task.id %}" class="hover:text-white">{{ task.task_number }}</a> / 
+                <span class="text-[#00a884]">Edit Task</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+                <i data-lucide="edit" class="w-6 h-6 text-[#00a884]"></i>
+                Edit Task {{ task.task_number }}
+            </h1>
+            <p class="text-xs text-slate-400">Update task details, status, priority, and assign to employees or users</p>
+        </div>
+        <a href="{% url 'projects:task_detail' task.id %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            Back to Task Detail
+        </a>
+    </div>
+
+    <form method="POST" class="card">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="form-group col-span-2">
+                <label class="form-label">Project Context</label>
+                <select name="project_id" class="form-control" required>
+                    {% for p in projects %}
+                    <option value="{{ p.id }}" {% if task.project_id == p.id %}selected{% endif %}>{{ p.code }} - {{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group col-span-2">
+                <label class="form-label">Task Title</label>
+                <input type="text" name="title" class="form-control" required value="{{ task.title }}">
+            </div>
+
+            <!-- Custom Searchable Multi-Select Employee Dropdown -->
+            <div class="form-group col-span-2">
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="form-label mb-0 flex items-center gap-1.5 text-slate-200">
+                        <i data-lucide="users" class="w-4 h-4 text-[#00a884]"></i>
+                        Assigned Employees & Users
+                    </label>
+                    <div class="flex items-center gap-2 text-xs">
+                        <button type="button" id="btnSelectAll" class="text-[#00a884] hover:underline flex items-center gap-1 font-medium">
+                            <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Select All Employees
+                        </button>
+                        <span class="text-slate-600">|</span>
+                        <button type="button" id="btnClearAll" class="text-slate-400 hover:underline">
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Selected Assignees Tag Pills Area -->
+                <div id="selectedAssigneesContainer" class="flex flex-wrap gap-1.5 p-2 bg-slate-900 border border-slate-700/60 rounded-t-lg min-h-[44px] items-center">
+                    <span id="noAssigneesText" class="text-xs text-slate-500 italic pl-1">No employees selected. Type name or Employee ID below to search and assign.</span>
+                </div>
+
+                <!-- Custom Search Input -->
+                <div class="relative">
+                    <div class="relative">
+                        <input type="text" id="employeeSearchInput" placeholder="Type employee name or ID (e.g. EMP-101, Pramod) to filter..." 
+                               class="form-control pl-9 rounded-t-none border-t-0 bg-slate-900 text-xs focus:ring-[#00a884]" autocomplete="off" />
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Scrollable Search Results List -->
+                    <div id="assigneeDropdownList" class="mt-1 bg-slate-900 border border-slate-800 rounded-lg max-h-56 overflow-y-auto divide-y divide-slate-800 shadow-xl">
+                        {% for u in assignable_users %}
+                        <div class="assignee-item p-2.5 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition text-xs select-none"
+                             data-user-id="{{ u.id }}"
+                             data-search-term="{% if u.employee_profile %}{{ u.employee_profile.full_name }} {{ u.employee_profile.employee_id }} {{ u.employee_profile.designation }}{% else %}{{ u.username }} {{ u.get_full_name }}{% endif %}"
+                             data-display-name="{% if u.employee_profile %}{{ u.employee_profile.full_name }}{% elif u.get_full_name %}{{ u.get_full_name }}{% else %}{{ u.username }}{% endif %}"
+                             data-subtitle="{% if u.employee_profile %}{{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}{% else %}User: {{ u.username }}{% endif %}">
+                            <div class="flex items-center gap-2.5">
+                                <div class="item-checkbox-icon w-4 h-4 rounded border border-slate-600 flex items-center justify-center text-white font-bold transition">
+                                    <i data-lucide="check" class="w-3 h-3 hidden check-mark"></i>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-slate-200 block">
+                                        {% if u.employee_profile %}
+                                            {{ u.employee_profile.full_name }}
+                                        {% elif u.get_full_name %}
+                                            {{ u.get_full_name }}
+                                        {% else %}
+                                            {{ u.username }}
+                                        {% endif %}
+                                    </span>
+                                    <span class="text-[10px] text-slate-400 font-mono">
+                                        {% if u.employee_profile %}
+                                            {{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}
+                                        {% else %}
+                                            Username: {{ u.username }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-[#00a884]">
+                                {% if u.employee_profile %}Employee{% else %}User{% endif %}
+                            </span>
+                        </div>
+                        {% empty %}
+                        <div class="text-xs text-slate-500 p-3">No active employees or users found in company.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Hidden Inputs Container for Form Submission -->
+                <div id="hiddenInputsContainer"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-control">
+                    <option value="BACKLOG" {% if task.status == 'BACKLOG' %}selected{% endif %}>Backlog</option>
+                    <option value="TO_DO" {% if task.status == 'TO_DO' %}selected{% endif %}>To Do</option>
+                    <option value="IN_PROGRESS" {% if task.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                    <option value="IN_REVIEW" {% if task.status == 'IN_REVIEW' %}selected{% endif %}>In Review</option>
+                    <option value="BLOCKED" {% if task.status == 'BLOCKED' %}selected{% endif %}>Blocked</option>
+                    <option value="DONE" {% if task.status == 'DONE' %}selected{% endif %}>Done</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Priority</label>
+                <select name="priority" class="form-control">
+                    <option value="LOW" {% if task.priority == 'LOW' %}selected{% endif %}>Low</option>
+                    <option value="MEDIUM" {% if task.priority == 'MEDIUM' %}selected{% endif %}>Medium</option>
+                    <option value="HIGH" {% if task.priority == 'HIGH' %}selected{% endif %}>High</option>
+                    <option value="URGENT" {% if task.priority == 'URGENT' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Estimated Hours</label>
+                <input type="number" step="0.5" name="estimated_hours" class="form-control" value="{{ task.estimated_hours }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Due Date</label>
+                <input type="date" name="due_date" class="form-control" value="{{ task.due_date|date:'Y-m-d'|default:'' }}">
+            </div>
+
+            <div class="form-group col-span-2">
+                <label class="form-label">Description & Criteria</label>
+                <textarea name="description" class="form-control" rows="4">{{ task.description }}</textarea>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3 border-t border-slate-800 pt-4">
+            <a href="{% url 'projects:task_detail' task.id %}" class="btn-secondary flex items-center gap-1.5">Cancel</a>
+            <button type="submit" class="btn-primary flex items-center gap-1.5">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                Save Task Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+window.INITIAL_ASSIGNEE_IDS = {{ current_assignee_ids|safe }};
+
+document.addEventListener('DOMContentLoaded', function() {
+    const selectedUsers = new Map(); // id -> { name, subtitle }
+    const searchInput = document.getElementById('employeeSearchInput');
+    const selectedContainer = document.getElementById('selectedAssigneesContainer');
+    const noAssigneesText = document.getElementById('noAssigneesText');
+    const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
+    const items = document.querySelectorAll('.assignee-item');
+
+    function renderTagsAndInputs() {
+        selectedContainer.querySelectorAll('.assignee-pill').forEach(el => el.remove());
+        hiddenInputsContainer.innerHTML = '';
+
+        if (selectedUsers.size === 0) {
+            noAssigneesText.style.display = 'inline';
+        } else {
+            noAssigneesText.style.display = 'none';
+            selectedUsers.forEach((data, id) => {
+                const pill = document.createElement('span');
+                pill.className = 'assignee-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00a884]/20 border border-[#00a884]/40 text-[#00a884] text-xs font-medium shadow-sm';
+                pill.innerHTML = `
+                    <span>${data.name} <small class="text-slate-400 font-mono text-[10px]">(${data.subtitle})</small></span>
+                    <button type="button" class="hover:text-red-400 font-bold ml-1 cursor-pointer" data-remove-id="${id}">✕</button>
+                `;
+                selectedContainer.appendChild(pill);
+
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'assigned_to_ids';
+                hiddenInput.value = id;
+                hiddenInputsContainer.appendChild(hiddenInput);
+            });
+        }
+
+        items.forEach(item => {
+            const id = item.getAttribute('data-user-id');
+            const checkMark = item.querySelector('.check-mark');
+            const iconBox = item.querySelector('.item-checkbox-icon');
+            if (selectedUsers.has(id)) {
+                item.classList.add('bg-[#00a884]/15', 'border-l-2', 'border-l-[#00a884]');
+                if (checkMark) checkMark.classList.remove('hidden');
+                if (iconBox) {
+                    iconBox.classList.add('bg-[#00a884]', 'border-[#00a884]');
+                    iconBox.classList.remove('border-slate-600');
+                }
+            } else {
+                item.classList.remove('bg-[#00a884]/15', 'border-l-2', 'border-l-[#00a884]');
+                if (checkMark) checkMark.classList.add('hidden');
+                if (iconBox) {
+                    iconBox.classList.remove('bg-[#00a884]', 'border-[#00a884]');
+                    iconBox.classList.add('border-slate-600');
+                }
+            }
+        });
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    items.forEach(item => {
+        item.addEventListener('click', function() {
+            const id = this.getAttribute('data-user-id');
+            const name = this.getAttribute('data-display-name');
+            const subtitle = this.getAttribute('data-subtitle');
+            if (selectedUsers.has(id)) {
+                selectedUsers.delete(id);
+            } else {
+                selectedUsers.set(id, { name, subtitle });
+            }
+            renderTagsAndInputs();
+        });
+    });
+
+    selectedContainer.addEventListener('click', function(e) {
+        if (e.target && e.target.hasAttribute('data-remove-id')) {
+            const id = e.target.getAttribute('data-remove-id');
+            selectedUsers.delete(id);
+            renderTagsAndInputs();
+        }
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            items.forEach(item => {
+                const term = item.getAttribute('data-search-term').toLowerCase();
+                if (term.includes(query)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    document.getElementById('btnSelectAll').addEventListener('click', function() {
+        items.forEach(item => {
+            const id = item.getAttribute('data-user-id');
+            const name = item.getAttribute('data-display-name');
+            const subtitle = item.getAttribute('data-subtitle');
+            selectedUsers.set(id, { name, subtitle });
+        });
+        renderTagsAndInputs();
+    });
+
+    document.getElementById('btnClearAll').addEventListener('click', function() {
+        selectedUsers.clear();
+        renderTagsAndInputs();
+    });
+
+    // Populate initial assignees from task data
+    if (window.INITIAL_ASSIGNEE_IDS && Array.isArray(window.INITIAL_ASSIGNEE_IDS)) {
+        window.INITIAL_ASSIGNEE_IDS.forEach(idVal => {
+            const idStr = String(idVal);
+            const targetItem = document.querySelector(`.assignee-item[data-user-id="${idStr}"]`);
+            if (targetItem) {
+                const id = targetItem.getAttribute('data-user-id');
+                const name = targetItem.getAttribute('data-display-name');
+                const subtitle = targetItem.getAttribute('data-subtitle');
+                selectedUsers.set(id, { name, subtitle });
+            }
+        });
+        renderTagsAndInputs();
+    }
+});
+</script>
+{% endblock %}

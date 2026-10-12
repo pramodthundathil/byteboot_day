@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Byteboot Business OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        * { font-family: 'Inter', -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-[#090d12] text-slate-100 flex items-center justify-center h-screen m-0 relative overflow-hidden">
+
+    <!-- Floating Toast Notifications -->
+    {% if messages %}
+    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+        {% for message in messages %}
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="translate-x-full opacity-0"
+             x-transition:enter-end="translate-x-0 opacity-100"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="translate-x-0 opacity-100"
+             x-transition:leave-end="translate-x-full opacity-0"
+             class="pointer-events-auto p-4 rounded-xl border shadow-2xl backdrop-blur-md flex items-start gap-3 bg-[#101720]/95
+             {% if message.tags == 'error' or message.tags == 'danger' %}
+                border-red-500/60 shadow-red-950/40
+             {% elif message.tags == 'warning' %}
+                border-amber-500/60 shadow-amber-950/40
+             {% elif message.tags == 'info' %}
+                border-blue-500/60 shadow-blue-950/40
+             {% else %}
+                border-[#00a884]/60 shadow-emerald-950/40
+             {% endif %}">
+            
+            <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs
+                 {% if message.tags == 'error' or message.tags == 'danger' %}
+                    bg-red-500/20 text-red-400 border border-red-500/30
+                 {% elif message.tags == 'warning' %}
+                    bg-amber-500/20 text-amber-400 border border-amber-500/30
+                 {% elif message.tags == 'info' %}
+                    bg-blue-500/20 text-blue-400 border border-blue-500/30
+                 {% else %}
+                    bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30
+                 {% endif %}">
+                {% if message.tags == 'error' or message.tags == 'danger' %}
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                {% elif message.tags == 'warning' %}
+                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                {% elif message.tags == 'info' %}
+                    <i data-lucide="info" class="w-4 h-4"></i>
+                {% else %}
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                {% endif %}
+            </div>
+
+            <div class="flex-1 min-w-0">
+                <div class="font-bold text-xs uppercase tracking-wider mb-0.5
+                     {% if message.tags == 'error' or message.tags == 'danger' %}
+                        text-red-400
+                     {% elif message.tags == 'warning' %}
+                        text-amber-400
+                     {% elif message.tags == 'info' %}
+                        text-blue-400
+                     {% else %}
+                        text-[#25d366]
+                     {% endif %}">
+                    {% if message.tags == 'error' or message.tags == 'danger' %}
+                        Error Notification
+                    {% elif message.tags == 'warning' %}
+                        Warning Notice
+                    {% elif message.tags == 'info' %}
+                        Information
+                    {% else %}
+                        Success Notification
+                    {% endif %}
+                </div>
+                <p class="text-xs text-slate-200 leading-relaxed font-medium">{{ message }}</p>
+            </div>
+
+            <button @click="show = false" class="text-slate-400 hover:text-white transition text-xs p-1">
+                ✕
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Login Card -->
+    <div class="w-full max-w-sm bg-[#101720] border border-white/10 rounded-2xl p-8 shadow-2xl">
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-[#00a884] flex items-center justify-center font-black text-2xl text-white mb-3 shadow-lg shadow-[#00a884]/30">
+                B
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100">Byteboot OS</h1>
+            <p class="text-xs text-slate-400 mt-1 text-center">Multi-Tenant Business Management ERP</p>
+        </div>
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Username</label>
+                <input type="text" name="username" required placeholder="admin" autofocus class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884]">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Password</label>
+                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884]">
+            </div>
+            <button type="submit" class="w-full bg-[#00a884] hover:bg-[#028e70] text-white font-bold text-xs py-3 rounded-lg shadow-lg shadow-[#00a884]/20 transition transform active:scale-[0.99] mt-2">
+                Sign In to Workspace
+            </button>
+        </form>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ accountModalOpen: false, editModalOpen: false, editAccount: { id: null, code: '', name: '', description: '' } }">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'accounting:journal_list' %}" class="hover:text-white">Accounting</a> / 
+                <span class="text-[#00a884]">Chart of Accounts</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100">Chart of Accounts</h1>
+            <p class="text-xs text-slate-400">Master financial ledger accounts, dynamic sub-accounts, and real-time ledger balances</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button @click="accountModalOpen = true" class="btn-primary">
+                + Add New Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Category Balance Overview Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'ASSET' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Assets</span>
+            <span class="text-base font-extrabold text-blue-400 block mt-1">₹{{ category_totals.ASSET }}</span>
+            <span class="text-[10px] text-slate-500">Cash, Bank, AR, Stock</span>
+        </a>
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'LIABILITY' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Liabilities</span>
+            <span class="text-base font-extrabold text-rose-400 block mt-1">₹{{ category_totals.LIABILITY }}</span>
+            <span class="text-[10px] text-slate-500">AP, GST, Payables</span>
+        </a>
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'EQUITY' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Equity</span>
+            <span class="text-base font-extrabold text-purple-400 block mt-1">₹{{ category_totals.EQUITY }}</span>
+            <span class="text-[10px] text-slate-500">Capital & Earnings</span>
+        </a>
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'INCOME' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Income</span>
+            <span class="text-base font-extrabold text-[#25d366] block mt-1">₹{{ category_totals.INCOME }}</span>
+            <span class="text-[10px] text-slate-500">Consulting, SaaS, Sales</span>
+        </a>
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'EXPENSE' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Expenses</span>
+            <span class="text-base font-extrabold text-amber-400 block mt-1">₹{{ category_totals.EXPENSE }}</span>
+            <span class="text-[10px] text-slate-500">Salaries, Rent, Tools</span>
+        </a>
+    </div>
+
+    <!-- Filter Bar & Search -->
+    <div class="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-1 overflow-x-auto text-xs font-semibold">
+            <a href="{% url 'accounting:chart_of_accounts' %}" class="px-3 py-1.5 rounded-lg border transition {% if not type_filter %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                All Categories
+            </a>
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'ASSET' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                Assets
+            </a>
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'LIABILITY' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                Liabilities
+            </a>
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EQUITY' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                Equity
+            </a>
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'INCOME' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                Income
+            </a>
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EXPENSE' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+                Expenses
+            </a>
+        </div>
+
+        <form method="GET" class="relative w-full sm:w-64">
+            {% if type_filter %}<input type="hidden" name="type" value="{{ type_filter }}">{% endif %}
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search code or account..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a884]">
+        </form>
+    </div>
+
+    <!-- Accounts Data Table -->
+    <div class="table-wrap">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    <th>Account Code</th>
+                    <th>Account Name & Description</th>
+                    <th>Category Type</th>
+                    <th>Classification</th>
+                    <th class="text-right">Live Ledger Balance</th>
+                    <th data-sortable="false" class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in accounts_with_balance %}
+                <tr class="hover:bg-[#1e2b3b]">
+                    <td class="font-mono text-[#00a884] font-bold">{{ item.account.code }}</td>
+                    <td>
+                        <span class="font-semibold text-slate-100 block">{{ item.account.name }}</span>
+                        {% if item.account.description %}
+                        <span class="text-[10px] text-slate-400 block">{{ item.account.description }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="text-[11px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider
+                            {% if item.account.account_type == 'ASSET' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                            {% elif item.account.account_type == 'LIABILITY' %}bg-rose-500/20 text-rose-400 border border-rose-500/30
+                            {% elif item.account.account_type == 'EQUITY' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                            {% elif item.account.account_type == 'INCOME' %}bg-emerald-500/20 text-[#25d366] border border-emerald-500/30
+                            {% else %}bg-amber-500/20 text-amber-400 border border-amber-500/30{% endif %}">
+                            {{ item.account.get_account_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if item.account.is_system %}
+                            <span class="text-[10px] bg-slate-800 text-slate-400 border border-white/10 px-2 py-0.5 rounded font-mono">System Default</span>
+                        {% else %}
+                            <span class="text-[10px] bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold">Custom Account</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-right font-extrabold text-sm {% if item.balance < 0 %}text-rose-400{% else %}text-[#25d366]{% endif %}">
+                        ₹{{ item.balance }}
+                    </td>
+                    <td class="text-center">
+                        <button @click="editAccount = { id: {{ item.account.id }}, code: '{{ item.account.code }}', name: '{{ item.account.name|escapejs }}', description: '{{ item.account.description|escapejs }}' }; editModalOpen = true" class="btn-secondary text-[11px] py-1 px-2.5 flex items-center gap-1 mx-auto">
+                            <i data-lucide="edit-2" class="w-3.5 h-3.5"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="6" class="text-center text-slate-500 py-8">
+                        No financial accounts found matching your query.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal 1: Dynamic Account Creation Modal -->
+    <div x-show="accountModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;">
+        <div class="relative w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4" @click.away="accountModalOpen = false">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-[#00a884]"></i> Create New Chart of Account
+                </h3>
+                <button @click="accountModalOpen = false" class="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            <form method="POST" action="{% url 'accounting:account_create' %}" class="space-y-4">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Account Code</label>
+                        <input type="text" name="code" class="form-control font-mono" placeholder="e.g. 5100" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Account Category Type</label>
+                        <select name="account_type" class="form-control" required>
+                            <option value="EXPENSE">Expense Account</option>
+                            <option value="INCOME">Income Account</option>
+                            <option value="ASSET">Asset Account</option>
+                            <option value="LIABILITY">Liability Account</option>
+                            <option value="EQUITY">Equity Account</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Freelancer & Subcontractor Fees" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Opening Balance (₹)</label>
+                    <input type="number" step="0.01" name="opening_balance" class="form-control" value="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Description (Optional)</label>
+                    <textarea name="description" rows="2" class="form-control" placeholder="Describe the purpose of this ledger account..."></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-white/10 flex justify-end gap-2">
+                    <button type="button" @click="accountModalOpen = false" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Account Edit Modal -->
+    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;">
+        <div class="relative w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4" @click.away="editModalOpen = false">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3">
+                <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="edit-3" class="w-5 h-5 text-[#00a884]"></i> Edit Account #<span x-text="editAccount.code"></span>
+                </h3>
+                <button @click="editModalOpen = false" class="text-slate-400 hover:text-white text-lg">✕</button>
+            </div>
+
+            <form :action="'/accounting/chart-of-accounts/' + editAccount.id + '/edit/'" method="POST" class="space-y-4">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Account Name</label>
+                    <input type="text" name="name" x-model="editAccount.name" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" x-model="editAccount.description" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-white/10 flex justify-end gap-2">
+                    <button type="button" @click="editModalOpen = false" class="btn-secondary">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

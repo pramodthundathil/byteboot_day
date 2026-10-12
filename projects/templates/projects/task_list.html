@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load permissions %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Projects</span> / <span class="text-[#00a884]">Tasks</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+            <i data-lucide="check-square" class="w-6 h-6 text-[#00a884]"></i>
+            Task Tracker & Issue Board
+        </h1>
+        <p class="text-xs text-slate-400">Agile task management, work log entries, and team assignment tracking</p>
+    </div>
+    <div class="flex items-center gap-2">
+        {% if request|has_perm:'projects.create' %}
+        <a href="{% url 'projects:task_create' %}" class="btn-primary flex items-center gap-1.5 text-xs">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Create New Task
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="card p-3 mb-6 flex flex-wrap gap-2 items-center">
+    <span class="text-xs font-semibold text-slate-400 mr-2">Filter Task Status:</span>
+    <a href="{% url 'projects:task_list' %}" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if not status_filter %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">All Tasks</a>
+    <a href="?status=TO_DO" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'TO_DO' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">To Do</a>
+    <a href="?status=IN_PROGRESS" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'IN_PROGRESS' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">In Progress</a>
+    <a href="?status=DONE" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'DONE' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Done</a>
+</div>
+
+<!-- DataTables Table -->
+<div class="table-wrap">
+    <table class="app-table">
+        <thead>
+            <tr>
+                <th>Task ID</th>
+                <th>Project Code</th>
+                <th>Task Title</th>
+                <th>Assignee (Employee/User)</th>
+                <th>Est. Effort</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th data-sortable="false">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tasks %}
+            <tr class="cursor-pointer hover:bg-slate-800/60 transition" onclick="if(!event.target.closest('a, button')){ window.location.href='{% url 'projects:task_detail' t.id %}'; }">
+                <td>
+                    <a href="{% url 'projects:task_detail' t.id %}" class="font-mono text-[#00a884] font-bold hover:underline">
+                        {{ t.task_number }}
+                    </a>
+                </td>
+                <td class="font-mono text-xs text-slate-300">{{ t.project.code }}</td>
+                <td class="font-semibold text-slate-100">{{ t.title }}</td>
+                <td class="text-xs">
+                    {% with assignees=t.get_all_assignees %}
+                        {% if assignees %}
+                            <div class="flex flex-col gap-0.5">
+                                {% for u in assignees|slice:":2" %}
+                                    <span class="font-semibold text-slate-200 block">
+                                        {% if u.employee_profile %}
+                                            {{ u.employee_profile.full_name }}
+                                        {% elif u.get_full_name %}
+                                            {{ u.get_full_name }}
+                                        {% else %}
+                                            {{ u.username }}
+                                        {% endif %}
+                                    </span>
+                                {% endfor %}
+                                {% if assignees|length > 2 %}
+                                    <span class="text-[10px] text-emerald-400 font-mono font-bold">+ {{ assignees|length|add:"-2" }} more</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-slate-500 italic">Unassigned</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td class="font-mono text-xs">{{ t.estimated_hours }}h</td>
+                <td>
+                    <span class="text-[10px] px-2 py-0.5 rounded font-extrabold uppercase {% if t.priority == 'URGENT' %}bg-red-950 text-red-300 border border-red-800{% elif t.priority == 'HIGH' %}bg-orange-950 text-orange-300 border border-orange-800{% else %}bg-slate-800 text-slate-300{% endif %}">
+                        {{ t.get_priority_display }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-pill {% if t.status == 'DONE' %}status-success{% elif t.status == 'IN_PROGRESS' %}status-warning{% else %}status-info{% endif %}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {{ t.get_status_display }}
+                    </span>
+                </td>
+                <td class="whitespace-nowrap">
+                    <div class="flex items-center gap-1.5">
+                        {% if request|has_perm:'projects.edit' %}
+                        <a href="{% url 'projects:task_edit' t.id %}" class="btn-secondary text-xs py-1 px-2 flex items-center gap-1" title="Edit Task & Assignee">
+                            <i data-lucide="edit" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            Edit
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'projects:task_detail' t.id %}" class="btn-secondary text-xs py-1 px-2 flex items-center gap-1" title="View & Log Effort">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                            Log Effort
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr class="empty-row">
+                <td colspan="8" class="text-center text-slate-500 py-8">No tasks recorded.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
