@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Login - Byteboot Business OS</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/js/img/company_logo_icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -32,7 +34,7 @@
              {% elif message.tags == 'info' %}
                 border-blue-500/60 shadow-blue-950/40
              {% else %}
-                border-[#00a884]/60 shadow-emerald-950/40
+                border-[#00a0da]/60 shadow-sky-950/40
              {% endif %}">
             
             <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs
@@ -43,7 +45,7 @@
                  {% elif message.tags == 'info' %}
                     bg-blue-500/20 text-blue-400 border border-blue-500/30
                  {% else %}
-                    bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30
+                    bg-[#00a0da]/20 text-[#38bdf8] border border-[#00a0da]/30
                  {% endif %}">
                 {% if message.tags == 'error' or message.tags == 'danger' %}
                     <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -65,7 +67,7 @@
                      {% elif message.tags == 'info' %}
                         text-blue-400
                      {% else %}
-                        text-[#25d366]
+                        text-[#38bdf8]
                      {% endif %}">
                     {% if message.tags == 'error' or message.tags == 'danger' %}
                         Error Notification
@@ -91,8 +93,8 @@
     <!-- Login Card -->
     <div class="w-full max-w-sm bg-[#101720] border border-white/10 rounded-2xl p-8 shadow-2xl">
         <div class="flex flex-col items-center mb-6">
-            <div class="w-12 h-12 rounded-2xl bg-[#00a884] flex items-center justify-center font-black text-2xl text-white mb-3 shadow-lg shadow-[#00a884]/30">
-                B
+            <div class="w-16 h-16 rounded-2xl bg-[#00a0da]/10 border border-[#00a0da]/25 flex items-center justify-center mb-3 shadow-lg shadow-[#00a0da]/20 p-2.5">
+                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-full h-full object-contain">
             </div>
             <h1 class="text-xl font-extrabold text-slate-100">Byteboot OS</h1>
             <p class="text-xs text-slate-400 mt-1 text-center">Multi-Tenant Business Management ERP</p>
@@ -102,13 +104,13 @@
             {% csrf_token %}
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5">Username</label>
-                <input type="text" name="username" required placeholder="admin" autofocus class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884]">
+                <input type="text" name="username" required placeholder="admin" autofocus class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a0da] focus:ring-1 focus:ring-[#00a0da]">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-400 mb-1.5">Password</label>
-                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a884] focus:ring-1 focus:ring-[#00a884]">
+                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a0da] focus:ring-1 focus:ring-[#00a0da]">
             </div>
-            <button type="submit" class="w-full bg-[#00a884] hover:bg-[#028e70] text-white font-bold text-xs py-3 rounded-lg shadow-lg shadow-[#00a884]/20 transition transform active:scale-[0.99] mt-2">
+            <button type="submit" class="w-full bg-[#00a0da] hover:bg-[#008ec2] text-white font-bold text-xs py-3 rounded-lg shadow-lg shadow-[#00a0da]/20 transition transform active:scale-[0.99] mt-2">
                 Sign In to Workspace
             </button>
         </form>

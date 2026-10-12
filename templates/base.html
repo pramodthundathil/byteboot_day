@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Byteboot Business OS — Multi-Tenant ERP{% endblock %}</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/js/img/company_logo_icon.png">
+
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -14,10 +17,10 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#e6f7f3',
-                            500: '#00a884',
-                            600: '#028e70',
-                            700: '#066d57',
+                            50: '#e6f6fc',
+                            500: '#00a0da',
+                            600: '#008ec2',
+                            700: '#006f96',
                         },
                         darkbg: '#090d12',
                         darkpanel: '#101720',
@@ -87,13 +90,13 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .status-success { background: rgba(0, 168, 132, 0.15); color: #25d366; border: 1px solid rgba(0, 168, 132, 0.3); }
+        .status-success { background: rgba(0, 160, 218, 0.15); color: #38bdf8; border: 1px solid rgba(0, 160, 218, 0.3); }
         .status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
         .status-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
         .status-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
 
         .btn-primary {
-            background-color: #00a884;
+            background-color: #00a0da;
             color: #ffffff;
             border: none;
             padding: 8px 16px;
@@ -106,10 +109,10 @@
             gap: 6px;
             text-decoration: none;
             transition: all 0.15s ease;
-            box-shadow: 0 4px 12px rgba(0, 168, 132, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 160, 218, 0.25);
         }
         .btn-primary:hover {
-            background-color: #028e70;
+            background-color: #008ec2;
             transform: translateY(-1px);
         }
 
@@ -154,8 +157,8 @@
             transition: border 0.15s ease;
         }
         .form-control:focus {
-            border-color: #00a884;
-            box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.2);
+            border-color: #00a0da;
+            box-shadow: 0 0 0 2px rgba(0, 160, 218, 0.25);
         }
         .form-label {
             display: block;
@@ -187,7 +190,7 @@
              {% elif message.tags == 'info' %}
                 border-blue-500/60 shadow-blue-950/40
              {% else %}
-                border-[#00a884]/60 shadow-emerald-950/40
+                border-[#00a0da]/60 shadow-sky-950/40
              {% endif %}">
             
             <!-- Icon Indicator based on tag -->
@@ -199,7 +202,7 @@
                  {% elif message.tags == 'info' %}
                     bg-blue-500/20 text-blue-400 border border-blue-500/30
                  {% else %}
-                    bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30
+                    bg-[#00a0da]/20 text-[#38bdf8] border border-[#00a0da]/30
                  {% endif %}">
                 {% if message.tags == 'error' or message.tags == 'danger' %}
                     <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -221,7 +224,7 @@
                      {% elif message.tags == 'info' %}
                         text-blue-400
                      {% else %}
-                        text-[#25d366]
+                        text-[#38bdf8]
                      {% endif %}">
                     {% if message.tags == 'error' or message.tags == 'danger' %}
                         Error Notification
@@ -247,45 +250,50 @@
 
     <!-- Far Left Icon Rail -->
     <div class="hidden sm:flex w-16 bg-[#101720] border-r border-white/10 flex-col justify-between items-center py-3 z-30 flex-shrink-0">
-        <div class="flex flex-col items-center gap-3 w-full">
-            <!-- Hamburger Button at top of Sidebar -->
-            <button @click="sidebarOpen = !sidebarOpen" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-300 hover:text-[#00a884] hover:bg-[#1e2b3b] transition" title="Toggle Navigation Sidebar">
+        <div class="flex flex-col items-center gap-2.5 w-full">
+            <!-- Brand Logo at Top of Navigation Rail -->
+            <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 hover:bg-[#1e2b3b] transition group" title="Byteboot Business OS">
+                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-8 h-8 object-contain filter group-hover:brightness-110 transition">
+            </a>
+
+            <!-- Hamburger Button below Logo -->
+            <button @click="sidebarOpen = !sidebarOpen" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-300 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition" title="Toggle Navigation Sidebar">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
 
             <!-- Icon Nav Launcher Buttons -->
             <div class="flex flex-col gap-2 w-full items-center">
-                <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'dashboard' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="Dashboard Overview">
+                <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'dashboard' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Dashboard Overview">
                     <i data-lucide="grid" class="w-5 h-5"></i>
                 </a>
                 {% if user_perms.crm %}
-                <a href="{% url 'crm:lead_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'crm' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="CRM & Pipeline">
+                <a href="{% url 'crm:lead_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'crm' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="CRM & Pipeline">
                     <i data-lucide="users" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
                 {% if user_perms.invoicing %}
-                <a href="{% url 'invoicing:invoice_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'invoicing' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="Sales & Invoices">
+                <a href="{% url 'invoicing:invoice_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'invoicing' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Sales & Invoices">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
                 {% if user_perms.accounting %}
-                <a href="{% url 'accounting:journal_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'accounting' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="General Ledger">
+                <a href="{% url 'accounting:journal_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'accounting' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="General Ledger">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'hr:leave_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'hr' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="Leave Applications & HR">
+                <a href="{% url 'hr:leave_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'hr' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Leave Applications & HR">
                     <i data-lucide="calendar" class="w-5 h-5"></i>
                 </a>
                 {% if user_perms.projects %}
-                <a href="{% url 'projects:project_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'projects' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="Projects & Tasks">
+                <a href="{% url 'projects:project_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'projects' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Projects & Tasks">
                     <i data-lucide="layout" class="w-5 h-5"></i>
                 </a>
-                <a href="{% url 'projects:conversations' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'chat' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="WhatsApp Team Chat">
+                <a href="{% url 'projects:conversations' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'chat' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Team Chat">
                     <i data-lucide="message-square" class="w-5 h-5"></i>
-                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00a884]"></span>
+                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00a0da]"></span>
                 </a>
                 {% endif %}
-                <a href="{% url 'dashboard:reports' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a884] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'reports' %}bg-[#1e2b3b] text-[#00a884]{% endif %}" title="Financial Reports">
+                <a href="{% url 'dashboard:reports' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'reports' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Financial Reports">
                     <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                 </a>
             </div>
@@ -295,7 +303,7 @@
             <a href="{% url 'tenants:company_settings' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#1e2b3b] transition" title="Settings">
                 <i data-lucide="settings" class="w-5 h-5"></i>
             </a>
-            <div class="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#00a884]">
+            <div class="w-9 h-9 rounded-full bg-sky-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#00a0da]">
                 {{ request.user.username|slice:":2"|upper }}
             </div>
         </div>
@@ -304,10 +312,13 @@
     <!-- Secondary Navigation Drawer (Collapsible & Responsive) -->
     <div x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" class="hidden md:flex w-64 bg-[#101720] border-r border-white/10 flex-col flex-shrink-0 z-20">
         <div class="p-4 border-b border-white/10 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-6 h-6 rounded bg-[#00a884] flex items-center justify-center font-bold text-white text-xs">B</div>
-                <h2 class="text-sm font-bold text-slate-100">Byteboot OS</h2>
-            </div>
+            <a href="{% url 'dashboard:index' %}" class="flex items-center gap-2.5 group">
+                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-7 h-7 object-contain group-hover:scale-105 transition">
+                <div class="flex flex-col">
+                    <h2 class="text-sm font-bold text-slate-100 group-hover:text-[#00a0da] transition leading-tight">Byteboot OS</h2>
+                    <span class="text-[10px] text-slate-400 font-mono">Business OS</span>
+                </div>
+            </a>
             <button @click="commandOpen = true" class="text-[11px] bg-[#1e2b3b] text-slate-300 px-2 py-0.5 rounded font-mono hover:bg-[#2a3942]">⌘K</button>
         </div>
 
@@ -315,7 +326,7 @@
         <div class="p-3">
             <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" placeholder="Global search..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a884]" @keydown.meta.k.window="commandOpen = true" @keydown.ctrl.k.window="commandOpen = true">
+                <input type="text" placeholder="Global search..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]" @keydown.meta.k.window="commandOpen = true" @keydown.ctrl.k.window="commandOpen = true">
             </div>
         </div>
 
@@ -324,11 +335,28 @@
             {% block sub_nav %}
             {% if user_perms.crm %}
             <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-2 mb-1">CRM & Sales</div>
-            <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leads' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4"></i> Sales Leads</span>
-                <span class="bg-[#00a884]/20 text-[#25d366] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
+            <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'followup_dashboard' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i> Follow-up Reminders</span>
+                <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
             </a>
-            <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'customers' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leads' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> Sales Leads</span>
+                <span class="bg-[#00a0da]/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
+            </a>
+            <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'lost_leads' %}bg-[#1e2b3b] text-red-400 font-semibold{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-400"></i> Lost Leads</span>
+                <span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
+            </a>
+            <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'bulk_upload' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Bulk Upload Leads
+            </a>
+            {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
+            <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'staff_analytics' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-400"></i> Staff Analytics</span>
+                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+            </a>
+            {% endif %}
+            <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'customers' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="building" class="w-4 h-4"></i> Customers
             </a>
             {% endif %}
@@ -336,50 +364,50 @@
             {% if user_perms.invoicing or user_perms.accounting %}
             <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Invoicing & Ledger</div>
             {% if user_perms.invoicing %}
-            <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'invoices' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'invoices' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="receipt" class="w-4 h-4"></i> Tax Invoices
             </a>
-            <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'payments' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'payments' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="credit-card" class="w-4 h-4"></i> Customer Payments
             </a>
             {% endif %}
             {% if user_perms.accounting %}
-            <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'journals' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'journals' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="book-open" class="w-4 h-4"></i> General Ledger
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'accounts' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'accounts' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="list-tree" class="w-4 h-4"></i> Chart of Accounts
             </a>
             {% endif %}
             {% endif %}
 
             <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Leaves & HR</div>
-            <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leaves' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leaves' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="calendar" class="w-4 h-4"></i> Leave Applications
             </a>
             {% if user_perms.hr %}
-            <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'employees' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'employees' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="users" class="w-4 h-4"></i> HR Employees
             </a>
             {% endif %}
             {% if user_perms.roles %}
-            <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'roles' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> Roles & Permissions</span>
-                <span class="bg-emerald-500/20 text-[#25d366] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+            <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'roles' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#00a0da]"></i> Roles & Permissions</span>
+                <span class="bg-sky-500/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
             </a>
             {% endif %}
 
             {% if user_perms.projects %}
             <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Projects & Team</div>
-            <a href="{% url 'projects:project_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'projects' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'projects:project_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'projects' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="folder" class="w-4 h-4"></i> Projects
             </a>
-            <a href="{% url 'projects:task_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'tasks' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'projects:task_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'tasks' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <i data-lucide="check-square" class="w-4 h-4"></i> Task Tracker
             </a>
-            <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'chat' %}bg-[#1e2b3b] text-[#00a884]{% endif %}">
+            <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'chat' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4"></i> Team Chat</span>
-                <span class="w-2 h-2 rounded-full bg-[#00a884]"></span>
+                <span class="w-2 h-2 rounded-full bg-[#00a0da]"></span>
             </a>
             {% endif %}
             {% endblock %}
@@ -391,33 +419,33 @@
         <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="mobileMenuOpen = false"></div>
         <div class="relative w-72 bg-[#101720] border-r border-white/10 flex flex-col h-full z-10 p-4">
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded bg-[#00a884] flex items-center justify-center font-bold text-white text-xs">B</div>
+                <div class="flex items-center gap-2.5">
+                    <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-7 h-7 object-contain">
                     <h2 class="text-sm font-bold text-slate-100">Byteboot OS</h2>
                 </div>
                 <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-white">✕</button>
             </div>
             <div class="flex-1 overflow-y-auto space-y-2 text-xs">
                 <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="grid" class="w-4 h-4 text-[#00a884]"></i> Dashboard
+                    <i data-lucide="grid" class="w-4 h-4 text-[#00a0da]"></i> Dashboard
                 </a>
                 <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="users" class="w-4 h-4 text-[#00a884]"></i> CRM & Leads
+                    <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i> CRM & Leads
                 </a>
                 <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="receipt" class="w-4 h-4 text-[#00a884]"></i> Tax Invoices
+                    <i data-lucide="receipt" class="w-4 h-4 text-[#00a0da]"></i> Tax Invoices
                 </a>
                 <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="book-open" class="w-4 h-4 text-[#00a884]"></i> General Ledger
+                    <i data-lucide="book-open" class="w-4 h-4 text-[#00a0da]"></i> General Ledger
                 </a>
                 <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="user-check" class="w-4 h-4 text-[#00a884]"></i> HR Employees
+                    <i data-lucide="user-check" class="w-4 h-4 text-[#00a0da]"></i> HR Employees
                 </a>
                 <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="layout" class="w-4 h-4 text-[#00a884]"></i> Projects & Tasks
+                    <i data-lucide="layout" class="w-4 h-4 text-[#00a0da]"></i> Projects & Tasks
                 </a>
                 <a href="{% url 'projects:conversations' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="message-square" class="w-4 h-4 text-[#00a884]"></i> WhatsApp Team Chat
+                    <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i> Team Chat
                 </a>
             </div>
         </div>
@@ -432,12 +460,15 @@
                 <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-slate-300 hover:text-white rounded-lg bg-[#16202c] border border-white/10" title="Toggle Navigation Menu">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
-                <button @click="sidebarOpen = !sidebarOpen" class="hidden md:flex p-1.5 text-slate-300 hover:text-[#00a884] hover:bg-[#16202c] rounded-lg transition border border-white/10" title="Toggle Drawer Sidebar">
+                <button @click="sidebarOpen = !sidebarOpen" class="hidden md:flex p-1.5 text-slate-300 hover:text-[#00a0da] hover:bg-[#16202c] rounded-lg transition border border-white/10" title="Toggle Drawer Sidebar">
                     <i data-lucide="menu" class="w-4 h-4"></i>
                 </button>
 
-                <span class="font-bold text-xs sm:text-sm text-slate-100 truncate max-w-[150px] sm:max-w-none">{{ current_company.name|default:"Byteboot Techno Solutions" }}</span>
-                <span class="text-xs bg-[#00a884]/15 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold hidden sm:inline-block">
+                <div class="flex items-center gap-2">
+                    <img src="/static/js/img/company_logo_icon.png" alt="Company Logo" class="w-6 h-6 object-contain">
+                    <span class="font-bold text-xs sm:text-sm text-slate-100 truncate max-w-[150px] sm:max-w-none">{{ current_company.name|default:"Byteboot Techno Solutions" }}</span>
+                </div>
+                <span class="text-xs bg-[#00a0da]/15 text-[#38bdf8] border border-[#00a0da]/30 px-2 py-0.5 rounded font-mono font-bold hidden sm:inline-block">
                     {{ current_company.code|default:"BYTEBOOT" }}
                 </span>
             </div>
@@ -484,7 +515,7 @@
     <div x-show="commandOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;" @keydown.escape.window="commandOpen = false">
         <div class="w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl" @click.outside="commandOpen = false">
             <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-                <span class="text-sm font-bold text-slate-100 flex items-center gap-2"><i data-lucide="command" class="w-4 h-4 text-[#00a884]"></i> Quick Actions & Navigation</span>
+                <span class="text-sm font-bold text-slate-100 flex items-center gap-2"><i data-lucide="command" class="w-4 h-4 text-[#00a0da]"></i> Quick Actions & Navigation</span>
                 <button @click="commandOpen = false" class="text-slate-400 hover:text-white p-1">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
@@ -492,7 +523,7 @@
             <input type="text" class="form-control mb-4" placeholder="Search customers, leads, invoices, tasks..." autofocus>
             <div class="flex flex-col gap-2 text-xs">
                 <a href="{% url 'crm:lead_create' %}" class="p-2.5 rounded-lg bg-[#16202c] text-slate-200 hover:bg-[#1e2b3b] flex justify-between items-center transition">
-                    <span class="flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-[#00a884]"></i> Create New Sales Lead</span>
+                    <span class="flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-[#00a0da]"></i> Create New Sales Lead</span>
                     <span class="text-slate-400 font-mono">CRM</span>
                 </a>
                 <a href="{% url 'invoicing:invoice_create' %}" class="p-2.5 rounded-lg bg-[#16202c] text-slate-200 hover:bg-[#1e2b3b] flex justify-between items-center transition">

@@ -6,10 +6,10 @@
         <div>
             <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
                 <a href="{% url 'projects:task_list' %}" class="hover:text-white">Tasks</a> / 
-                <span class="text-[#00a884]">Create Task</span>
+                <span class="text-[#00a0da]">Create Task</span>
             </div>
             <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
-                <i data-lucide="check-square" class="w-6 h-6 text-[#00a884]"></i>
+                <i data-lucide="check-square" class="w-6 h-6 text-[#00a0da]"></i>
                 Create New Task
             </h1>
             <p class="text-xs text-slate-400">Assign software development or business tasks to team members</p>
@@ -42,11 +42,11 @@
             <div class="form-group col-span-2">
                 <div class="flex justify-between items-center mb-1.5">
                     <label class="form-label mb-0 flex items-center gap-1.5 text-slate-200">
-                        <i data-lucide="users" class="w-4 h-4 text-[#00a884]"></i>
+                        <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i>
                         Assigned Employees & Users
                     </label>
                     <div class="flex items-center gap-2 text-xs">
-                        <button type="button" id="btnSelectAll" class="text-[#00a884] hover:underline flex items-center gap-1 font-medium">
+                        <button type="button" id="btnSelectAll" class="text-[#00a0da] hover:underline flex items-center gap-1 font-medium">
                             <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Select All Employees
                         </button>
                         <span class="text-slate-600">|</span>
@@ -65,7 +65,7 @@
                 <div class="relative">
                     <div class="relative">
                         <input type="text" id="employeeSearchInput" placeholder="Type employee name or ID (e.g. EMP-101, Pramod) to filter..." 
-                               class="form-control pl-9 rounded-t-none border-t-0 bg-slate-900 text-xs focus:ring-[#00a884]" autocomplete="off" />
+                               class="form-control pl-9 rounded-t-none border-t-0 bg-slate-900 text-xs focus:ring-[#00a0da]" autocomplete="off" />
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
                     </div>
 
@@ -100,7 +100,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-[#00a884]">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-[#00a0da]">
                                 {% if u.employee_profile %}Employee{% else %}User{% endif %}
                             </span>
                         </div>
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             noAssigneesText.style.display = 'none';
             selectedUsers.forEach((data, id) => {
                 const pill = document.createElement('span');
-                pill.className = 'assignee-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00a884]/20 border border-[#00a884]/40 text-[#00a884] text-xs font-medium shadow-sm';
+                pill.className = 'assignee-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00a0da]/20 border border-[#00a0da]/40 text-[#00a0da] text-xs font-medium shadow-sm';
                 pill.innerHTML = `
                     <span>${data.name} <small class="text-slate-400 font-mono text-[10px]">(${data.subtitle})</small></span>
                     <button type="button" class="hover:text-red-400 font-bold ml-1 cursor-pointer" data-remove-id="${id}">✕</button>
@@ -199,17 +199,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const checkMark = item.querySelector('.check-mark');
             const iconBox = item.querySelector('.item-checkbox-icon');
             if (selectedUsers.has(id)) {
-                item.classList.add('bg-[#00a884]/15', 'border-l-2', 'border-l-[#00a884]');
+                item.classList.add('bg-[#00a0da]/15', 'border-l-2', 'border-l-[#00a0da]');
                 if (checkMark) checkMark.classList.remove('hidden');
                 if (iconBox) {
-                    iconBox.classList.add('bg-[#00a884]', 'border-[#00a884]');
+                    iconBox.classList.add('bg-[#00a0da]', 'border-[#00a0da]');
                     iconBox.classList.remove('border-slate-600');
                 }
             } else {
-                item.classList.remove('bg-[#00a884]/15', 'border-l-2', 'border-l-[#00a884]');
+                item.classList.remove('bg-[#00a0da]/15', 'border-l-2', 'border-l-[#00a0da]');
                 if (checkMark) checkMark.classList.add('hidden');
                 if (iconBox) {
-                    iconBox.classList.remove('bg-[#00a884]', 'border-[#00a884]');
+                    iconBox.classList.remove('bg-[#00a0da]', 'border-[#00a0da]');
                     iconBox.classList.add('border-slate-600');
                 }
             }

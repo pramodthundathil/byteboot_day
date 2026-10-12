@@ -1,49 +1,120 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-        <h1 class="text-xl font-bold text-gray-100">Customer Directory</h1>
-        <p class="text-xs text-gray-400">Converted clients and account profiles</p>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'crm:lead_list' %}" class="hover:text-white">CRM</a> / <span class="text-[#00a0da]">Customers</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+            <i data-lucide="building" class="w-6 h-6 text-[#00a0da]"></i>
+            Customer Directory
+        </h1>
+        <p class="text-xs text-slate-400">Converted clients, formal accounts, and billing contact profiles</p>
+    </div>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'crm:lead_list' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="target" class="w-4 h-4"></i>
+            Sales Pipeline
+        </a>
     </div>
 </div>
 
-<div class="table-wrap">
+<!-- Search & Filter Bar -->
+<div class="card p-3 mb-4">
+    <form method="GET" class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div class="relative w-full sm:w-80">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search customer, code, email, phone..." class="w-full bg-[#101720] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+            {% if query %}
+            <a href="{% url 'crm:customer_list' %}" class="btn-secondary text-xs py-1.5 px-2.5 text-slate-400 hover:text-white">Clear</a>
+            {% endif %}
+            <button type="submit" class="btn-primary text-xs py-1.5 px-3">Search</button>
+        </div>
+    </form>
+</div>
+
+<!-- Customers Table -->
+<div class="table-wrap mb-4">
     <table class="app-table">
         <thead>
             <tr>
                 <th>Customer Code</th>
                 <th>Customer Name</th>
-                <th>Email</th>
-                <th>Phone</th>
+                <th>Email Address</th>
+                <th>Phone Number</th>
                 <th>City / State</th>
                 <th>GSTIN</th>
-                <th>Actions</th>
+                <th class="text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for customer in customers %}
-            <tr>
+            <tr class="hover:bg-slate-800/40 transition">
                 <td>
-                    <a href="{% url 'crm:customer_detail' customer.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                    <a href="{% url 'crm:customer_detail' customer.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
                         {{ customer.customer_code }}
                     </a>
                 </td>
-                <td class="font-semibold">{{ customer.name }}</td>
-                <td>{{ customer.email }}</td>
-                <td>{{ customer.phone }}</td>
-                <td>{{ customer.city }}, {{ customer.state }}</td>
-                <td class="font-mono text-xs">{{ customer.gstin|default:"N/A" }}</td>
                 <td>
-                    <a href="{% url 'crm:customer_detail' customer.id %}" class="btn-secondary text-xs py-1 px-2">View 360° Profile</a>
+                    <div class="font-semibold text-slate-100">{{ customer.name }}</div>
+                    {% if customer.company_name and customer.company_name != customer.name %}
+                    <div class="text-[11px] text-slate-400">{{ customer.company_name }}</div>
+                    {% endif %}
+                </td>
+                <td class="text-xs text-slate-300 font-mono">{{ customer.email }}</td>
+                <td class="text-xs text-slate-300 font-mono">{{ customer.phone }}</td>
+                <td class="text-xs text-slate-300">{{ customer.city }}{% if customer.state %}, {{ customer.state }}{% endif %}</td>
+                <td class="font-mono text-xs text-slate-400">{{ customer.gstin|default:"N/A" }}</td>
+                <td class="text-right whitespace-nowrap">
+                    <a href="{% url 'crm:customer_detail' customer.id %}" class="btn-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1 text-slate-300 hover:text-white">
+                        <span>360° Profile</span>
+                        <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                    </a>
                 </td>
             </tr>
             {% empty %}
-            <tr>
-                <td colspan="7" class="text-center text-gray-500 py-6">No customers registered yet.</td>
+            <tr class="empty-row">
+                <td colspan="7" class="text-center text-slate-500 py-10">
+                    <i data-lucide="users" class="w-10 h-10 mx-auto mb-2 text-slate-600"></i>
+                    <p class="font-bold text-slate-300">No customers found</p>
+                    <p class="text-xs text-slate-500 mt-1">{% if query %}No results matching "{{ query }}".{% else %}No converted customers yet. Convert leads from the pipeline to populate this directory.{% endif %}</p>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- Backend Pagination Bar -->
+{% if customers.has_other_pages %}
+<div class="card p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="text-xs text-slate-400">
+        Showing <span class="font-bold text-white">{{ customers.start_index }}</span> to <span class="font-bold text-white">{{ customers.end_index }}</span> of <span class="font-bold text-white">{{ customers.paginator.count }}</span> customers
+    </div>
+    <div class="flex items-center gap-1">
+        {% if customers.has_previous %}
+        <a href="?page={{ customers.previous_page_number }}{% if query %}&q={{ query }}{% endif %}" class="btn-secondary text-xs py-1 px-2.5">
+            ← Previous
+        </a>
+        {% endif %}
+
+        {% for p in customers.paginator.page_range %}
+            {% if p == customers.number %}
+            <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-[#00a0da] text-white text-xs font-bold">{{ p }}</span>
+            {% elif p >= customers.number|add:"-2" and p <= customers.number|add:"2" %}
+            <a href="?page={{ p }}{% if query %}&q={{ query }}{% endif %}" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if customers.has_next %}
+        <a href="?page={{ customers.next_page_number }}{% if query %}&q={{ query }}{% endif %}" class="btn-secondary text-xs py-1 px-2.5">
+            Next →
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

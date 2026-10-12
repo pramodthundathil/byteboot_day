@@ -12,6 +12,16 @@
     <form method="POST" class="card">
         {% csrf_token %}
         <div class="grid grid-cols-2 gap-4">
+            <div class="form-group col-span-2 flex items-center gap-4 p-3 rounded-xl bg-slate-900 border border-white/10">
+                <div class="w-16 h-16 rounded-xl bg-sky-950/40 border border-sky-800/40 p-2 flex items-center justify-center shrink-0">
+                    <img src="{{ company.logo_url|default:'/static/js/img/company_logo_icon.png' }}" alt="Company Logo" class="max-w-full max-h-full object-contain">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <label class="form-label">Company Brand Logo (Transparent)</label>
+                    <input type="text" name="logo_url" class="form-control text-xs font-mono" value="{{ company.logo_url|default:'/static/js/img/company_logo_icon.png' }}" placeholder="/static/js/img/company_logo_icon.png">
+                    <span class="text-[11px] text-slate-400 mt-0.5 block">Transparent PNG logo displayed across navigation drawers, top bar, and invoice headers.</span>
+                </div>
+            </div>
             <div class="form-group col-span-2">
                 <label class="form-label">Company Name</label>
                 <input type="text" name="name" class="form-control" value="{{ company.name }}" required>

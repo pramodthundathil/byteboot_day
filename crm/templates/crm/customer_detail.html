@@ -1,82 +1,138 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
-        <h1 class="text-xl font-bold text-gray-100">{{ customer.customer_code }} - {{ customer.name }}</h1>
-        <p class="text-xs text-gray-400">{{ customer.email }} | {{ customer.phone }} | {{ customer.city }}, {{ customer.state }}</p>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'crm:customer_list' %}" class="hover:text-white">Customers</a> / <span class="text-[#00a0da] font-mono">{{ customer.customer_code }}</span>
+        </div>
+        <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+            <i data-lucide="building" class="w-6 h-6 text-[#00a0da]"></i>
+            {{ customer.name }}
+            <span class="text-xs bg-[#00a0da]/20 text-[#38bdf8] border border-[#00a0da]/30 px-2.5 py-0.5 rounded-full font-mono">{{ customer.customer_code }}</span>
+        </h1>
+        <p class="text-xs text-slate-400">{{ customer.email }} • {{ customer.phone }} • {{ customer.city }}, {{ customer.state }}</p>
     </div>
-    <div class="flex gap-2">
-        <a href="{% url 'invoicing:invoice_create' %}" class="btn-primary">+ Issue Tax Invoice</a>
-        <a href="{% url 'crm:customer_list' %}" class="btn-secondary">Back to Customers</a>
+    <div class="flex items-center gap-2">
+        <a href="{% url 'invoicing:invoice_create' %}" class="btn-primary text-xs flex items-center gap-1.5">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            Issue Tax Invoice
+        </a>
+        <a href="{% url 'crm:customer_list' %}" class="btn-secondary text-xs">
+            Back to Customers
+        </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Invoices List -->
-    <div class="card">
-        <h3 class="text-sm font-bold text-gray-200 mb-4">Customer Tax Invoices</h3>
-        <div class="table-wrap">
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="receipt" class="w-4 h-4 text-[#00a0da]"></i>
+                Customer Tax Invoices
+            </h3>
+            <span class="text-xs text-slate-400 font-mono">{{ invoices.paginator.count }} Total</span>
+        </div>
+        <div class="table-wrap mb-3">
             <table class="app-table">
                 <thead>
                     <tr>
                         <th>Invoice #</th>
                         <th>Date</th>
                         <th>Amount</th>
-                        <th>Status</th>
+                        <th class="text-right">Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for inv in invoices %}
-                    <tr>
+                    <tr class="hover:bg-slate-800/40 transition">
                         <td>
-                            <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                            <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
                                 {{ inv.invoice_number }}
                             </a>
                         </td>
-                        <td>{{ inv.date }}</td>
-                        <td class="font-semibold">₹{{ inv.grand_total }}</td>
-                        <td><span class="status-pill status-info">{{ inv.get_status_display }}</span></td>
+                        <td class="text-xs text-slate-300 font-mono">{{ inv.date }}</td>
+                        <td class="font-semibold text-xs text-slate-100">₹{{ inv.grand_total }}</td>
+                        <td class="text-right">
+                            <span class="status-pill text-[10px] py-0.5 {% if inv.status == 'PAID' %}status-success{% elif inv.status == 'OVERDUE' %}status-danger{% else %}status-warning{% endif %}">
+                                {{ inv.get_status_display }}
+                            </span>
+                        </td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center text-gray-500 py-4">No invoices issued to this customer.</td>
+                    <tr class="empty-row">
+                        <td colspan="4" class="text-center text-slate-500 py-6">No invoices issued to this customer.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        {% if invoices.has_other_pages %}
+        <div class="flex items-center justify-between text-xs pt-2 border-t border-white/5">
+            <span class="text-slate-400">Page {{ invoices.number }} of {{ invoices.paginator.num_pages }}</span>
+            <div class="flex items-center gap-1">
+                {% if invoices.has_previous %}
+                <a href="?inv_page={{ invoices.previous_page_number }}{% if payments.number %}&pay_page={{ payments.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">← Prev</a>
+                {% endif %}
+                {% if invoices.has_next %}
+                <a href="?inv_page={{ invoices.next_page_number }}{% if payments.number %}&pay_page={{ payments.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Payments List -->
-    <div class="card">
-        <h3 class="text-sm font-bold text-gray-200 mb-4">Recorded Payments</h3>
-        <div class="table-wrap">
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-4 h-4 text-emerald-400"></i>
+                Recorded Payments
+            </h3>
+            <span class="text-xs text-slate-400 font-mono">{{ payments.paginator.count }} Total</span>
+        </div>
+        <div class="table-wrap mb-3">
             <table class="app-table">
                 <thead>
                     <tr>
                         <th>Payment #</th>
                         <th>Date</th>
                         <th>Method</th>
-                        <th>Amount</th>
+                        <th class="text-right">Amount</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for pay in payments %}
-                    <tr>
-                        <td class="font-mono text-emerald-400 font-bold">{{ pay.payment_number }}</td>
-                        <td>{{ pay.payment_date }}</td>
-                        <td>{{ pay.get_payment_method_display }}</td>
-                        <td class="font-semibold text-emerald-400">₹{{ pay.amount }}</td>
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="font-mono text-emerald-400 font-bold text-xs">{{ pay.payment_number }}</td>
+                        <td class="text-xs text-slate-300 font-mono">{{ pay.payment_date }}</td>
+                        <td class="text-xs text-slate-300">{{ pay.get_payment_method_display }}</td>
+                        <td class="font-semibold text-emerald-400 text-xs text-right">₹{{ pay.amount }}</td>
                     </tr>
                     {% empty %}
-                    <tr>
-                        <td colspan="4" class="text-center text-gray-500 py-4">No payments recorded yet.</td>
+                    <tr class="empty-row">
+                        <td colspan="4" class="text-center text-slate-500 py-6">No payments recorded yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        {% if payments.has_other_pages %}
+        <div class="flex items-center justify-between text-xs pt-2 border-t border-white/5">
+            <span class="text-slate-400">Page {{ payments.number }} of {{ payments.paginator.num_pages }}</span>
+            <div class="flex items-center gap-1">
+                {% if payments.has_previous %}
+                <a href="?pay_page={{ payments.previous_page_number }}{% if invoices.number %}&inv_page={{ invoices.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">← Prev</a>
+                {% endif %}
+                {% if payments.has_next %}
+                <a href="?pay_page={{ payments.next_page_number }}{% if invoices.number %}&inv_page={{ invoices.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">Next →</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

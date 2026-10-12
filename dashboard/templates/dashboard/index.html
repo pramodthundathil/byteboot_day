@@ -1,44 +1,121 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!-- Welcome & Role-Tailored Header -->
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
         <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <span class="text-[#00a884] font-bold">Byteboot Business OS</span> / <span>Executive Workspace</span>
+            <span class="text-[#00a0da] font-bold">Byteboot Business OS</span> / 
+            <span>{{ current_company.name }}</span> / 
+            <span class="text-slate-300">Operations</span>
         </div>
-        <h1 class="text-2xl font-extrabold text-slate-100">Company Operations Overview</h1>
-        <p class="text-xs text-slate-400">Live operational metrics & audit stream for {{ current_company.name }}</p>
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-extrabold text-slate-100">
+                {% if is_admin %}
+                    Company Operations Overview
+                {% elif role_type == 'ACCOUNTANT' %}
+                    Finance & Accounts Workspace
+                {% elif role_type == 'HR' %}
+                    People & Human Resources Workspace
+                {% elif role_type == 'MANAGER' %}
+                    Project Management & Team Lead Hub
+                {% elif role_type == 'STAFF' %}
+                    My Workspace & Daily Tasks
+                {% else %}
+                    {{ role_title }} Workspace
+                {% endif %}
+            </h1>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold 
+                {% if is_admin %}bg-[#00a0da]/20 text-[#25d366] border border-[#00a0da]/30
+                {% elif role_type == 'ACCOUNTANT' %}bg-blue-500/20 text-blue-400 border border-blue-500/30
+                {% elif role_type == 'HR' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30
+                {% elif role_type == 'MANAGER' %}bg-purple-500/20 text-purple-400 border border-purple-500/30
+                {% else %}bg-amber-500/20 text-amber-400 border border-amber-500/30{% endif %}">
+                <i data-lucide="shield" class="w-3 h-3"></i>
+                {{ role_title }}
+            </span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">{{ role_desc }} • Logged in as <strong>{{ request.user.get_full_name|default:request.user.username }}</strong></p>
     </div>
-    <div class="flex items-center gap-2">
-        <a href="{% url 'crm:lead_create' %}" class="btn-primary">+ New Lead</a>
-        <a href="{% url 'invoicing:invoice_create' %}" class="btn-secondary">+ New Invoice</a>
-        <a href="{% url 'accounting:journal_create' %}" class="btn-secondary">📘 Manual Journal</a>
+
+    <!-- Authorized Action Buttons (Filtered strictly by permission) -->
+    <div class="flex flex-wrap items-center gap-2">
+        {% if can_create_lead %}
+        <a href="{% url 'crm:lead_create' %}" class="btn-primary text-xs flex items-center gap-1.5 shadow-sm shadow-[#00a0da]/20">
+            <i data-lucide="target" class="w-3.5 h-3.5"></i> + New Lead
+        </a>
+        {% endif %}
+
+        {% if can_create_invoice %}
+        <a href="{% url 'invoicing:invoice_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="receipt" class="w-3.5 h-3.5 text-[#00a0da]"></i> + New Invoice
+        </a>
+        {% endif %}
+
+        {% if can_create_journal %}
+        <a href="{% url 'accounting:journal_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="book-open" class="w-3.5 h-3.5 text-blue-400"></i> Manual Journal
+        </a>
+        {% endif %}
+
+        {% if can_create_project %}
+        <a href="{% url 'projects:project_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="layout" class="w-3.5 h-3.5 text-purple-400"></i> + New Project
+        </a>
+        {% endif %}
+
+        {% if can_create_task %}
+        <a href="{% url 'projects:task_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="check-square" class="w-3.5 h-3.5 text-emerald-400"></i> + New Task
+        </a>
+        {% endif %}
+
+        {% if can_create_employee %}
+        <a href="{% url 'hr:employee_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5 text-emerald-400"></i> + Onboard Staff
+        </a>
+        {% endif %}
+
+        {% if not can_create_employee and has_hr %}
+        <a href="{% url 'hr:leave_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="calendar-plus" class="w-3.5 h-3.5 text-amber-400"></i> Request Leave
+        </a>
+        {% endif %}
+
+        {% if has_roles %}
+        <a href="{% url 'tenants:role_list' %}" class="btn-secondary text-xs flex items-center gap-1.5" title="Manage Custom Roles">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-[#00a0da]"></i> Roles
+        </a>
+        {% endif %}
     </div>
 </div>
 
-<!-- Key Performance Metric Cards -->
+<!-- Dynamic Key Performance Metric Cards (Rendered conditionally by role permissions) -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <div class="card p-5 border-l-4 border-l-[#00a884]">
+    {% if has_crm %}
+    <div class="card p-5 border-l-4 border-l-[#00a0da] hover:border-white/10 transition">
         <div class="flex justify-between items-start">
             <div>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Sales Leads</span>
-                <div class="text-2xl font-extrabold text-[#25d366] mt-1">{{ leads_count }}</div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sales Pipeline</span>
+                <div class="text-2xl font-extrabold text-[#25d366] mt-1">{{ leads_count|default:"0" }}</div>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-[#00a884]/15 flex items-center justify-center text-[#00a884]">
+            <div class="w-10 h-10 rounded-xl bg-[#00a0da]/15 flex items-center justify-center text-[#00a0da]">
                 <i data-lucide="target" class="w-5 h-5"></i>
             </div>
         </div>
         <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
-            <span>Won Deals: <strong class="text-slate-200">{{ won_leads }}</strong></span>
-            <span class="text-[#25d366] font-bold">{{ conversion_rate }}% Conv. Rate</span>
+            <span>Won Deals: <strong class="text-slate-200">{{ won_leads|default:"0" }}</strong></span>
+            <span class="text-[#25d366] font-bold">{{ conversion_rate|default:"0" }}% Win Rate</span>
         </div>
     </div>
+    {% endif %}
 
-    <div class="card p-5 border-l-4 border-l-blue-500">
+    {% if has_invoicing %}
+    <div class="card p-5 border-l-4 border-l-blue-500 hover:border-white/10 transition">
         <div class="flex justify-between items-start">
             <div>
                 <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Invoiced Revenue</span>
-                <div class="text-2xl font-extrabold text-blue-400 mt-1">₹{{ total_sales }}</div>
+                <div class="text-2xl font-extrabold text-blue-400 mt-1">₹{{ total_sales|default:"0.00" }}</div>
             </div>
             <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center text-blue-400">
                 <i data-lucide="receipt" class="w-5 h-5"></i>
@@ -46,52 +123,165 @@
         </div>
         <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
             <span>Outstanding Due:</span>
-            <span class="text-amber-400 font-bold">₹{{ total_receivables }}</span>
+            <span class="{% if total_receivables > 0 %}text-amber-400{% else %}text-slate-200{% endif %} font-bold">₹{{ total_receivables|default:"0.00" }}</span>
         </div>
     </div>
+    {% endif %}
 
-    <div class="card p-5 border-l-4 border-l-purple-500">
+    {% if has_accounting and not has_crm %}
+    <div class="card p-5 border-l-4 border-l-cyan-500 hover:border-white/10 transition">
         <div class="flex justify-between items-start">
             <div>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Client Projects</span>
-                <div class="text-2xl font-extrabold text-purple-400 mt-1">{{ active_projects }}</div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Chart of Accounts</span>
+                <div class="text-2xl font-extrabold text-cyan-400 mt-1">{{ accounts_count|default:"0" }}</div>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
+            <span>Journal Entries:</span>
+            <span class="text-slate-200 font-bold">{{ journals_count|default:"0" }} Total</span>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_projects %}
+    <div class="card p-5 border-l-4 border-l-purple-500 hover:border-white/10 transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    {% if is_proj_admin %}Active Projects{% else %}My Projects{% endif %}
+                </span>
+                <div class="text-2xl font-extrabold text-purple-400 mt-1">{{ active_projects|default:"0" }}</div>
             </div>
             <div class="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center text-purple-400">
                 <i data-lucide="layout" class="w-5 h-5"></i>
             </div>
         </div>
         <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
-            <span>Open Jira Tasks:</span>
-            <span class="text-slate-200 font-bold">{{ pending_tasks }} Tasks</span>
+            {% if is_proj_admin %}
+                <span>Open Tasks:</span>
+                <span class="text-slate-200 font-bold">{{ pending_tasks|default:"0" }} Pending</span>
+            {% else %}
+                <span>My Open Tasks:</span>
+                <span class="text-emerald-400 font-bold">{{ my_tasks_count|default:"0" }} Assigned</span>
+            {% endif %}
         </div>
     </div>
+    {% endif %}
 
-    <div class="card p-5 border-l-4 border-l-emerald-500">
+    {% if has_hr %}
+    <div class="card p-5 border-l-4 border-l-emerald-500 hover:border-white/10 transition">
         <div class="flex justify-between items-start">
             <div>
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Staff Members</span>
-                <div class="text-2xl font-extrabold text-emerald-400 mt-1">{{ active_employees }}</div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Workforce Staff</span>
+                <div class="text-2xl font-extrabold text-emerald-400 mt-1">{{ active_employees|default:"0" }}</div>
             </div>
             <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-400">
                 <i data-lucide="users" class="w-5 h-5"></i>
             </div>
         </div>
         <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
-            <span>Pending Leave Applications:</span>
-            <span class="text-amber-400 font-bold">{{ pending_leaves }} Requests</span>
+            <span>Pending Approvals:</span>
+            <span class="{% if pending_leaves > 0 %}text-amber-400 font-bold{% else %}text-slate-400{% endif %}">
+                {{ pending_leaves|default:"0" }} Leaves
+            </span>
         </div>
     </div>
+    {% endif %}
+
+    {% if not is_admin and not has_invoicing and not has_crm and has_projects %}
+    <div class="card p-5 border-l-4 border-l-amber-500 hover:border-white/10 transition">
+        <div class="flex justify-between items-start">
+            <div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Actionable Tasks</span>
+                <div class="text-2xl font-extrabold text-amber-400 mt-1">{{ my_tasks_count|default:"0" }}</div>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-400">
+                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            </div>
+        </div>
+        <div class="mt-3 flex items-center justify-between text-xs border-t border-white/5 pt-2 text-slate-400">
+            <span>Due for Execution:</span>
+            <span class="text-slate-200 font-mono">{{ my_tasks_count|default:"0" }} items</span>
+        </div>
+    </div>
+    {% endif %}
 </div>
 
-<!-- Main Content Grid -->
+<!-- Main Content Grid Tailored to User Permissions -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Recent Invoices Data Table -->
+
+    {% if has_projects and my_tasks %}
+    <!-- WIDGET 1: My Assigned Tasks Tracker -->
+    <div class="card {% if not has_invoicing and not has_crm %}lg:col-span-2{% endif %}">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="check-square" class="w-4 h-4 text-[#00a0da]"></i>
+                My Assigned Tasks
+                <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-mono">{{ my_tasks_count }} open</span>
+            </h3>
+            <a href="{% url 'projects:task_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">View Task Board →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Task #</th>
+                        <th>Title & Project</th>
+                        <th>Priority</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in my_tasks %}
+                    <tr>
+                        <td class="font-mono text-xs text-[#00a0da] font-bold">
+                            <a href="{% url 'projects:task_detail' t.id %}" class="hover:underline">{{ t.task_number }}</a>
+                        </td>
+                        <td>
+                            <div class="font-semibold text-slate-200 text-xs">{{ t.title }}</div>
+                            <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ t.project.code }} - {{ t.project.name }}</div>
+                        </td>
+                        <td>
+                            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded
+                                {% if t.priority == 'URGENT' %}bg-rose-950 text-rose-300 border border-rose-800
+                                {% elif t.priority == 'HIGH' %}bg-amber-950 text-amber-300 border border-amber-800
+                                {% elif t.priority == 'MEDIUM' %}bg-blue-950 text-blue-300 border border-blue-800
+                                {% else %}bg-slate-800 text-slate-400{% endif %}">
+                                {{ t.get_priority_display }}
+                            </span>
+                        </td>
+                        <td class="font-mono text-xs text-slate-400 whitespace-nowrap">
+                            {{ t.due_date|date:"d M Y"|default:"Not set" }}
+                        </td>
+                        <td>
+                            <span class="status-pill {% if t.status == 'IN_PROGRESS' %}status-info{% elif t.status == 'IN_REVIEW' %}status-warning{% else %}bg-slate-800 text-slate-300{% endif %} text-[10px]">
+                                {{ t.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="5" class="text-center text-slate-500 py-6">No tasks assigned to you currently.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_invoicing %}
+    <!-- WIDGET 2: Invoices Data Table -->
     <div class="card">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i data-lucide="file-text" class="w-4 h-4 text-[#00a884]"></i> Recent Tax Invoices
+                <i data-lucide="file-text" class="w-4 h-4 text-[#00a0da]"></i> Recent Tax Invoices
             </h3>
-            <a href="{% url 'invoicing:invoice_list' %}" class="text-xs text-[#00a884] hover:underline font-semibold">View Register →</a>
+            <a href="{% url 'invoicing:invoice_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">View Register →</a>
         </div>
         <div class="table-wrap">
             <table class="app-table">
@@ -99,7 +289,8 @@
                     <tr>
                         <th>Invoice #</th>
                         <th>Customer</th>
-                        <th>Amount</th>
+                        <th>Grand Total</th>
+                        <th>Balance Due</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -107,52 +298,259 @@
                     {% for inv in recent_invoices %}
                     <tr>
                         <td>
-                            <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-[#00a884] font-bold hover:underline">
+                            <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
                                 {{ inv.invoice_number }}
                             </a>
                         </td>
-                        <td class="font-semibold text-slate-200">{{ inv.customer.name }}</td>
-                        <td class="font-bold text-slate-100">₹{{ inv.grand_total }}</td>
+                        <td class="font-semibold text-slate-200 text-xs">{{ inv.customer.name }}</td>
+                        <td class="font-bold text-slate-100 text-xs">₹{{ inv.grand_total }}</td>
+                        <td class="font-mono text-xs {% if inv.balance_due > 0 %}text-amber-400 font-bold{% else %}text-slate-400{% endif %}">
+                            ₹{{ inv.balance_due }}
+                        </td>
                         <td>
-                            <span class="status-pill {% if inv.status == 'PAID' %}status-success{% elif inv.status == 'ISSUED' %}status-warning{% else %}status-info{% endif %}">
+                            <span class="status-pill {% if inv.status == 'PAID' %}status-success{% elif inv.status == 'ISSUED' %}status-warning{% elif inv.status == 'OVERDUE' %}status-danger{% else %}status-info{% endif %} text-[10px]">
                                 {{ inv.get_status_display }}
                             </span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr class="empty-row">
-                        <td colspan="4" class="text-center text-slate-500 py-6">No tax invoices generated yet.</td>
+                        <td colspan="5" class="text-center text-slate-500 py-6">No tax invoices generated yet.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Live Audit Log Stream -->
+    {% if has_hr %}
+    <!-- WIDGET 3: Pending Leave Approvals -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4 text-emerald-400"></i> Pending Leave Approvals
+                {% if pending_leaves > 0 %}
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono font-bold">{{ pending_leaves }} Action Needed</span>
+                {% endif %}
+            </h3>
+            <a href="{% url 'hr:leave_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">HR Leave Console →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Leave Type</th>
+                        <th>Dates</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for l in recent_leaves %}
+                    <tr>
+                        <td>
+                            <div class="font-semibold text-slate-200 text-xs">{{ l.employee.full_name }}</div>
+                            <div class="text-[11px] text-slate-400 font-mono">{{ l.employee.department }}</div>
+                        </td>
+                        <td class="text-xs text-slate-300">{{ l.leave_type.name }}</td>
+                        <td class="font-mono text-xs text-slate-400 whitespace-nowrap">
+                            {{ l.start_date|date:"d M" }} - {{ l.end_date|date:"d M" }}
+                        </td>
+                        <td class="font-bold text-xs text-slate-200">{{ l.duration_days }}d</td>
+                        <td>
+                            <span class="status-pill status-warning text-[10px]">{{ l.get_status_display }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="5" class="text-center text-slate-500 py-6">All leave applications have been reviewed.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_crm and not is_admin %}
+    <!-- WIDGET 4: Recent CRM Sales Leads -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> Recent CRM Leads & Deals
+            </h3>
+            <a href="{% url 'crm:lead_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">Sales Pipeline →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Lead #</th>
+                        <th>Company / Contact</th>
+                        <th>Est. Value</th>
+                        <th>Stage</th>
+                        <th>Probability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ld in recent_leads %}
+                    <tr>
+                        <td class="font-mono text-xs text-[#00a0da] font-bold">
+                            <a href="{% url 'crm:lead_detail' ld.id %}" class="hover:underline">{{ ld.lead_number }}</a>
+                        </td>
+                        <td>
+                            <div class="font-semibold text-slate-200 text-xs">{{ ld.company_name }}</div>
+                            <div class="text-[11px] text-slate-400">{{ ld.contact_person }}</div>
+                        </td>
+                        <td class="font-bold text-slate-100 text-xs">₹{{ ld.estimated_value }}</td>
+                        <td>
+                            <span class="status-pill status-info text-[10px]">{{ ld.get_status_display }}</span>
+                        </td>
+                        <td class="font-mono text-xs text-[#25d366] font-bold">{{ ld.conversion_probability }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="5" class="text-center text-slate-500 py-6">No leads recorded in CRM pipeline yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_accounting and not has_crm and not is_admin %}
+    <!-- WIDGET 5: General Ledger Journals -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> Recent General Ledger Entries
+            </h3>
+            <a href="{% url 'accounting:journal_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">Ledger Register →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Entry #</th>
+                        <th>Date</th>
+                        <th>Module</th>
+                        <th>Narration</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for jn in recent_journals %}
+                    <tr>
+                        <td class="font-mono text-xs text-cyan-400 font-bold">
+                            <a href="{% url 'accounting:journal_detail' jn.id %}" class="hover:underline">{{ jn.entry_number }}</a>
+                        </td>
+                        <td class="font-mono text-xs text-slate-400 whitespace-nowrap">{{ jn.date|date:"d M Y" }}</td>
+                        <td class="font-mono text-[10px] text-slate-300">{{ jn.get_source_module_display }}</td>
+                        <td class="text-xs text-slate-300 line-clamp-1 max-w-[200px]">{{ jn.narration|default:"Manual journal transaction" }}</td>
+                        <td>
+                            <span class="status-pill {% if jn.status == 'POSTED' %}status-success{% else %}status-warning{% endif %} text-[10px]">
+                                {{ jn.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="5" class="text-center text-slate-500 py-6">No journal entries posted yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if has_projects and is_proj_admin and recent_projects %}
+    <!-- WIDGET 6: Active Client Projects -->
+    <div class="card">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <i data-lucide="layout" class="w-4 h-4 text-purple-400"></i> Active Client Projects
+            </h3>
+            <a href="{% url 'projects:project_list' %}" class="text-xs text-[#00a0da] hover:underline font-semibold">All Projects →</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Project</th>
+                        <th>Manager</th>
+                        <th>Target Date</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in recent_projects %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'projects:project_detail' p.id %}" class="font-bold text-slate-100 hover:text-[#00a0da] text-xs">
+                                {{ p.name }}
+                            </a>
+                            <div class="text-[11px] text-slate-400 font-mono">{{ p.code }}</div>
+                        </td>
+                        <td class="text-xs text-slate-300">{{ p.manager.get_full_name|default:p.manager.username|default:"Unassigned" }}</td>
+                        <td class="font-mono text-xs text-slate-400 whitespace-nowrap">{{ p.target_end_date|date:"d M Y"|default:"TBD" }}</td>
+                        <td>
+                            <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded
+                                {% if p.priority == 'URGENT' %}bg-rose-950 text-rose-300 border border-rose-800
+                                {% elif p.priority == 'HIGH' %}bg-amber-950 text-amber-300 border border-amber-800
+                                {% else %}bg-slate-800 text-slate-400{% endif %}">
+                                {{ p.get_priority_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-pill {% if p.status == 'COMPLETED' %}status-success{% elif p.status == 'IN_PROGRESS' %}status-info{% else %}status-warning{% endif %} text-[10px]">
+                                {{ p.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr class="empty-row">
+                        <td colspan="5" class="text-center text-slate-500 py-6">No client projects in flight.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if is_admin or has_roles %}
+    <!-- WIDGET 7: Live Audit & Security Event Stream -->
     <div class="card">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
                 <i data-lucide="shield-check" class="w-4 h-4 text-purple-400"></i> Audit & Security Event Stream
             </h3>
-            <span class="text-[10px] bg-[#00a884]/20 text-[#25d366] px-2 py-0.5 rounded font-mono font-bold">Tenant Isolated</span>
+            <span class="text-[10px] bg-[#00a0da]/20 text-[#25d366] px-2 py-0.5 rounded font-mono font-bold">Tenant Isolated</span>
         </div>
         <div class="space-y-3">
             {% for act in recent_activity %}
             <div class="p-3 rounded-xl bg-[#090d12] border border-white/5 text-xs flex items-center justify-between">
                 <div>
                     <div class="font-bold text-slate-200 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#00a884]"></span>
-                        {{ act.actor.username|default:"System" }} - <span class="text-emerald-400 font-mono">{{ act.action }}</span> {{ act.model_name }}
+                        <span class="w-2 h-2 rounded-full bg-[#00a0da]"></span>
+                        {{ act.actor.username|default:"System" }} - 
+                        <span class="text-emerald-400 font-mono">{{ act.action }}</span> {{ act.model_name }}
                     </div>
                     <div class="text-slate-400 font-mono text-[11px] mt-1 pl-4">{{ act.object_repr }}</div>
                 </div>
-                <div class="text-slate-500 font-mono text-[10px]">{{ act.timestamp|date:"H:i, d M" }}</div>
+                <div class="text-slate-500 font-mono text-[10px] whitespace-nowrap">{{ act.timestamp|date:"H:i, d M" }}</div>
             </div>
             {% empty %}
             <div class="text-center text-slate-500 text-xs py-6">No security events logged.</div>
             {% endfor %}
         </div>
     </div>
+    {% endif %}
+
 </div>
 {% endblock %}

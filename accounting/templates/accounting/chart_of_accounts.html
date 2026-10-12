@@ -8,7 +8,7 @@
             <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
                 <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
                 <a href="{% url 'accounting:journal_list' %}" class="hover:text-white">Accounting</a> / 
-                <span class="text-[#00a884]">Chart of Accounts</span>
+                <span class="text-[#00a0da]">Chart of Accounts</span>
             </div>
             <h1 class="text-xl font-extrabold text-slate-100">Chart of Accounts</h1>
             <p class="text-xs text-slate-400">Master financial ledger accounts, dynamic sub-accounts, and real-time ledger balances</p>
@@ -22,27 +22,27 @@
 
     <!-- Category Balance Overview Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'ASSET' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="card p-3 transition hover:border-[#00a0da]/50 {% if type_filter == 'ASSET' %}border-[#00a0da] bg-[#00a0da]/5{% endif %}">
             <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Assets</span>
             <span class="text-base font-extrabold text-blue-400 block mt-1">₹{{ category_totals.ASSET }}</span>
             <span class="text-[10px] text-slate-500">Cash, Bank, AR, Stock</span>
         </a>
-        <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'LIABILITY' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="card p-3 transition hover:border-[#00a0da]/50 {% if type_filter == 'LIABILITY' %}border-[#00a0da] bg-[#00a0da]/5{% endif %}">
             <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Liabilities</span>
             <span class="text-base font-extrabold text-rose-400 block mt-1">₹{{ category_totals.LIABILITY }}</span>
             <span class="text-[10px] text-slate-500">AP, GST, Payables</span>
         </a>
-        <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'EQUITY' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="card p-3 transition hover:border-[#00a0da]/50 {% if type_filter == 'EQUITY' %}border-[#00a0da] bg-[#00a0da]/5{% endif %}">
             <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Equity</span>
             <span class="text-base font-extrabold text-purple-400 block mt-1">₹{{ category_totals.EQUITY }}</span>
             <span class="text-[10px] text-slate-500">Capital & Earnings</span>
         </a>
-        <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'INCOME' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="card p-3 transition hover:border-[#00a0da]/50 {% if type_filter == 'INCOME' %}border-[#00a0da] bg-[#00a0da]/5{% endif %}">
             <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Income</span>
             <span class="text-base font-extrabold text-[#25d366] block mt-1">₹{{ category_totals.INCOME }}</span>
             <span class="text-[10px] text-slate-500">Consulting, SaaS, Sales</span>
         </a>
-        <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="card p-3 transition hover:border-[#00a884]/50 {% if type_filter == 'EXPENSE' %}border-[#00a884] bg-[#00a884]/5{% endif %}">
+        <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="card p-3 transition hover:border-[#00a0da]/50 {% if type_filter == 'EXPENSE' %}border-[#00a0da] bg-[#00a0da]/5{% endif %}">
             <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Expenses</span>
             <span class="text-base font-extrabold text-amber-400 block mt-1">₹{{ category_totals.EXPENSE }}</span>
             <span class="text-[10px] text-slate-500">Salaries, Rent, Tools</span>
@@ -52,22 +52,22 @@
     <!-- Filter Bar & Search -->
     <div class="card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div class="flex items-center gap-1 overflow-x-auto text-xs font-semibold">
-            <a href="{% url 'accounting:chart_of_accounts' %}" class="px-3 py-1.5 rounded-lg border transition {% if not type_filter %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}" class="px-3 py-1.5 rounded-lg border transition {% if not type_filter %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 All Categories
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'ASSET' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=ASSET" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'ASSET' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 Assets
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'LIABILITY' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=LIABILITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'LIABILITY' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 Liabilities
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EQUITY' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=EQUITY" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EQUITY' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 Equity
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'INCOME' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=INCOME" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'INCOME' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 Income
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EXPENSE' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}?type=EXPENSE" class="px-3 py-1.5 rounded-lg border transition {% if type_filter == 'EXPENSE' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#090d12] text-slate-400 border-white/10 hover:text-white{% endif %}">
                 Expenses
             </a>
         </div>
@@ -75,7 +75,7 @@
         <form method="GET" class="relative w-full sm:w-64">
             {% if type_filter %}<input type="hidden" name="type" value="{{ type_filter }}">{% endif %}
             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-            <input type="text" name="q" value="{{ query }}" placeholder="Search code or account..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a884]">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search code or account..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
         </form>
     </div>
 
@@ -95,7 +95,7 @@
             <tbody>
                 {% for item in accounts_with_balance %}
                 <tr class="hover:bg-[#1e2b3b]">
-                    <td class="font-mono text-[#00a884] font-bold">{{ item.account.code }}</td>
+                    <td class="font-mono text-[#00a0da] font-bold">{{ item.account.code }}</td>
                     <td>
                         <span class="font-semibold text-slate-100 block">{{ item.account.name }}</span>
                         {% if item.account.description %}
@@ -116,7 +116,7 @@
                         {% if item.account.is_system %}
                             <span class="text-[10px] bg-slate-800 text-slate-400 border border-white/10 px-2 py-0.5 rounded font-mono">System Default</span>
                         {% else %}
-                            <span class="text-[10px] bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold">Custom Account</span>
+                            <span class="text-[10px] bg-[#00a0da]/20 text-[#25d366] border border-[#00a0da]/30 px-2 py-0.5 rounded font-mono font-bold">Custom Account</span>
                         {% endif %}
                     </td>
                     <td class="text-right font-extrabold text-sm {% if item.balance < 0 %}text-rose-400{% else %}text-[#25d366]{% endif %}">
@@ -144,7 +144,7 @@
         <div class="relative w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4" @click.away="accountModalOpen = false">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="plus-circle" class="w-5 h-5 text-[#00a884]"></i> Create New Chart of Account
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-[#00a0da]"></i> Create New Chart of Account
                 </h3>
                 <button @click="accountModalOpen = false" class="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
@@ -196,7 +196,7 @@
         <div class="relative w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4" @click.away="editModalOpen = false">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="edit-3" class="w-5 h-5 text-[#00a884]"></i> Edit Account #<span x-text="editAccount.code"></span>
+                    <i data-lucide="edit-3" class="w-5 h-5 text-[#00a0da]"></i> Edit Account #<span x-text="editAccount.code"></span>
                 </h3>
                 <button @click="editModalOpen = false" class="text-slate-400 hover:text-white text-lg">✕</button>
             </div>

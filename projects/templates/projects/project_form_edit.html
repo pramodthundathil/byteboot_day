@@ -6,7 +6,7 @@
     <div class="mb-6 flex justify-between items-center">
         <div>
             <div class="flex items-center gap-2">
-                <span class="font-mono text-emerald-400 text-xs font-bold bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">{{ project.code }}</span>
+                <span class="font-mono text-[#00a0da] text-xs font-bold bg-sky-950/60 border border-sky-800/80 px-2 py-0.5 rounded">{{ project.code }}</span>
                 <h1 class="text-xl font-bold text-gray-100">Edit Project: {{ project.name }}</h1>
             </div>
             <p class="text-xs text-gray-400 mt-1">Update project deliverables, timeline, budget, and assign team members</p>
@@ -24,7 +24,7 @@
         <!-- Project Details Card -->
         <div class="card">
             <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3">
-                <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i>
+                <i data-lucide="layers" class="w-4 h-4 text-[#00a0da]"></i>
                 Project Information & Timeline
             </h2>
 
@@ -107,9 +107,9 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-800 pb-4 mb-4">
                 <div>
                     <h2 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                        <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i>
                         Assign Team Members
-                        <span id="assignedCountBadge" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+                        <span id="assignedCountBadge" class="ml-2 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-sky-950 text-sky-300 border border-sky-800">
                             0 assigned
                         </span>
                     </h2>
@@ -130,7 +130,7 @@
             <!-- Employee Live Search Filter -->
             <div class="relative mb-4">
                 <input type="text" id="memberSearchInput" placeholder="Filter employees by name, employee ID, or designation..." 
-                       class="form-control pl-9 bg-slate-900 text-xs focus:ring-[#00a884]" autocomplete="off" />
+                       class="form-control pl-9 bg-slate-900 text-xs focus:ring-[#00a0da]" autocomplete="off" />
                 <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
             </div>
 
@@ -145,11 +145,11 @@
                     <div class="flex items-start justify-between gap-2">
                         <label class="flex items-start gap-3 cursor-pointer flex-1 select-none">
                             <input type="checkbox" name="member_ids" value="{{ u.id }}" 
-                                   class="member-checkbox mt-1 w-4 h-4 rounded border-gray-700 bg-gray-900 text-[#00a884] focus:ring-[#00a884] focus:ring-offset-gray-900 cursor-pointer"
+                                   class="member-checkbox mt-1 w-4 h-4 rounded border-gray-700 bg-gray-900 text-[#00a0da] focus:ring-[#00a0da] focus:ring-offset-gray-900 cursor-pointer"
                                    {% if u.id in current_members or project.manager_id == u.id %}checked{% endif %}>
                             
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">
+                                <div class="w-8 h-8 rounded-full bg-sky-950 border border-sky-800 text-[#00a0da] flex items-center justify-center font-bold text-xs shrink-0">
                                     {{ u.first_name|default:u.username|slice:":1"|upper }}
                                 </div>
                                 <div class="min-w-0">
@@ -181,7 +181,7 @@
                     <!-- Role Dropdown -->
                     <div class="flex items-center justify-between pt-2 border-t border-gray-800/80 gap-2">
                         <span class="text-[11px] text-gray-400">Assigned Role:</span>
-                        <select name="role_{{ u.id }}" class="role-select bg-gray-900 border border-gray-800 text-gray-200 text-xs rounded-lg px-2.5 py-1 outline-none focus:border-[#00a884]">
+                        <select name="role_{{ u.id }}" class="role-select bg-gray-900 border border-gray-800 text-gray-200 text-xs rounded-lg px-2.5 py-1 outline-none focus:border-[#00a0da]">
                             {% for r_code, r_label in role_choices %}
                             <option value="{{ r_code }}" 
                                 {% if current_members|dictsort:0 %}
@@ -246,11 +246,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (checkbox.checked) {
                 count++;
-                card.classList.add('border-emerald-600/60', 'bg-emerald-950/20');
+                card.classList.add('border-[#00a0da]/60', 'bg-sky-950/20');
                 card.classList.remove('border-gray-800', 'bg-[#0c1319]');
                 if (roleSelect) roleSelect.disabled = false;
             } else {
-                card.classList.remove('border-emerald-600/60', 'bg-emerald-950/20');
+                card.classList.remove('border-[#00a0da]/60', 'bg-sky-950/20');
                 card.classList.add('border-gray-800', 'bg-[#0c1319]');
                 if (roleSelect) roleSelect.disabled = true;
             }

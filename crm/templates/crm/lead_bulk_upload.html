@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'crm:lead_list' %}" class="hover:text-white">CRM</a> / <span class="text-[#00a0da]">Bulk Import</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+                <i data-lucide="upload-cloud" class="w-6 h-6 text-[#00a0da]"></i>
+                Bulk Import & Staff Lead Distribution
+            </h1>
+            <p class="text-xs text-slate-400">Import hundreds of sales leads from CSV or Excel spreadsheets in one batch</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'crm:lead_template_download' %}" class="btn-secondary flex items-center gap-1.5 text-xs text-emerald-400 border-emerald-800/60 hover:bg-emerald-950/40">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Download Sample CSV Template
+            </a>
+            <a href="{% url 'crm:lead_list' %}" class="btn-secondary text-xs">
+                Back to Leads
+            </a>
+        </div>
+    </div>
+
+    <!-- Upload Card -->
+    <form method="POST" enctype="multipart/form-data" class="card p-6 mb-6">
+        {% csrf_token %}
+
+        <!-- Role-based Assignment Configuration -->
+        <div class="mb-6 p-4 rounded-xl {% if is_admin %}bg-[#00a0da]/10 border border-[#00a0da]/30{% else %}bg-emerald-950/30 border border-emerald-800/40{% endif %}">
+            {% if is_admin %}
+            <div class="flex items-center gap-2 mb-3">
+                <span class="w-2 h-2 rounded-full bg-[#00a0da]"></span>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-[#00a0da]">Admin Lead Allocation Policy</h3>
+            </div>
+            <p class="text-xs text-slate-300 mb-4">
+                As an executive or manager, choose how newly imported leads should be assigned to your team members:
+            </p>
+
+            <div x-data="{ mode: 'specific' }" class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <label class="cursor-pointer p-3 rounded-lg border flex items-start gap-2.5 transition" :class="mode === 'specific' ? 'bg-[#101720] border-[#00a0da] text-white' : 'bg-[#090d12] border-white/10 text-slate-400'">
+                        <input type="radio" name="assignment_mode" value="specific" x-model="mode" class="mt-0.5 text-[#00a0da] focus:ring-0">
+                        <div>
+                            <div class="text-xs font-bold text-slate-200">Assign to Single Staff</div>
+                            <div class="text-[11px] text-slate-400">Allocate all leads to one chosen team member</div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer p-3 rounded-lg border flex items-start gap-2.5 transition" :class="mode === 'round_robin' ? 'bg-[#101720] border-[#00a0da] text-white' : 'bg-[#090d12] border-white/10 text-slate-400'">
+                        <input type="radio" name="assignment_mode" value="round_robin" x-model="mode" class="mt-0.5 text-[#00a0da] focus:ring-0">
+                        <div>
+                            <div class="text-xs font-bold text-slate-200">Auto-Distribute (Round-Robin)</div>
+                            <div class="text-[11px] text-slate-400">Evenly divide leads among all active staff</div>
+                        </div>
+                    </label>
+
+                    <label class="cursor-pointer p-3 rounded-lg border flex items-start gap-2.5 transition" :class="mode === 'unassigned' ? 'bg-[#101720] border-[#00a0da] text-white' : 'bg-[#090d12] border-white/10 text-slate-400'">
+                        <input type="radio" name="assignment_mode" value="unassigned" x-model="mode" class="mt-0.5 text-[#00a0da] focus:ring-0">
+                        <div>
+                            <div class="text-xs font-bold text-slate-200">Leave Unassigned</div>
+                            <div class="text-[11px] text-slate-400">Keep in unassigned lead pool for later claim</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div x-show="mode === 'specific'" class="mt-3 pt-3 border-t border-white/10">
+                    <label class="form-label text-xs">Select Assignee Staff Member:</label>
+                    <select name="assign_to_staff_id" class="form-control text-xs max-w-md">
+                        <option value="{{ request.user.id }}">Assign to Myself ({{ request.user.get_full_name|default:request.user.username }})</option>
+                        {% for u in assignable_users %}
+                            {% if u.id != request.user.id %}
+                            <option value="{{ u.id }}">{{ u.get_full_name|default:u.username }} ({{ u.email }})</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Staff Upload Policy -->
+            <div class="flex items-start gap-3">
+                <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5"></i>
+                <div>
+                    <h3 class="text-xs font-bold text-emerald-300">Staff Self-Assignment Enabled</h3>
+                    <p class="text-xs text-slate-300 mt-1">
+                        You are uploading as staff member (<span class="font-bold text-white">{{ request.user.get_full_name|default:request.user.username }}</span>). All valid leads in this spreadsheet will be automatically assigned to your personal pipeline.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- File Upload Drag Zone -->
+        <div class="mb-6">
+            <label class="form-label text-xs mb-2 block">Choose Spreadsheet (.CSV or .XLSX)</label>
+            <div class="border-2 border-dashed border-white/20 hover:border-[#00a0da] transition rounded-2xl p-8 text-center bg-[#090d12]">
+                <i data-lucide="file-spreadsheet" class="w-12 h-12 mx-auto text-[#00a0da] mb-3"></i>
+                <div class="text-sm font-semibold text-slate-200 mb-1">Click to browse or drag file here</div>
+                <div class="text-xs text-slate-400 mb-4">Supported formats: CSV, XLSX, XLS</div>
+                <input type="file" name="lead_file" accept=".csv, .xlsx, .xls" class="block w-full max-w-sm mx-auto text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#00a0da] file:text-white hover:file:bg-[#008ec2] cursor-pointer" required>
+            </div>
+        </div>
+
+        <div class="flex justify-between items-center pt-4 border-t border-white/10">
+            <a href="{% url 'crm:lead_template_download' %}" class="text-xs text-[#00a0da] hover:underline flex items-center gap-1">
+                <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+                Download CSV Sample Format
+            </a>
+            <button type="submit" class="btn-primary flex items-center gap-2">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                Start Lead Import
+            </button>
+        </div>
+    </form>
+
+    <!-- Spreadsheet Column Mapping Guide -->
+    <div class="card p-6">
+        <h3 class="text-sm font-bold text-slate-200 mb-2 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-[#00a0da]"></i>
+            Supported Column Headers Reference
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">The importer automatically recognizes the following standard column headers (case-insensitive):</p>
+
+        <div class="table-wrap">
+            <table class="app-table text-xs">
+                <thead>
+                    <tr>
+                        <th>Header Name</th>
+                        <th>Required?</th>
+                        <th>Example Value</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Company Name</td>
+                        <td><span class="text-emerald-400 font-bold">Required*</span></td>
+                        <td>Apex Digital Technologies</td>
+                        <td>Company or Client organization name</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Contact Person</td>
+                        <td><span class="text-emerald-400 font-bold">Required*</span></td>
+                        <td>Rahul Sharma</td>
+                        <td>Individual decision-maker name</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Phone</td>
+                        <td>Optional</td>
+                        <td>+91 9876543210</td>
+                        <td>Direct mobile or telephone number</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Email</td>
+                        <td>Optional</td>
+                        <td>rahul@apexdigital.in</td>
+                        <td>Email address for correspondence</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Service Interested</td>
+                        <td>Optional</td>
+                        <td>Custom Business OS ERP</td>
+                        <td>Product or service interest</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Estimated Value</td>
+                        <td>Optional</td>
+                        <td>250000.00</td>
+                        <td>Estimated contract size in INR</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Priority</td>
+                        <td>Optional</td>
+                        <td>HIGH</td>
+                        <td>LOW, MEDIUM, HIGH, or URGENT</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Lead Source</td>
+                        <td>Optional</td>
+                        <td>Website Inbound</td>
+                        <td>Website, Referral, Cold Call, etc.</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Next Followup Date</td>
+                        <td>Optional</td>
+                        <td>2026-10-15 14:00</td>
+                        <td>Format: YYYY-MM-DD HH:MM or DD/MM/YYYY</td>
+                    </tr>
+                    <tr>
+                        <td class="font-mono text-[#00a0da] font-bold">Address / Notes</td>
+                        <td>Optional</td>
+                        <td>MG Road, Kochi</td>
+                        <td>Office address or requirement notes</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

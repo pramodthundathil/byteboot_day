@@ -95,7 +95,7 @@ class BytebootDataTable {
         searchDiv.className = "flex items-center gap-2 relative";
         searchDiv.innerHTML = `
             <span class="text-slate-400">Search:</span>
-            <input type="text" placeholder="Filter table rows..." class="dt-search-input bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-[#00a884] w-64">
+            <input type="text" placeholder="Filter table rows..." class="dt-search-input bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-[#00a0da] w-64">
         `;
         const input = searchDiv.querySelector(".dt-search-input");
         input.addEventListener("input", (e) => {
@@ -119,7 +119,7 @@ class BytebootDataTable {
         const headers = this.table.querySelectorAll("thead th");
         headers.forEach((th, idx) => {
             if (th.dataset.sortable !== "false") {
-                th.classList.add("cursor-pointer", "select-none", "hover:text-[#00a884]", "transition");
+                th.classList.add("cursor-pointer", "select-none", "hover:text-[#00a0da]", "transition");
                 th.setAttribute("title", "Click to sort column");
                 th.addEventListener("click", () => this.sort(idx));
             }
@@ -151,7 +151,7 @@ class BytebootDataTable {
             th.querySelectorAll(".sort-icon").forEach(el => el.remove());
             if (idx === columnIndex) {
                 const icon = document.createElement("span");
-                icon.className = "sort-icon ml-1 text-[#00a884] font-bold";
+                icon.className = "sort-icon ml-1 text-[#00a0da] font-bold";
                 icon.textContent = this.sortDirection === "asc" ? " ▲" : " ▼";
                 th.appendChild(icon);
             }
@@ -206,7 +206,7 @@ class BytebootDataTable {
             <div>Showing <strong>${showingStart}</strong> to <strong>${endIdx}</strong> of <strong>${total}</strong> entries</div>
             <div class="flex items-center gap-1">
                 <button class="dt-prev bg-[#202c33] border border-white/10 hover:bg-[#2a3942] text-slate-200 px-3 py-1 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed" ${this.currentPage === 1 ? "disabled" : ""}>Previous</button>
-                <span class="px-2 font-bold text-[#25d366]">Page ${this.currentPage} of ${totalPages}</span>
+                <span class="px-2 font-bold text-[#38bdf8]">Page ${this.currentPage} of ${totalPages}</span>
                 <button class="dt-next bg-[#202c33] border border-white/10 hover:bg-[#2a3942] text-slate-200 px-3 py-1 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed" ${this.currentPage >= totalPages ? "disabled" : ""}>Next</button>
             </div>
         `;

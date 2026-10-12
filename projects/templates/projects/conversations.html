@@ -2,22 +2,25 @@
 
 {% block content %}
 <div class="h-[calc(100vh-100px)] -m-6 flex overflow-hidden bg-[#0b141a]">
-    <!-- Left Project Chat List Column (WhatsApp Desktop Style) -->
+    <!-- Left Project Chat List Column (Team Chat Style) -->
     <div class="w-80 bg-[#111b21] border-r border-white/10 flex flex-col">
         <div class="p-4 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-base font-bold text-gray-100">Project Chats</h2>
-            <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded">WhatsApp OS</span>
+            <h2 class="text-base font-bold text-gray-100 flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i>
+                Project Chats
+            </h2>
+            <span class="text-xs bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded">Byteboot Chat</span>
         </div>
 
         <div class="p-3">
-            <input type="text" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a884]">
+            <input type="text" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a0da]">
         </div>
 
         <!-- Project List Items -->
         <div class="flex-1 overflow-y-auto flex flex-col">
             {% for prj in projects %}
-            <a href="?project_id={{ prj.id }}" class="flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a884]{% endif %}">
-                <div class="w-10 h-10 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs text-white">
+            <a href="?project_id={{ prj.id }}" class="flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a0da]{% endif %}">
+                <div class="w-10 h-10 rounded-full bg-sky-700 flex items-center justify-center font-bold text-xs text-white">
                     {{ prj.code|slice:":3" }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -43,7 +46,7 @@
         <!-- Chat Room Header -->
         <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold text-white">
+                <div class="w-8 h-8 rounded-full bg-[#00a0da] flex items-center justify-center text-xs font-bold text-white">
                     {{ active_project.code|slice:":3" }}
                 </div>
                 <div>
@@ -59,25 +62,25 @@
             {% for msg in chat_messages %}
             <div class="flex flex-col {% if msg.sender == request.user %}items-end{% else %}items-start{% endif %}">
                 <div class="text-[10px] text-gray-400 mb-1 px-1">{{ msg.sender.username }} • {{ msg.created_at|date:"H:i" }}</div>
-                <div class="max-w-md p-3 rounded-xl text-xs shadow {% if msg.sender == request.user %}bg-[#005c4b] text-white rounded-tr-none{% else %}bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10{% endif %}">
+                <div class="max-w-md p-3 rounded-xl text-xs shadow {% if msg.sender == request.user %}bg-[#008ec2] text-white rounded-tr-none{% else %}bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10{% endif %}">
                     <div>{{ msg.message_text }}</div>
 
                     <!-- Entity Tag Link (Clicking opens item detail) -->
                     {% if msg.related_entity_type != 'NONE' and msg.related_entity_id %}
                     <div class="mt-2 pt-2 border-t border-white/20 flex items-center gap-2">
-                        <span class="text-[10px] uppercase font-bold text-emerald-300 bg-black/30 px-1.5 py-0.5 rounded">
+                        <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded">
                             🔗 Linked {{ msg.related_entity_type }}
                         </span>
                         {% if msg.related_entity_type == 'TASK' %}
-                        <a href="{% url 'projects:task_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'projects:task_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
                             #{{ msg.related_entity_id }}
                         </a>
                         {% elif msg.related_entity_type == 'INVOICE' %}
-                        <a href="{% url 'invoicing:invoice_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'invoicing:invoice_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
                             #{{ msg.related_entity_id }}
                         </a>
                         {% elif msg.related_entity_type == 'LEAD' %}
-                        <a href="{% url 'crm:lead_list' %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'crm:lead_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
                             #{{ msg.related_entity_id }}
                         </a>
                         {% endif %}
@@ -105,7 +108,7 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <input type="text" name="message_text" placeholder="Type a message to project team..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a884]" required autofocus>
+                    <input type="text" name="message_text" placeholder="Type a message to project team..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a0da]" required autofocus>
                     <button type="submit" class="btn-primary px-5">Send</button>
                 </div>
             </form>

@@ -1,7 +1,12 @@
 <div class="p-6">
     <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
         <div>
-            <span class="text-xs font-mono text-[#00a884] font-bold">{{ lead.lead_number }}</span>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-[#00a0da] font-bold">{{ lead.lead_number }}</span>
+                {% with badge=lead.followup_due_badge %}
+                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold border {{ badge.class }}">{{ badge.label }}</span>
+                {% endwith %}
+            </div>
             <h2 class="text-lg font-bold text-gray-100 mt-0.5">{{ lead.company_name }}</h2>
         </div>
         <span class="status-pill {% if lead.status == 'WON' %}status-success{% elif lead.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
@@ -16,14 +21,23 @@
                 <span class="font-semibold text-gray-200 block">{{ lead.contact_person }}</span>
             </div>
             <div>
-                <span class="text-gray-400">Phone:</span>
-                <span class="font-semibold text-gray-200 block">{{ lead.phone }}</span>
+                <span class="text-gray-400">Phone Outreach:</span>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <a href="tel:{{ lead.phone }}" class="text-emerald-400 font-mono font-bold hover:underline">{{ lead.phone }}</a>
+                    <a href="https://wa.me/{{ lead.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="text-emerald-400 hover:text-emerald-300">💬</a>
+                </div>
             </div>
             <div>
                 <span class="text-gray-400">Est. Value:</span>
-                <span class="font-bold text-[#00a884] text-sm block">₹{{ lead.estimated_value }}</span>
+                <span class="font-bold text-[#00a0da] text-sm block">₹{{ lead.estimated_value }}</span>
             </div>
             <div>
+                <span class="text-gray-400">Assigned Staff:</span>
+                <span class="font-semibold text-gray-200 block">
+                    {% if lead.assigned_to %}{{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}{% else %}Unassigned{% endif %}
+                </span>
+            </div>
+            <div class="col-span-2">
                 <span class="text-gray-400">Service:</span>
                 <span class="font-semibold text-gray-200 block">{{ lead.service_interested }}</span>
             </div>
@@ -35,10 +49,13 @@
                 {% for f in followups %}
                 <div class="p-2.5 rounded bg-[#111b21] border border-white/5">
                     <div class="flex justify-between text-emerald-400 font-semibold mb-1">
-                        <span>{{ f.get_method_display }}</span>
+                        <span>{{ f.get_method_display }} by {% if f.staff %}{{ f.staff.get_full_name|default:f.staff.username }}{% else %}Staff{% endif %}</span>
                         <span class="text-gray-500 font-mono">{{ f.interaction_time|date:"d M, H:i" }}</span>
                     </div>
                     <p class="text-gray-300">{{ f.summary }}</p>
+                    {% if f.outcome %}
+                    <div class="text-[10px] text-amber-300 mt-1">Outcome: {{ f.outcome }}</div>
+                    {% endif %}
                 </div>
                 {% empty %}
                 <div class="text-gray-500 text-center py-4">No followups recorded yet.</div>
@@ -46,14 +63,17 @@
             </div>
         </div>
 
-        <div class="pt-4 border-t border-white/10 flex gap-2 justify-end">
-            {% if lead.status != 'WON' %}
-            <form action="{% url 'crm:lead_convert' lead.id %}" method="POST">
-                {% csrf_token %}
-                <button type="submit" class="btn-primary text-xs">🏆 Convert to Customer</button>
-            </form>
-            {% endif %}
-            <a href="{% url 'crm:lead_detail' lead.id %}" class="btn-secondary text-xs">Full Page View →</a>
+        <div class="pt-4 border-t border-white/10 flex gap-2 justify-between items-center">
+            <a href="{% url 'crm:lead_edit' lead.id %}" class="btn-secondary text-xs">✏️ Edit</a>
+            <div class="flex gap-2">
+                {% if lead.status != 'WON' %}
+                <form action="{% url 'crm:lead_convert' lead.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary text-xs">🏆 Convert</button>
+                </form>
+                {% endif %}
+                <a href="{% url 'crm:lead_detail' lead.id %}" class="btn-secondary text-xs">Full Details →</a>
+            </div>
         </div>
     </div>
 </div>

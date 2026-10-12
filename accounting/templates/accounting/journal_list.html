@@ -4,7 +4,7 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
         <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Accounting</span> / <span class="text-[#00a884]">General Ledger</span>
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Accounting</span> / <span class="text-[#00a0da]">General Ledger</span>
         </div>
         <h1 class="text-xl font-extrabold text-slate-100">General Ledger & Double-Entry Journal Register</h1>
         <p class="text-xs text-slate-400">Strictly balanced double-entry vouchers with immutable audit records</p>
@@ -34,7 +34,7 @@
             {% for je in journals %}
             <tr>
                 <td>
-                    <a href="{% url 'accounting:journal_detail' je.id %}" class="font-mono text-[#00a884] font-bold hover:underline">
+                    <a href="{% url 'accounting:journal_detail' je.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
                         {{ je.entry_number }}
                     </a>
                 </td>

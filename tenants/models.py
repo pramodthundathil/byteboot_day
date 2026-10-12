@@ -154,8 +154,8 @@ class CompanyMembership(models.Model):
                     return True
             return False
         elif self.role == 'STAFF':
-            # Staff by default has view & edit access to projects/tasks, but NOT assign or approve
-            if mod_key == 'projects':
+            # Staff by default has view & edit access to projects/tasks and CRM leads, but NOT assign or approve
+            if mod_key in ('projects', 'crm'):
                 if action in ('view', 'create', 'edit'):
                     return True
             return False

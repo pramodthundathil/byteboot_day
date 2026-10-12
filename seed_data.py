@@ -40,6 +40,7 @@ def seed():
         defaults={
             "name": "Byteboot Techno Solutions Pvt Ltd",
             "tagline": "Multi-Tenant Enterprise Software Architectures",
+            "logo_url": "/static/js/img/company_logo_icon.png",
             "email": "contact@byteboot.tech",
             "phone": "+91 484 2901234",
             "address": "Infopark Campus, Kakkanad",

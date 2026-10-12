@@ -4,7 +4,7 @@
 <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
         <div class="flex flex-wrap items-center gap-3">
-            <span class="font-mono text-emerald-400 text-xs font-bold bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+            <span class="font-mono text-sky-400 text-xs font-bold bg-sky-950/60 border border-sky-800/80 px-2 py-0.5 rounded">
                 {{ project.code }}
             </span>
             <h1 class="text-xl font-bold text-gray-100">{{ project.name }}</h1>
@@ -22,7 +22,7 @@
     <div class="flex flex-wrap items-center gap-2">
         {% if can_edit or is_admin %}
         <a href="{% url 'projects:project_edit' project.id %}" class="btn-secondary" title="Edit project and assign team members">
-            <i data-lucide="edit-3" class="w-4 h-4 text-emerald-400"></i> Edit Project & Team
+            <i data-lucide="edit-3" class="w-4 h-4 text-[#00a0da]"></i> Edit Project & Team
         </a>
         {% endif %}
         <a href="{% url 'projects:task_create' %}?project_id={{ project.id }}" class="btn-primary">
@@ -42,7 +42,7 @@
     <div class="card lg:col-span-2">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider flex items-center gap-2">
-                <i data-lucide="check-square" class="w-4 h-4 text-emerald-400"></i>
+                <i data-lucide="check-square" class="w-4 h-4 text-[#00a0da]"></i>
                 Project Task Tracker
             </h3>
             <span class="text-xs text-gray-400 font-mono">{{ tasks.count }} task{{ tasks.count|pluralize }}</span>
@@ -62,7 +62,7 @@
                     {% for t in tasks %}
                     <tr>
                         <td>
-                            <a href="{% url 'projects:task_detail' t.id %}" class="font-mono text-emerald-400 font-bold hover:underline">
+                            <a href="{% url 'projects:task_detail' t.id %}" class="font-mono text-sky-400 font-bold hover:underline">
                                 {{ t.task_number }}
                             </a>
                         </td>
@@ -103,13 +103,13 @@
         <!-- Overview Card -->
         <div class="card">
             <h3 class="text-sm font-bold text-gray-200 uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-gray-800 pb-3">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-400"></i>
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-[#00a0da]"></i>
                 Project Overview
             </h3>
             <div class="flex flex-col gap-3 text-xs mb-4">
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
                     <span class="text-gray-400">Total Budget:</span>
-                    <span class="font-bold text-emerald-400 font-mono text-sm">₹{{ project.budget }}</span>
+                    <span class="font-bold text-sky-400 font-mono text-sm">₹{{ project.budget }}</span>
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
                     <span class="text-gray-400">Estimated Effort:</span>
@@ -117,7 +117,7 @@
                 </div>
                 <div class="flex justify-between items-center py-1 border-b border-gray-800/60">
                     <span class="text-gray-400">Logged Hours:</span>
-                    <span class="font-semibold text-emerald-400 font-mono">{{ project.total_logged_hours }} Hours</span>
+                    <span class="font-semibold text-sky-400 font-mono">{{ project.total_logged_hours }} Hours</span>
                 </div>
                 <div class="pt-1">
                     <span class="text-gray-400 block mb-1">Scope & Objectives:</span>
@@ -132,11 +132,11 @@
         <div class="card">
             <div class="flex justify-between items-center mb-3 border-b border-gray-800 pb-3">
                 <h4 class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-[#00a0da]"></i>
                     Assigned Team ({{ members|length }})
                 </h4>
                 {% if can_edit or is_admin %}
-                <a href="{% url 'projects:project_edit' project.id %}#team-members" class="text-xs text-[#00a884] hover:underline font-semibold flex items-center gap-1">
+                <a href="{% url 'projects:project_edit' project.id %}#team-members" class="text-xs text-[#00a0da] hover:underline font-semibold flex items-center gap-1">
                     <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Assign Members
                 </a>
                 {% endif %}
@@ -146,7 +146,7 @@
                 {% for m in members %}
                 <div class="flex justify-between items-center p-2.5 rounded-lg bg-gray-900 border border-gray-800 text-xs hover:border-gray-700 transition">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-7 h-7 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                        <div class="w-7 h-7 rounded-full bg-sky-950 border border-sky-800 text-sky-400 flex items-center justify-center font-bold text-xs uppercase shrink-0">
                             {{ m.user.first_name|default:m.user.username|slice:":1" }}
                         </div>
                         <div class="min-w-0">
@@ -168,7 +168,7 @@
                             </span>
                         </div>
                     </div>
-                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0 {% if m.role == 'MANAGER' %}bg-purple-950 text-purple-300 border border-purple-800{% elif m.role == 'DEVELOPER' %}bg-emerald-950 text-emerald-300 border border-emerald-800{% elif m.role == 'DESIGNER' %}bg-pink-950 text-pink-300 border border-pink-800{% elif m.role == 'QA' %}bg-amber-950 text-amber-300 border border-amber-800{% else %}bg-gray-800 text-gray-300 border border-gray-700{% endif %}">
+                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold shrink-0 {% if m.role == 'MANAGER' %}bg-purple-950 text-purple-300 border border-purple-800{% elif m.role == 'DEVELOPER' %}bg-sky-950 text-sky-300 border border-sky-800{% elif m.role == 'DESIGNER' %}bg-pink-950 text-pink-300 border border-pink-800{% elif m.role == 'QA' %}bg-amber-950 text-amber-300 border border-amber-800{% else %}bg-gray-800 text-gray-300 border border-gray-700{% endif %}">
                         {{ m.get_role_display }}
                     </span>
                 </div>

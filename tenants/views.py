@@ -62,6 +62,7 @@ def company_settings(request):
     if request.method == 'POST':
         company.name = request.POST.get('name', company.name)
         company.tagline = request.POST.get('tagline', company.tagline)
+        company.logo_url = request.POST.get('logo_url', company.logo_url)
         company.phone = request.POST.get('phone', company.phone)
         company.email = request.POST.get('email', company.email)
         company.gstin = request.POST.get('gstin', company.gstin)
@@ -188,7 +189,7 @@ def role_create(request):
     default_permissions = {
         'projects': {'view': True, 'create': True, 'edit': True, 'assign': True, 'delete': False},
         'hr': {'view': True, 'create': False, 'edit': False, 'approve': False, 'delete': False},
-        'crm': {'view': True, 'create': True, 'edit': True, 'convert': True, 'delete': False},
+        'crm': {'view': True, 'create': True, 'edit': True, 'assign': True, 'convert': True, 'delete': False},
         'invoicing': {'view': True, 'create': True, 'edit': False, 'record_payment': True, 'post': True, 'delete': False},
         'accounting': {'view': False, 'create': False, 'edit': False, 'post': False, 'delete': False},
         'reports': {'view': True},

@@ -8,7 +8,7 @@
             <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
                 <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
                 <a href="{% url 'invoicing:invoice_list' %}" class="hover:text-white">Invoices</a> / 
-                <span class="text-[#00a884]">{{ invoice.invoice_number }}</span>
+                <span class="text-[#00a0da]">{{ invoice.invoice_number }}</span>
             </div>
             <div class="flex items-center gap-3">
                 <h1 class="text-xl font-extrabold text-slate-100">Tax Invoice #{{ invoice.invoice_number }}</h1>
@@ -138,7 +138,7 @@
                     {% endif %}
                     <div class="flex justify-between text-slate-300 border-t border-white/10 pt-2 font-bold text-sm">
                         <span>Grand Invoice Total:</span>
-                        <span class="text-[#00a884]">₹{{ invoice.grand_total }}</span>
+                        <span class="text-[#00a0da]">₹{{ invoice.grand_total }}</span>
                     </div>
                     <div class="flex justify-between text-slate-400 pt-1">
                         <span>Total Paid to Date:</span>
@@ -157,10 +157,10 @@
     <div class="card space-y-4">
         <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <i data-lucide="credit-card" class="w-4 h-4 text-[#00a884]"></i> Allocated Customer Payments & Receipts
+                <i data-lucide="credit-card" class="w-4 h-4 text-[#00a0da]"></i> Allocated Customer Payments & Receipts
             </h3>
             {% if invoice.status != 'PAID' and invoice.balance_due > 0 %}
-            <button @click="payModalOpen = true" class="text-xs text-[#00a884] hover:underline">+ Add Payment</button>
+            <button @click="payModalOpen = true" class="text-xs text-[#00a0da] hover:underline">+ Add Payment</button>
             {% endif %}
         </div>
 
@@ -179,7 +179,7 @@
                 <tbody>
                     {% for alloc in allocations %}
                     <tr>
-                        <td class="font-mono text-[#00a884] font-bold">{{ alloc.payment.payment_number }}</td>
+                        <td class="font-mono text-[#00a0da] font-bold">{{ alloc.payment.payment_number }}</td>
                         <td>{{ alloc.payment.payment_date }}</td>
                         <td>{{ alloc.payment.get_payment_method_display }}</td>
                         <td class="font-mono text-slate-300">{{ alloc.payment.reference_number|default:"N/A" }}</td>
@@ -205,7 +205,7 @@
         <div class="relative w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-4" @click.away="payModalOpen = false">
             <div class="flex justify-between items-center border-b border-white/10 pb-3">
                 <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                    <i data-lucide="credit-card" class="w-5 h-5 text-[#00a884]"></i> Record Customer Payment
+                    <i data-lucide="credit-card" class="w-5 h-5 text-[#00a0da]"></i> Record Customer Payment
                 </h3>
                 <button @click="payModalOpen = false" class="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
@@ -215,7 +215,7 @@
                 <div class="bg-[#090d12] p-3 rounded-lg border border-white/10 text-xs space-y-1">
                     <div class="flex justify-between text-slate-400">
                         <span>Invoice Number:</span>
-                        <span class="font-mono text-[#00a884] font-bold">{{ invoice.invoice_number }}</span>
+                        <span class="font-mono text-[#00a0da] font-bold">{{ invoice.invoice_number }}</span>
                     </div>
                     <div class="flex justify-between text-slate-400">
                         <span>Client Name:</span>

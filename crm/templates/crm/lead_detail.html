@@ -1,104 +1,441 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
+<!-- Top Header -->
+<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
+        <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'crm:lead_list' %}" class="hover:text-white">CRM</a> / <span class="text-[#00a0da] font-mono">{{ lead.lead_number }}</span>
+        </div>
         <div class="flex items-center gap-3">
-            <h1 class="text-xl font-bold text-gray-100">{{ lead.lead_number }} - {{ lead.company_name }}</h1>
-            <span class="status-pill {% if lead.status == 'WON' %}status-success{% elif lead.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
+            <h1 class="text-xl font-extrabold text-slate-100">{{ lead.company_name }}</h1>
+            <span class="status-pill text-xs {% if lead.status == 'WON' %}status-success{% elif lead.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
+                <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                 {{ lead.get_status_display }}
             </span>
+            <span class="text-[10px] px-2 py-0.5 rounded font-extrabold uppercase {% if lead.priority == 'URGENT' %}bg-red-950 text-red-300 border border-red-800{% elif lead.priority == 'HIGH' %}bg-orange-950 text-orange-300 border border-orange-800{% else %}bg-slate-800 text-slate-300{% endif %}">
+                {{ lead.get_priority_display }}
+            </span>
         </div>
-        <p class="text-xs text-gray-400">Contact: {{ lead.contact_person }} | {{ lead.phone }} | {{ lead.email }}</p>
+        <p class="text-xs text-slate-400 mt-1">Lead ID: <span class="font-mono text-slate-300 font-bold">{{ lead.lead_number }}</span> | Contact: {{ lead.contact_person }}</p>
     </div>
-    <div class="flex gap-2">
+
+    <div class="flex items-center gap-2">
         {% if lead.status != 'WON' %}
-        <form action="{% url 'crm:lead_convert' lead.id %}" method="POST">
+        <form action="{% url 'crm:lead_convert' lead.id %}" method="POST" onsubmit="return confirm('Convert this lead into a registered customer?')">
             {% csrf_token %}
-            <button type="submit" class="btn-primary">🏆 Convert to Customer</button>
+            <button type="submit" class="btn-primary flex items-center gap-1.5 text-xs">
+                <i data-lucide="award" class="w-4 h-4"></i>
+                Convert to Customer
+            </button>
         </form>
+        {% else %}
+        <span class="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-800 text-xs font-bold flex items-center gap-1.5">
+            <i data-lucide="check-circle" class="w-4 h-4"></i>
+            Converted Customer
+        </span>
         {% endif %}
-        <a href="{% url 'crm:lead_list' %}" class="btn-secondary">Back to Leads</a>
+
+        <a href="{% url 'crm:lead_edit' lead.id %}" class="btn-secondary text-xs flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+            Edit Lead
+        </a>
+        <a href="{% url 'crm:lead_list' %}" class="btn-secondary text-xs">
+            Back to Directory
+        </a>
     </div>
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Lead Overview -->
-    <div class="card lg:col-span-1">
-        <h3 class="text-sm font-bold text-gray-200 mb-4">Lead Overview</h3>
-        <div class="flex flex-col gap-3 text-xs">
-            <div>
-                <span class="text-gray-400">Estimated Value:</span>
-                <span class="font-bold text-emerald-400 text-sm block">₹{{ lead.estimated_value }}</span>
+    <!-- Left Column: Lead Information & Assignment -->
+    <div class="space-y-6 lg:col-span-1">
+        <!-- Lead Overview Card -->
+        <div class="card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+                <span>Prospect Profile</span>
+                <span class="text-emerald-400 font-bold font-mono text-sm">₹{{ lead.estimated_value }}</span>
+            </h3>
+
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Contact Person:</span>
+                    <span class="font-bold text-slate-200 text-sm block">{{ lead.contact_person }}</span>
+                </div>
+
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Phone Outreach:</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <a href="tel:{{ lead.phone }}" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/60 font-mono font-semibold hover:bg-emerald-900 transition" title="Click to Call">
+                            <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                            {{ lead.phone }}
+                        </a>
+                        <a href="https://wa.me/{{ lead.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="inline-flex items-center justify-center w-7 h-7 rounded bg-emerald-900/60 text-emerald-300 hover:bg-emerald-800 transition" title="Send WhatsApp Message">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                </div>
+
+                {% if lead.email %}
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Email Address:</span>
+                    <a href="mailto:{{ lead.email }}" class="font-mono text-[#00a0da] hover:underline block mt-0.5">{{ lead.email }}</a>
+                </div>
+                {% endif %}
+
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Service Requirement:</span>
+                    <span class="font-semibold text-slate-200 block">{{ lead.service_interested }}</span>
+                </div>
+
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Lead Source:</span>
+                    <span class="font-medium text-slate-300 block">{{ lead.source }}</span>
+                </div>
+
+                {% if lead.address %}
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Address:</span>
+                    <span class="text-slate-300 block">{{ lead.address }}</span>
+                </div>
+                {% endif %}
+
+                {% if lead.notes %}
+                <div>
+                    <span class="text-slate-400 block text-[11px]">Initial Notes:</span>
+                    <div class="p-2.5 rounded-lg bg-[#090d12] border border-white/5 text-slate-300 text-xs">
+                        {{ lead.notes }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="pt-2 border-t border-white/10 text-[11px] text-slate-500 flex justify-between">
+                    <span>Created: {{ lead.created_at|date:"d M Y, H:i" }}</span>
+                    <span>By: {% if lead.created_by %}{{ lead.created_by.get_full_name|default:lead.created_by.username }}{% else %}System{% endif %}</span>
+                </div>
             </div>
-            <div>
-                <span class="text-gray-400">Service Interested:</span>
-                <span class="font-semibold text-gray-200 block">{{ lead.service_interested }}</span>
+        </div>
+
+        <!-- Follow-up Timing Card -->
+        <div class="card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                <span>Follow-up Schedule</span>
+                <i data-lucide="bell" class="w-4 h-4 text-amber-400"></i>
+            </h3>
+
+            <div class="mb-3">
+                {% with badge=lead.followup_due_badge %}
+                <div class="p-3 rounded-lg border flex items-center gap-2.5 {{ badge.class }}">
+                    <i data-lucide="clock" class="w-4 h-4 flex-shrink-0"></i>
+                    <div>
+                        <div class="text-xs font-bold">{{ badge.label }}</div>
+                        <div class="text-[11px] opacity-80">
+                            {% if lead.next_followup_date %}
+                                Scheduled for {{ lead.next_followup_date|date:"l, d M Y at H:i" }}
+                            {% else %}
+                                No future date scheduled
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
             </div>
-            <div>
-                <span class="text-gray-400">Lead Source:</span>
-                <span class="font-semibold text-gray-200 block">{{ lead.source }}</span>
+
+            {% if lead.last_followup_date %}
+            <div class="text-xs text-slate-400">
+                Last activity was on <span class="text-slate-200 font-mono font-bold">{{ lead.last_followup_date|date:"d M Y, H:i" }}</span>
             </div>
-            <div>
-                <span class="text-gray-400">Assigned Staff:</span>
-                <span class="font-semibold text-gray-200 block">{{ lead.assigned_to.username|default:"Unassigned" }}</span>
+            {% endif %}
+        </div>
+
+        <!-- Staff Assignment Card -->
+        <div class="card p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                <span>Assigned Staff Member</span>
+                <i data-lucide="user-check" class="w-4 h-4 text-[#00a0da]"></i>
+            </h3>
+
+            {% if lead.assigned_to %}
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-[#090d12] border border-white/5 mb-4">
+                <div class="w-9 h-9 rounded-full bg-[#1e2b3b] border border-white/10 flex items-center justify-center font-bold text-[#00a0da] text-sm">
+                    {{ lead.assigned_to.first_name|first|default:lead.assigned_to.username|first|upper }}
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-slate-100">
+                        {{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}
+                    </div>
+                    <div class="text-[11px] text-slate-400 font-mono">{{ lead.assigned_to.email|default:"No email" }}</div>
+                </div>
             </div>
+            {% else %}
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-[#090d12] border border-white/5 mb-4">
+                <div class="w-9 h-9 rounded-full bg-amber-950/60 border border-amber-800/60 flex items-center justify-center font-bold text-amber-400 text-sm">
+                    ?
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-amber-300">Unassigned Lead</div>
+                    <div class="text-[11px] text-slate-400">No staff member currently allocated</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if is_admin %}
+            <!-- Fast Reassign Staff for Admin -->
+            <form action="{% url 'crm:lead_quick_assign' lead.id %}" method="POST" class="pt-2 border-t border-white/10">
+                {% csrf_token %}
+                <label class="form-label text-[11px] mb-1.5 block">Reassign to another staff member:</label>
+                <div class="flex gap-2">
+                    <select name="assigned_to" class="form-control text-xs flex-1">
+                        <option value="">[Set to Unassigned]</option>
+                        {% for u in assignable_users %}
+                        <option value="{{ u.id }}" {% if lead.assigned_to_id == u.id %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.username }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-primary text-xs py-1.5 px-3">Assign</button>
+                </div>
+            </form>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Activity & Followup Timeline -->
-    <div class="card lg:col-span-2">
-        <h3 class="text-sm font-bold text-gray-200 mb-4">Log Followup Activity</h3>
-        <form method="POST" class="mb-6 border-b border-gray-800 pb-4">
-            {% csrf_token %}
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                    <label class="form-label">Interaction Method</label>
-                    <select name="method" class="form-control text-xs">
-                        <option value="PHONE">Phone Call</option>
-                        <option value="EMAIL">Email</option>
-                        <option value="MEETING">In-Person Meeting</option>
-                        <option value="WHATSAPP">WhatsApp</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="form-label">Update Stage / Status</label>
-                    <select name="status" class="form-control text-xs">
-                        <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>New</option>
-                        <option value="CONTACTED" {% if lead.status == 'CONTACTED' %}selected{% endif %}>Contacted</option>
-                        <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>Follow-up Required</option>
-                        <option value="QUALIFIED" {% if lead.status == 'QUALIFIED' %}selected{% endif %}>Qualified</option>
-                        <option value="PROPOSAL_SENT" {% if lead.status == 'PROPOSAL_SENT' %}selected{% endif %}>Proposal Sent</option>
-                        <option value="WON" {% if lead.status == 'WON' %}selected{% endif %}>Won</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Discussion Summary</label>
-                <textarea name="summary" class="form-control text-xs" rows="2" placeholder="Summary of discussion with client..." required></textarea>
-            </div>
-            <div class="flex justify-end">
-                <button type="submit" class="btn-primary text-xs">Record Followup</button>
-            </div>
-        </form>
+    <!-- Right Column: Log Activity Form & Interaction Timeline -->
+    <div class="space-y-6 lg:col-span-2">
+        <!-- Log Follow-up Form -->
+        <div class="card p-6" x-data="{ currentStatus: '{{ lead.status }}' }">
+            <h3 class="text-sm font-bold text-slate-100 mb-1 flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i>
+                Record Follow-up Interaction
+            </h3>
+            <p class="text-xs text-slate-400 mb-4">Log discussion points with customer, record outcome, and set the next reminder date</p>
 
-        <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Followup History</h4>
-        <div class="flex flex-col gap-3">
-            {% for f in followups %}
-            <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="font-bold text-emerald-400">{{ f.get_method_display }} by {{ f.staff.username }}</span>
-                    <span class="text-gray-500">{{ f.interaction_time|date:"d M Y, H:i" }}</span>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="form-label text-xs">Interaction Channel</label>
+                        <select name="method" class="form-control text-xs">
+                            <option value="PHONE">📞 Phone Call</option>
+                            <option value="WHATSAPP">💬 WhatsApp Message</option>
+                            <option value="EMAIL">✉️ Email Outreach</option>
+                            <option value="MEETING">🤝 In-Person Meeting</option>
+                            <option value="VIDEO">📹 Video Call</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label text-xs">Update Pipeline Status</label>
+                        <select name="status" x-model="currentStatus" class="form-control text-xs">
+                            {% for code, label in status_choices %}
+                            <option value="{{ code }}" {% if lead.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div class="text-gray-200 mb-1">{{ f.summary }}</div>
-                {% if f.outcome %}
-                <div class="text-gray-400 italic">Outcome: {{ f.outcome }}</div>
-                {% endif %}
-            </div>
-            {% empty %}
-            <div class="text-gray-500 text-xs py-2">No follow-ups recorded yet.</div>
-            {% endfor %}
+
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Discussion Summary & Notes <span class="text-red-400">*</span></label>
+                    <textarea name="summary" class="form-control text-xs" rows="3" placeholder="Summary of discussion with client, requirements clarified, quotes given..." required></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="form-label text-xs">Outcome / Result</label>
+                        <input type="text" name="outcome" class="form-control text-xs" placeholder="e.g. Client interested, Demo requested, Call back on Monday">
+                    </div>
+                    <div>
+                        <label class="form-label text-xs">Next Action</label>
+                        <input type="text" name="next_action" class="form-control text-xs" placeholder="e.g. Send updated pricing proposal">
+                    </div>
+                </div>
+
+                <div class="form-group mb-4" x-show="currentStatus !== 'LOST'">
+                    <label class="form-label text-xs flex justify-between items-center mb-1">
+                        <span class="font-bold text-slate-200">Next Follow-up Reminder</span>
+                        <span class="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded">Auto-set to Tomorrow</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] text-slate-400 block mb-1">Follow-up Date <span class="text-red-400">*</span></label>
+                            <input type="date" name="next_followup_date" value="{{ tomorrow_date }}" class="form-control text-xs" :required="currentStatus !== 'LOST'">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 block mb-1">Time <span class="text-slate-500 font-normal">(Optional)</span></label>
+                            <input type="time" name="next_followup_time" class="form-control text-xs" placeholder="e.g. 10:00">
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Date is pre-filled for tomorrow. Time is optional (defaults to 10:00 AM if omitted).
+                    </div>
+                </div>
+
+                <div x-show="currentStatus === 'LOST'" class="card p-3 mb-4 bg-red-950/30 border border-red-500/30 text-xs text-red-300 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-red-400 flex-shrink-0"></i>
+                    <span>Pipeline status is <strong>Lost</strong>. No follow-up reminder is needed or scheduled. Existing reminders will be cleared.</span>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="btn-primary text-xs flex items-center gap-1.5">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                        Save Follow-up & Go to Today's Reminders →
+                    </button>
+                </div>
+            </form>
         </div>
+
+        <!-- Follow-up Activity History Timeline -->
+        <div class="card p-6">
+            <h3 class="text-sm font-bold text-slate-100 mb-4 flex items-center justify-between">
+                <span class="flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i>
+                    Follow-up Interaction History ({{ followups|length }})
+                </span>
+                <span class="text-xs text-slate-400">Chronological activity audit</span>
+            </h3>
+
+            <div class="space-y-4">
+                {% for f in followups %}
+                <div class="p-4 rounded-xl bg-[#090d12] border border-white/5 relative pl-6 before:content-[''] before:absolute before:left-2.5 before:top-4 before:bottom-0 before:w-0.5 before:bg-white/10">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-400">
+                                {% if f.method == 'PHONE' %}📞 Phone Call
+                                {% elif f.method == 'WHATSAPP' %}💬 WhatsApp
+                                {% elif f.method == 'EMAIL' %}✉️ Email
+                                {% elif f.method == 'MEETING' %}🤝 Meeting
+                                {% else %}📹 Video Call{% endif %}
+                            </span>
+                            <span class="text-xs text-slate-400">by</span>
+                            <span class="text-xs font-semibold text-slate-200">{{ f.staff.get_full_name|default:f.staff.username }}</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500 font-mono">{{ f.interaction_time|date:"d M Y, H:i" }}</span>
+                    </div>
+
+                    <p class="text-xs text-slate-200 leading-relaxed mb-2.5">{{ f.summary }}</p>
+
+                    <div class="flex flex-wrap gap-3 text-[11px]">
+                        {% if f.outcome %}
+                        <div class="text-slate-300">
+                            <span class="text-slate-500">Outcome:</span> <span class="font-semibold text-amber-300">{{ f.outcome }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if f.next_action %}
+                        <div class="text-slate-300">
+                            <span class="text-slate-500">Next Action:</span> <span class="font-semibold text-sky-300">{{ f.next_action }}</span>
+                        </div>
+                        {% endif %}
+
+                        {% if f.next_followup_date %}
+                        <div class="text-slate-300">
+                            <span class="text-slate-500">Next Date:</span> <span class="font-semibold text-purple-300 font-mono">{{ f.next_followup_date|date:"d M Y, H:i" }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8 text-slate-500 text-xs">
+                    <i data-lucide="message-square-off" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+                    No interactions logged for this lead yet. Use the form above to record your first follow-up.
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if followups.has_other_pages %}
+            <div class="flex items-center justify-between text-xs pt-3 mt-4 border-t border-white/5">
+                <span class="text-slate-400">Page {{ followups.number }} of {{ followups.paginator.num_pages }} ({{ followups.paginator.count }} Total)</span>
+                <div class="flex items-center gap-1">
+                    {% if followups.has_previous %}
+                    <a href="?fup_page={{ followups.previous_page_number }}{% if audit_events.number %}&audit_page={{ audit_events.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">← Prev</a>
+                    {% endif %}
+                    {% if followups.has_next %}
+                    <a href="?fup_page={{ followups.next_page_number }}{% if audit_events.number %}&audit_page={{ audit_events.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">Next →</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Admin-Only Audit & Security Event Stream for this Lead -->
+        {% if is_admin %}
+        <div class="card p-6 border border-purple-500/20 bg-[#0c121b]">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-purple-950/60 border border-purple-800/60 flex items-center justify-center text-purple-400">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                            Audit & Security Event Stream
+                            <span class="text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full font-mono font-bold">Admin Only</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400">Tamper-evident audit trail strictly isolated for {{ lead.lead_number }}</p>
+                    </div>
+                </div>
+                <span class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded font-mono font-bold flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Tenant Isolated
+                </span>
+            </div>
+
+            <div class="space-y-3">
+                {% for act in audit_events %}
+                <div class="p-3.5 rounded-xl bg-[#080d13] border border-white/5 text-xs transition hover:border-white/10">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                        <div class="flex items-center gap-2 font-mono">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase
+                                {% if act.action == 'CREATE' %}bg-emerald-950 text-emerald-300 border border-emerald-800
+                                {% elif act.action == 'UPDATE' %}bg-sky-950 text-sky-300 border border-sky-800
+                                {% elif act.action == 'CONVERT' %}bg-amber-950 text-amber-300 border border-amber-800
+                                {% elif act.action == 'DELETE' %}bg-rose-950 text-rose-300 border border-rose-800
+                                {% else %}bg-purple-950 text-purple-300 border border-purple-800{% endif %}">
+                                {{ act.action }}
+                            </span>
+                            <span class="text-slate-200 font-semibold text-xs">{{ act.model_name }}</span>
+                            <span class="text-slate-500 text-[11px]">by</span>
+                            <span class="text-[#00a0da] font-bold text-xs">{{ act.actor.username|default:"System" }}</span>
+                        </div>
+                        <span class="text-slate-500 font-mono text-[10px] whitespace-nowrap">{{ act.timestamp|date:"d M Y, H:i:s" }}</span>
+                    </div>
+
+                    <div class="text-slate-300 font-mono text-[11px] pl-1 mb-1">
+                        {{ act.object_repr }}
+                    </div>
+
+                    {% if act.changes %}
+                    <div class="mt-2 pt-2 border-t border-white/5 pl-1 flex flex-wrap gap-2 text-[11px] font-mono">
+                        {% for k, v in act.changes.items %}
+                        <span class="px-2 py-0.5 rounded bg-slate-900 border border-white/5 text-slate-300">
+                            <span class="text-slate-500">{{ k }}:</span> <span class="text-[#38bdf8] font-bold">{{ v }}</span>
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center py-6 text-slate-500 text-xs">
+                    <i data-lucide="shield-alert" class="w-7 h-7 mx-auto mb-1.5 text-slate-600"></i>
+                    No security or audit events recorded for this lead yet.
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if audit_events.has_other_pages %}
+            <div class="flex items-center justify-between text-xs pt-3 mt-4 border-t border-white/5">
+                <span class="text-slate-400">Page {{ audit_events.number }} of {{ audit_events.paginator.num_pages }} ({{ audit_events.paginator.count }} Events)</span>
+                <div class="flex items-center gap-1">
+                    {% if audit_events.has_previous %}
+                    <a href="?audit_page={{ audit_events.previous_page_number }}{% if followups.number %}&fup_page={{ followups.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">← Prev</a>
+                    {% endif %}
+                    {% if audit_events.has_next %}
+                    <a href="?audit_page={{ audit_events.next_page_number }}{% if followups.number %}&fup_page={{ followups.number }}{% endif %}" class="btn-secondary text-xs py-0.5 px-2">Next →</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

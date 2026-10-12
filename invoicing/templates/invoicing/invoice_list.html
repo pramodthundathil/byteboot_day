@@ -4,7 +4,7 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
         <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Invoicing</span> / <span class="text-[#00a884]">Tax Invoices</span>
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <span>Invoicing</span> / <span class="text-[#00a0da]">Tax Invoices</span>
         </div>
         <h1 class="text-xl font-extrabold text-slate-100">Tax Invoices & Billing Register</h1>
         <p class="text-xs text-slate-400">GST compliant invoices, General Ledger posting status, and payment collection tracking</p>
@@ -19,10 +19,10 @@
 <!-- Status Filter Tabs -->
 <div class="card p-3 mb-6 flex flex-wrap gap-2 items-center">
     <span class="text-xs font-semibold text-slate-400 mr-2">Filter Invoice Status:</span>
-    <a href="{% url 'invoicing:invoice_list' %}" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if not status_filter %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">All Invoices</a>
-    <a href="?status=ISSUED" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'ISSUED' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Issued / Unpaid</a>
-    <a href="?status=PAID" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'PAID' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Paid</a>
-    <a href="?status=DRAFT" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'DRAFT' %}bg-[#00a884] text-white border-[#00a884]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Drafts</a>
+    <a href="{% url 'invoicing:invoice_list' %}" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if not status_filter %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">All Invoices</a>
+    <a href="?status=ISSUED" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'ISSUED' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Issued / Unpaid</a>
+    <a href="?status=PAID" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'PAID' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Paid</a>
+    <a href="?status=DRAFT" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'DRAFT' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#16202c] text-slate-300 border-white/10 hover:border-white/20{% endif %}">Drafts</a>
 </div>
 
 <!-- DataTables Table -->
@@ -46,7 +46,7 @@
             {% for inv in invoices %}
             <tr>
                 <td>
-                    <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-[#00a884] font-bold hover:underline">
+                    <a href="{% url 'invoicing:invoice_detail' inv.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
                         {{ inv.invoice_number }}
                     </a>
                 </td>

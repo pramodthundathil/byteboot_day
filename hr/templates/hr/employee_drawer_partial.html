@@ -1,7 +1,7 @@
 <div class="p-6">
     <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
         <div>
-            <span class="text-xs font-mono text-[#00a884] font-bold">{{ employee.employee_id }}</span>
+            <span class="text-xs font-mono text-[#00a0da] font-bold">{{ employee.employee_id }}</span>
             <h2 class="text-lg font-bold text-slate-100 mt-0.5">{{ employee.full_name }}</h2>
             <p class="text-xs text-slate-400">{{ employee.designation }} | {{ employee.department }}</p>
         </div>
@@ -26,7 +26,7 @@
             </div>
             <div>
                 <span class="text-slate-400">Monthly CTC:</span>
-                <span class="font-bold text-[#00a884] block text-sm">₹{{ employee.total_monthly_ctc }}</span>
+                <span class="font-bold text-[#00a0da] block text-sm">₹{{ employee.total_monthly_ctc }}</span>
             </div>
         </div>
 
@@ -39,7 +39,7 @@
             </div>
             <div class="flex items-center justify-between text-xs">
                 <span class="text-slate-400">Assigned System Role:</span>
-                <span class="bg-[#00a884]/20 text-[#25d366] px-2 py-0.5 rounded font-mono font-bold">{{ membership.get_role_display|default:"Staff" }}</span>
+                <span class="bg-[#00a0da]/20 text-[#25d366] px-2 py-0.5 rounded font-mono font-bold">{{ membership.get_role_display|default:"Staff" }}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
                 <span class="text-slate-400">Login Status:</span>

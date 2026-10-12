@@ -14,9 +14,9 @@
             <span>Project: <strong class="text-gray-200">{{ task.project.name }} ({{ task.project.code }})</strong></span>
             <span>•</span>
             <span class="flex items-center gap-1">
-                <i data-lucide="users" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <i data-lucide="users" class="w-3.5 h-3.5 text-[#00a0da]"></i>
                 Assigned Team: 
-                <strong class="text-emerald-400">
+                <strong class="text-sky-400">
                     {% with assignees=task.get_all_assignees %}
                         {% if assignees %}
                             {{ assignees|length }} Employee(s)/User(s) Assigned
@@ -31,7 +31,7 @@
     <div class="flex items-center gap-2">
         {% if request|has_perm:'projects.edit' %}
         <a href="{% url 'projects:task_edit' task.id %}" class="btn-secondary flex items-center gap-1.5 text-xs">
-            <i data-lucide="edit" class="w-4 h-4 text-emerald-400"></i>
+            <i data-lucide="edit" class="w-4 h-4 text-[#00a0da]"></i>
             Edit Task & Assignee
         </a>
         {% endif %}
@@ -46,37 +46,37 @@
     <!-- Task Description & Work Logs -->
     <div class="card lg:col-span-2">
         <h3 class="text-sm font-bold text-gray-200 mb-2 flex items-center gap-1.5">
-            <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
+            <i data-lucide="file-text" class="w-4 h-4 text-[#00a0da]"></i>
             Task Description & Acceptance Criteria
         </h3>
         <p class="text-xs text-gray-300 mb-6 bg-gray-900 p-3.5 rounded-lg border border-gray-800 leading-relaxed">{{ task.description|default:"No detailed description provided." }}</p>
 
         <!-- Status Transition Bar -->
         <h3 class="text-sm font-bold text-gray-200 mb-2 flex items-center gap-1.5">
-            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+            <i data-lucide="activity" class="w-4 h-4 text-[#00a0da]"></i>
             Update Task Status
         </h3>
         <form method="POST" class="flex flex-wrap gap-2 mb-6">
             {% csrf_token %}
-            <button type="submit" name="status" value="TO_DO" class="btn-secondary text-xs {% if task.status == 'TO_DO' %}border-emerald-500 text-emerald-400{% endif %}">To Do</button>
-            <button type="submit" name="status" value="IN_PROGRESS" class="btn-secondary text-xs {% if task.status == 'IN_PROGRESS' %}border-emerald-500 text-emerald-400{% endif %}">In Progress</button>
-            <button type="submit" name="status" value="IN_REVIEW" class="btn-secondary text-xs {% if task.status == 'IN_REVIEW' %}border-emerald-500 text-emerald-400{% endif %}">In Review</button>
+            <button type="submit" name="status" value="TO_DO" class="btn-secondary text-xs {% if task.status == 'TO_DO' %}border-[#00a0da] text-sky-400{% endif %}">To Do</button>
+            <button type="submit" name="status" value="IN_PROGRESS" class="btn-secondary text-xs {% if task.status == 'IN_PROGRESS' %}border-[#00a0da] text-sky-400{% endif %}">In Progress</button>
+            <button type="submit" name="status" value="IN_REVIEW" class="btn-secondary text-xs {% if task.status == 'IN_REVIEW' %}border-[#00a0da] text-sky-400{% endif %}">In Review</button>
             <button type="submit" name="status" value="BLOCKED" class="btn-secondary text-xs {% if task.status == 'BLOCKED' %}border-red-500 text-red-400{% endif %}">Blocked</button>
-            <button type="submit" name="status" value="DONE" class="btn-primary text-xs flex items-center gap-1 {% if task.status == 'DONE' %}bg-emerald-600{% endif %}">
+            <button type="submit" name="status" value="DONE" class="btn-primary text-xs flex items-center gap-1 {% if task.status == 'DONE' %}bg-[#008ec2]{% endif %}">
                 <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Mark Done
             </button>
         </form>
 
         <!-- Work Log History -->
         <h3 class="text-sm font-bold text-gray-200 mb-3 flex items-center gap-1.5">
-            <i data-lucide="clock" class="w-4 h-4 text-emerald-400"></i>
+            <i data-lucide="clock" class="w-4 h-4 text-[#00a0da]"></i>
             Logged Effort & History (Total: {{ task.total_actual_hours }}h)
         </h3>
         <div class="flex flex-col gap-2">
             {% for wl in work_logs %}
             <div class="p-3 rounded-lg bg-gray-900 border border-gray-800 text-xs flex justify-between items-center">
                 <div>
-                    <span class="font-bold text-emerald-400">{{ wl.user.get_full_name|default:wl.user.username }} logged {{ wl.hours_spent }}h</span>
+                    <span class="font-bold text-sky-400">{{ wl.user.get_full_name|default:wl.user.username }} logged {{ wl.hours_spent }}h</span>
                     <p class="text-gray-300 mt-1">{{ wl.description }}</p>
                 </div>
                 <span class="text-gray-500 font-mono text-[11px]">{{ wl.work_date }}</span>
@@ -93,11 +93,11 @@
         <div class="card">
             <div class="flex justify-between items-center mb-3">
                 <h3 class="text-sm font-bold text-gray-200 flex items-center gap-1.5">
-                    <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                    <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i>
                     Assigned Employees & Users
                 </h3>
                 {% if request|has_perm:'projects.edit' %}
-                <a href="{% url 'projects:task_edit' task.id %}" class="text-[11px] text-emerald-400 hover:underline flex items-center gap-1">
+                <a href="{% url 'projects:task_edit' task.id %}" class="text-[11px] text-sky-400 hover:underline flex items-center gap-1">
                     <i data-lucide="user-plus" class="w-3 h-3"></i> Edit
                 </a>
                 {% endif %}
@@ -106,7 +106,7 @@
                 {% for u in task.get_all_assignees %}
                 <div class="flex items-center justify-between p-2 rounded bg-gray-900 border border-gray-800 text-xs">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-full bg-emerald-950 border border-emerald-800 text-emerald-300 font-bold flex items-center justify-center text-[10px]">
+                        <div class="w-7 h-7 rounded-full bg-sky-950 border border-sky-800 text-sky-300 font-bold flex items-center justify-center text-[10px]">
                             {{ u.username|slice:":2"|upper }}
                         </div>
                         <div>
@@ -138,7 +138,7 @@
         <!-- Log Work Hours Form -->
         <div class="card">
             <h3 class="text-sm font-bold text-gray-200 mb-4 flex items-center gap-1.5">
-                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+                <i data-lucide="plus-circle" class="w-4 h-4 text-[#00a0da]"></i>
                 Log Work Hours
             </h3>
             <form method="POST" class="flex flex-col gap-3">

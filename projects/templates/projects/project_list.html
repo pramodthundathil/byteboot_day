@@ -15,11 +15,11 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for prj in projects %}
-    <div class="card flex flex-col justify-between hover:border-emerald-500/70 transition shadow-lg group">
+    <div class="card flex flex-col justify-between hover:border-[#00a0da]/70 transition shadow-lg group">
         <div>
             <!-- Top Bar: Code, Priority, Status -->
             <div class="flex justify-between items-start mb-2">
-                <span class="font-mono text-emerald-400 text-xs font-bold bg-emerald-950/60 border border-emerald-800/80 px-2 py-0.5 rounded">
+                <span class="font-mono text-sky-400 text-xs font-bold bg-sky-950/60 border border-sky-800/80 px-2 py-0.5 rounded">
                     {{ prj.code }}
                 </span>
                 <div class="flex items-center gap-1.5">
@@ -33,7 +33,7 @@
             </div>
 
             <!-- Project Name -->
-            <h3 class="text-base font-bold text-gray-100 mb-1 mt-2 group-hover:text-emerald-300 transition">
+            <h3 class="text-base font-bold text-gray-100 mb-1 mt-2 group-hover:text-[#00a0da] transition">
                 <a href="{% url 'projects:project_detail' prj.id %}" class="hover:underline">{{ prj.name }}</a>
             </h3>
 
@@ -52,23 +52,23 @@
             <div class="mb-4 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 text-xs">
                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between items-center">
                     <span class="flex items-center gap-1">
-                        <i data-lucide="users" class="w-3 h-3 text-emerald-400"></i>
+                        <i data-lucide="users" class="w-3 h-3 text-[#00a0da]"></i>
                         Assigned Team
                     </span>
-                    <span class="font-mono text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded text-[10px] border border-emerald-800">
+                    <span class="font-mono text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded text-[10px] border border-sky-800">
                         {{ prj.members.count }} member{{ prj.members.count|pluralize }}
                     </span>
                 </div>
                 <div class="flex flex-wrap gap-1.5 items-center">
                     {% for m in prj.members.all|slice:":4" %}
                     <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-slate-800 text-slate-300 border border-slate-700/80" title="{{ m.user.get_full_name|default:m.user.username }} ({{ m.get_role_display }})">
-                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-900 text-emerald-300 text-[9px] flex items-center justify-center font-bold">
+                        <span class="w-3.5 h-3.5 rounded-full bg-sky-900 text-sky-300 text-[9px] flex items-center justify-center font-bold">
                             {{ m.user.first_name|default:m.user.username|slice:":1"|upper }}
                         </span>
                         <span class="font-medium truncate max-w-[80px]">
                             {% if m.user.employee_profile %}{{ m.user.employee_profile.first_name }}{% elif m.user.first_name %}{{ m.user.first_name }}{% else %}{{ m.user.username }}{% endif %}
                         </span>
-                        <span class="text-emerald-400 text-[9px] font-mono">({{ m.get_role_display|slice:":3" }})</span>
+                        <span class="text-sky-400 text-[9px] font-mono">({{ m.get_role_display|slice:":3" }})</span>
                     </span>
                     {% empty %}
                     <span class="text-slate-500 text-[11px] italic">No members assigned yet.</span>
@@ -86,7 +86,7 @@
         <div class="border-t border-gray-800/80 pt-3 text-xs flex justify-between items-center gap-2">
             <span class="text-gray-400 truncate">Lead: <strong class="text-gray-200">{% if prj.manager %}{{ prj.manager.get_full_name|default:prj.manager.username }}{% else %}Unassigned{% endif %}</strong></span>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{% url 'projects:project_edit' prj.id %}" class="btn-secondary text-xs py-1 px-2.5 hover:border-emerald-500/50" title="Edit project and assign team members">
+                <a href="{% url 'projects:project_edit' prj.id %}" class="btn-secondary text-xs py-1 px-2.5 hover:border-[#00a0da]/50" title="Edit project and assign team members">
                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Edit
                 </a>
                 <a href="{% url 'projects:project_detail' prj.id %}" class="btn-secondary text-xs py-1 px-2.5" title="Open project workspace">

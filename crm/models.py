@@ -44,6 +44,7 @@ class Lead(models.Model):
     
     notes = models.TextField(blank=True)
     next_followup_date = models.DateTimeField(null=True, blank=True)
+    last_followup_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -53,6 +54,53 @@ class Lead(models.Model):
 
     def __str__(self):
         return f"{self.lead_number} - {self.company_name} ({self.contact_person})"
+
+    @property
+    def followup_status(self):
+        """
+        Calculates status: OVERDUE, TODAY, UPCOMING, UNSCHEDULED, COMPLETED
+        """
+        if self.status in ('WON', 'LOST'):
+            return 'COMPLETED'
+        if not self.next_followup_date:
+            return 'UNSCHEDULED'
+        from django.utils import timezone
+        local_now = timezone.localtime(timezone.now()).date()
+        local_fup = timezone.localtime(self.next_followup_date).date()
+        if local_fup < local_now:
+            return 'OVERDUE'
+        elif local_fup == local_now:
+            return 'TODAY'
+        else:
+            return 'UPCOMING'
+
+    @property
+    def followup_due_badge(self):
+        """
+        Returns display string and css style classes for timing badges
+        """
+        from django.utils import timezone
+        if self.status in ('WON', 'LOST'):
+            return {'label': 'Closed', 'class': 'bg-slate-800 text-slate-400 border-slate-700', 'type': 'COMPLETED'}
+        if not self.next_followup_date:
+            return {'label': 'No Follow-up Scheduled', 'class': 'bg-slate-800/80 text-slate-400 border-white/10', 'type': 'UNSCHEDULED'}
+        
+        now = timezone.localtime(timezone.now())
+        fup = timezone.localtime(self.next_followup_date)
+        delta_days = (fup.date() - now.date()).days
+
+        if delta_days < 0:
+            abs_days = abs(delta_days)
+            label = f"Overdue by {abs_days} day{'s' if abs_days > 1 else ''}"
+            return {'label': label, 'class': 'bg-red-950/80 text-red-300 border-red-800 animate-pulse', 'type': 'OVERDUE'}
+        elif delta_days == 0:
+            time_str = fup.strftime("%I:%M %p")
+            return {'label': f"Today at {time_str}", 'class': 'bg-amber-950/80 text-amber-300 border-amber-700', 'type': 'TODAY'}
+        elif delta_days == 1:
+            time_str = fup.strftime("%I:%M %p")
+            return {'label': f"Tomorrow ({time_str})", 'class': 'bg-sky-950/80 text-sky-300 border-sky-800', 'type': 'UPCOMING'}
+        else:
+            return {'label': f"In {delta_days} days ({fup.strftime('%d %b')})", 'class': 'bg-blue-950/80 text-blue-300 border-blue-800', 'type': 'UPCOMING'}
 
 
 class LeadFollowup(models.Model):

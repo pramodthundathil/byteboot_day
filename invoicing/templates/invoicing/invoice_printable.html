@@ -22,14 +22,14 @@
         .header {
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px solid #00a884;
+            border-bottom: 2px solid #00a0da;
             padding-bottom: 20px;
             margin-bottom: 24px;
         }
         .company-name {
             font-size: 20px;
             font-weight: 800;
-            color: #00a884;
+            color: #00a0da;
         }
         .inv-title {
             font-size: 24px;
@@ -69,7 +69,7 @@
         .grand-total {
             font-weight: 800;
             font-size: 16px;
-            color: #00a884;
+            color: #00a0da;
             border-top: 2px solid #111827 !important;
         }
         @media print {
@@ -81,18 +81,21 @@
 </head>
 <body>
     <div class="no-print" style="max-width: 800px; margin: 0 auto 16px auto; text-align: right;">
-        <button onclick="window.print()" style="background: #00a884; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+        <button onclick="window.print()" style="background: #00a0da; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
             🖨️ Print / Save as PDF
         </button>
     </div>
 
     <div class="invoice-box">
         <div class="header">
-            <div>
-                <div class="company-name">{{ company.name }}</div>
-                <div>{{ company.address }}, {{ company.city }}, {{ company.state }}</div>
-                <div>GSTIN: <strong>{{ company.gstin|default:"32AAAAA0000A1Z5" }}</strong></div>
-                <div>Email: {{ company.email }} | Phone: {{ company.phone }}</div>
+            <div style="display: flex; gap: 14px; align-items: flex-start;">
+                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" style="height: 52px; width: 52px; object-fit: contain;">
+                <div>
+                    <div class="company-name">{{ company.name }}</div>
+                    <div>{{ company.address }}, {{ company.city }}, {{ company.state }}</div>
+                    <div>GSTIN: <strong>{{ company.gstin|default:"32AAAAA0000A1Z5" }}</strong></div>
+                    <div>Email: {{ company.email }} | Phone: {{ company.phone }}</div>
+                </div>
             </div>
             <div>
                 <div class="inv-title">TAX INVOICE</div>

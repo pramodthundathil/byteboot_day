@@ -25,10 +25,10 @@
                 <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
                 <a href="{% url 'tenants:company_settings' %}" class="hover:text-white">Settings</a> / 
                 <a href="{% url 'tenants:role_list' %}" class="hover:text-white">Roles</a> / 
-                <span class="text-[#00a884]">{% if role %}Edit: {{ role.name }}{% else %}New Custom Role{% endif %}</span>
+                <span class="text-[#00a0da]">{% if role %}Edit: {{ role.name }}{% else %}New Custom Role{% endif %}</span>
             </div>
             <h1 class="text-xl font-bold text-slate-100 flex items-center gap-2">
-                <i data-lucide="{% if role %}shield-check{% else %}shield-plus{% endif %}" class="w-6 h-6 text-[#00a884]"></i>
+                <i data-lucide="{% if role %}shield-check{% else %}shield-plus{% endif %}" class="w-6 h-6 text-[#00a0da]"></i>
                 {% if role %}Edit Role: {{ role.name }}{% else %}Create Custom System Role{% endif %}
             </h1>
             <p class="text-xs text-slate-400">
@@ -68,7 +68,7 @@
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div>
                     <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                        <i data-lucide="sliders" class="w-4 h-4 text-[#00a884]"></i>
+                        <i data-lucide="sliders" class="w-4 h-4 text-[#00a0da]"></i>
                         Granular Action Permission Matrix
                     </h3>
                     <p class="text-xs text-slate-400 mt-0.5">Check or uncheck specific privileges to grant or revoke actions.</p>
@@ -77,7 +77,7 @@
                 <!-- Quick Preset Helpers -->
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="text-xs text-slate-400 font-medium mr-1">Quick Presets:</span>
-                    <button type="button" @click="selectAll()" class="px-2.5 py-1 text-xs rounded-lg bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 hover:bg-emerald-900/60 transition">
+                    <button type="button" @click="selectAll()" class="px-2.5 py-1 text-xs rounded-lg bg-sky-950/60 text-sky-300 border border-sky-800/40 hover:bg-sky-900/60 transition">
                         Select All
                     </button>
                     <button type="button" @click="setReadOnly()" class="px-2.5 py-1 text-xs rounded-lg bg-blue-950/60 text-blue-300 border border-blue-800/40 hover:bg-blue-900/60 transition">
@@ -94,28 +94,28 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="check-square" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="check-square" class="w-4 h-4 text-[#00a0da]"></i> 
                             Projects & Task Tracker
                         </div>
-                        <button type="button" @click="toggleModule('projects')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('projects')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_projects_view" {% if permissions.projects.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Projects/Tasks
+                            <input type="checkbox" name="perm_projects_view" {% if permissions.projects.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Projects/Tasks
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_projects_create" {% if permissions.projects.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Create Projects/Tasks
+                            <input type="checkbox" name="perm_projects_create" {% if permissions.projects.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Create Projects/Tasks
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_projects_edit" {% if permissions.projects.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Edit Projects/Tasks
+                            <input type="checkbox" name="perm_projects_edit" {% if permissions.projects.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Edit Projects/Tasks
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_projects_assign" {% if permissions.projects.assign %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Assign Team & Tasks
+                            <input type="checkbox" name="perm_projects_assign" {% if permissions.projects.assign %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Assign Team & Tasks
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_projects_delete" {% if permissions.projects.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Delete Tasks
+                            <input type="checkbox" name="perm_projects_delete" {% if permissions.projects.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Delete Tasks
                         </label>
                     </div>
                 </div>
@@ -124,28 +124,28 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="users" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i> 
                             HR Employees & Leave Approvals
                         </div>
-                        <button type="button" @click="toggleModule('hr')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('hr')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_hr_view" {% if permissions.hr.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Employees
+                            <input type="checkbox" name="perm_hr_view" {% if permissions.hr.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Employees
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_hr_create" {% if permissions.hr.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Onboard Employee
+                            <input type="checkbox" name="perm_hr_create" {% if permissions.hr.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Onboard Employee
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_hr_edit" {% if permissions.hr.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Edit Employee Access
+                            <input type="checkbox" name="perm_hr_edit" {% if permissions.hr.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Edit Employee Access
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_hr_approve" {% if permissions.hr.approve %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Approve Leaves
+                            <input type="checkbox" name="perm_hr_approve" {% if permissions.hr.approve %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Approve Leaves
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_hr_delete" {% if permissions.hr.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Delete Employee
+                            <input type="checkbox" name="perm_hr_delete" {% if permissions.hr.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Delete Employee
                         </label>
                     </div>
                 </div>
@@ -154,28 +154,28 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="target" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> 
                             CRM & Sales Pipeline
                         </div>
-                        <button type="button" @click="toggleModule('crm')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('crm')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_crm_view" {% if permissions.crm.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Leads
+                            <input type="checkbox" name="perm_crm_view" {% if permissions.crm.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Leads
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_crm_create" {% if permissions.crm.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Create Lead
+                            <input type="checkbox" name="perm_crm_create" {% if permissions.crm.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Create Lead
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_crm_edit" {% if permissions.crm.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Edit Lead
+                            <input type="checkbox" name="perm_crm_edit" {% if permissions.crm.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Edit Lead
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_crm_convert" {% if permissions.crm.convert %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Convert to Customer
+                            <input type="checkbox" name="perm_crm_convert" {% if permissions.crm.convert %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Convert to Customer
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_crm_delete" {% if permissions.crm.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Delete Lead
+                            <input type="checkbox" name="perm_crm_delete" {% if permissions.crm.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Delete Lead
                         </label>
                     </div>
                 </div>
@@ -184,31 +184,31 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="file-text" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="file-text" class="w-4 h-4 text-[#00a0da]"></i> 
                             Tax Invoices & Receivables
                         </div>
-                        <button type="button" @click="toggleModule('invoicing')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('invoicing')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_view" {% if permissions.invoicing.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Invoices
+                            <input type="checkbox" name="perm_invoicing_view" {% if permissions.invoicing.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Invoices
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_create" {% if permissions.invoicing.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Create Invoice
+                            <input type="checkbox" name="perm_invoicing_create" {% if permissions.invoicing.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Create Invoice
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_edit" {% if permissions.invoicing.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Edit Invoices
+                            <input type="checkbox" name="perm_invoicing_edit" {% if permissions.invoicing.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Edit Invoices
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_record_payment" {% if permissions.invoicing.record_payment %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Record Payment
+                            <input type="checkbox" name="perm_invoicing_record_payment" {% if permissions.invoicing.record_payment %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Record Payment
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_post" {% if permissions.invoicing.post %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Post Ledger
+                            <input type="checkbox" name="perm_invoicing_post" {% if permissions.invoicing.post %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Post Ledger
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_invoicing_delete" {% if permissions.invoicing.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Delete Invoices
+                            <input type="checkbox" name="perm_invoicing_delete" {% if permissions.invoicing.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Delete Invoices
                         </label>
                     </div>
                 </div>
@@ -217,28 +217,28 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="book-open" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="book-open" class="w-4 h-4 text-[#00a0da]"></i> 
                             General Ledger & Accounting
                         </div>
-                        <button type="button" @click="toggleModule('accounting')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('accounting')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_accounting_view" {% if permissions.accounting.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Ledger
+                            <input type="checkbox" name="perm_accounting_view" {% if permissions.accounting.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Ledger
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_accounting_create" {% if permissions.accounting.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Add Chart Account
+                            <input type="checkbox" name="perm_accounting_create" {% if permissions.accounting.create %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Add Chart Account
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_accounting_edit" {% if permissions.accounting.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Edit Accounts
+                            <input type="checkbox" name="perm_accounting_edit" {% if permissions.accounting.edit %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Edit Accounts
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_accounting_post" {% if permissions.accounting.post %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Post Manual JE
+                            <input type="checkbox" name="perm_accounting_post" {% if permissions.accounting.post %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Post Manual JE
                         </label>
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_accounting_delete" {% if permissions.accounting.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> Delete Entries
+                            <input type="checkbox" name="perm_accounting_delete" {% if permissions.accounting.delete %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> Delete Entries
                         </label>
                     </div>
                 </div>
@@ -247,16 +247,16 @@
                 <div class="bg-[#090d12] p-4 rounded-xl border border-white/10">
                     <div class="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
                         <div class="font-bold text-xs text-slate-200 flex items-center gap-2">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#00a884]"></i> 
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-[#00a0da]"></i> 
                             Reports & Workspace Analytics
                         </div>
-                        <button type="button" @click="toggleModule('reports')" class="text-[11px] text-[#00a884] hover:underline font-mono">
+                        <button type="button" @click="toggleModule('reports')" class="text-[11px] text-[#00a0da] hover:underline font-mono">
                             Toggle Module
                         </button>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition">
-                            <input type="checkbox" name="perm_reports_view" {% if permissions.reports.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a884] focus:ring-[#00a884]"> View Financial & Activity Reports
+                            <input type="checkbox" name="perm_reports_view" {% if permissions.reports.view %}checked{% endif %} class="rounded bg-[#16202c] border-white/20 text-[#00a0da] focus:ring-[#00a0da]"> View Financial & Activity Reports
                         </label>
                     </div>
                 </div>
@@ -267,7 +267,7 @@
             <a href="{% url 'tenants:role_list' %}" class="btn-secondary text-xs">
                 Cancel
             </a>
-            <button type="submit" class="btn-primary px-6 text-xs flex items-center gap-1.5 shadow-md shadow-[#00a884]/20">
+            <button type="submit" class="btn-primary px-6 text-xs flex items-center gap-1.5 shadow-md shadow-[#00a0da]/20">
                 <i data-lucide="check" class="w-4 h-4"></i>
                 {% if role %}Save Permission Changes{% else %}Create Custom Role Policy{% endif %}
             </button>

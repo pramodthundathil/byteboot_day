@@ -13,7 +13,10 @@ def tenant_context(request):
 
     mem = getattr(request, 'membership', None)
     user_perms = {}
-    if mem:
+    if request.user.is_superuser:
+        for mod in ['crm', 'invoicing', 'accounting', 'hr', 'projects', 'roles']:
+            user_perms[mod] = True
+    elif mem:
         for mod in ['crm', 'invoicing', 'accounting', 'hr', 'projects', 'roles']:
             user_perms[mod] = mem.has_permission(mod, 'view')
 

@@ -4,7 +4,7 @@
 <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
         <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
-            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'hr:employee_list' %}" class="hover:text-white">HR</a> / <span class="text-[#00a884]">{{ employee.employee_id }}</span>
+            <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'hr:employee_list' %}" class="hover:text-white">HR</a> / <span class="text-[#00a0da]">{{ employee.employee_id }}</span>
         </div>
         <div class="flex items-center gap-3">
             <h1 class="text-2xl font-extrabold text-slate-100">{{ employee.full_name }}</h1>
@@ -25,7 +25,7 @@
     <div class="card space-y-4">
         <h3 class="text-sm font-bold text-slate-100 border-b border-white/10 pb-3 flex items-center justify-between">
             <span>Basic Profile Info</span>
-            <span class="font-mono text-xs text-[#00a884]">{{ employee.employee_id }}</span>
+            <span class="font-mono text-xs text-[#00a0da]">{{ employee.employee_id }}</span>
         </h3>
 
         <div class="space-y-3 text-xs">
@@ -57,9 +57,9 @@
     <div class="card lg:col-span-2 space-y-4">
         <div class="flex items-center justify-between border-b border-white/10 pb-3">
             <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i data-lucide="shield" class="w-4 h-4 text-[#00a884]"></i> Platform System User & Role Permissions
+                <i data-lucide="shield" class="w-4 h-4 text-[#00a0da]"></i> Platform System User & Role Permissions
             </h3>
-            <a href="{% url 'hr:employee_edit' employee.id %}" class="text-xs text-[#00a884] hover:underline">Manage Role →</a>
+            <a href="{% url 'hr:employee_edit' employee.id %}" class="text-xs text-[#00a0da] hover:underline">Manage Role →</a>
         </div>
 
         {% if employee.user %}
@@ -70,7 +70,7 @@
             </div>
             <div>
                 <span class="text-slate-400 block">Assigned Role:</span>
-                <span class="bg-[#00a884]/20 text-[#25d366] border border-[#00a884]/30 px-2 py-0.5 rounded font-mono font-bold text-xs inline-block mt-0.5">
+                <span class="bg-[#00a0da]/20 text-[#25d366] border border-[#00a0da]/30 px-2 py-0.5 rounded font-mono font-bold text-xs inline-block mt-0.5">
                     {% if membership.role == 'CUSTOM' and membership.custom_role %}
                         Custom Role: {{ membership.custom_role.name }}
                     {% else %}
