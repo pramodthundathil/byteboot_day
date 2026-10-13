@@ -22,7 +22,10 @@ from crm.services import (
     generate_sample_leads_csv,
     generate_sample_leads_excel,
     parse_and_import_leads,
-    get_staff_crm_performance
+    get_staff_crm_performance,
+    get_crm_360_analytics_data,
+    generate_crm_excel_report,
+    generate_crm_pdf_report
 )
 from tenants.decorators import require_permission
 from tenants.models import AuditEvent, CompanyMembership
@@ -276,22 +279,24 @@ def lead_list(request):
     elif fup_filter == 'unscheduled':
         leads = leads.filter(next_followup_date__isnull=True).exclude(status__in=['WON', 'LOST'])
 
-    # Sorting (Defaults to latest scheduled follow-up first, with unscheduled at bottom)
+    # Sorting (Defaults to earliest/due scheduled follow-up first, with unscheduled at bottom)
     valid_sorts = {
+        'followup_earliest': 'followup_earliest',
+        'followup_due': 'followup_earliest',
+        'followup_overdue': 'followup_earliest',
+        'next_followup_date': 'followup_earliest',
         'followup_latest': 'followup_latest',
-        'followup_overdue': 'followup_overdue',
+        '-next_followup_date': 'followup_latest',
         '-created_at': '-created_at',
         'created_at': 'created_at',
-        'next_followup_date': 'next_followup_date',
-        '-next_followup_date': '-next_followup_date',
         '-estimated_value': '-estimated_value',
         'estimated_value': 'estimated_value',
         'company_name': 'company_name'
     }
-    sort_choice = valid_sorts.get(sort_order, 'followup_latest')
+    sort_choice = valid_sorts.get(sort_order, 'followup_earliest')
     if sort_choice in ('followup_latest', '-next_followup_date'):
         leads = leads.order_by(F('next_followup_date').desc(nulls_last=True), '-created_at')
-    elif sort_choice in ('followup_overdue', 'next_followup_date'):
+    elif sort_choice in ('followup_earliest', 'followup_due', 'followup_overdue', 'next_followup_date'):
         leads = leads.order_by(F('next_followup_date').asc(nulls_last=True), '-created_at')
     else:
         leads = leads.order_by(sort_choice)
@@ -329,7 +334,7 @@ def lead_list(request):
         'staff_filter': staff_filter,
         'fup_filter': fup_filter,
         'query': query,
-        'sort_order': sort_order or 'followup_latest',
+        'sort_order': sort_order or 'followup_earliest',
         'total_leads_count': total_leads_count,
         'active_leads_count': active_leads_count,
         'new_count': new_count,
@@ -919,6 +924,8 @@ def staff_analytics(request):
     start_date_str = request.GET.get('start_date', '')
     end_date_str = request.GET.get('end_date', '')
     sort_by = request.GET.get('sort_by', '-followups_count')
+    staff_id_str = request.GET.get('staff_id', '')
+    staff_id = int(staff_id_str) if staff_id_str and staff_id_str.isdigit() else None
 
     start_date = None
     end_date = None
@@ -962,11 +969,26 @@ def staff_analytics(request):
         company=company,
         start_date=start_date,
         end_date=end_date,
-        sort_by=sort_by
+        sort_by=sort_by,
+        staff_id=staff_id
     )
 
     staff_list = performance_data['staff_stats']
     summary = performance_data['summary']
+
+    # Fetch 360-degree analytics metrics for executive dashboard integration
+    analytics_360 = get_crm_360_analytics_data(
+        company=company,
+        start_date=start_date,
+        end_date=end_date,
+        staff_id=staff_id
+    )
+
+    # Active staff members for filter dropdown and reports modal
+    all_staff_members = CompanyMembership.objects.filter(
+        company=company,
+        is_active=True
+    ).select_related('user', 'user__employee_profile', 'custom_role')
 
     # Backend pagination
     paginator = Paginator(staff_list, 10)
@@ -979,6 +1001,9 @@ def staff_analytics(request):
     return render(request, 'crm/staff_analytics.html', {
         'staff_page': staff_page,
         'summary': summary,
+        'analytics_360': analytics_360,
+        'all_staff_members': all_staff_members,
+        'selected_staff_id': staff_id_str,
         'preset': preset,
         'start_date': start_date.strftime('%Y-%m-%d') if start_date else '',
         'end_date': end_date.strftime('%Y-%m-%d') if end_date else '',
@@ -986,6 +1011,108 @@ def staff_analytics(request):
         'active_tab': 'crm',
         'active_sub': 'staff_analytics'
     })
+
+
+@login_required
+@require_permission('crm', 'view')
+def staff_analytics_export(request):
+    """
+    Exports 360-degree CRM & Staff Analytics reports in Excel (.xlsx) or PDF (.pdf).
+    Reserved for company administrators and managers.
+    Parameters supported:
+    - format: 'excel' or 'pdf'
+    - report_type: '360_master', 'staff_performance', 'lead_quality', 'conversion_funnel', 'activity_log'
+    - preset / custom start_date & end_date
+    - staff_id (optional filter)
+    """
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_mode = is_crm_admin(request.user, membership)
+
+    if not admin_mode:
+        messages.error(request, "Access restricted: Analytical reports are reserved for administrators and managers.")
+        return redirect('crm:staff_analytics')
+
+    now = timezone.localtime(timezone.now())
+    today = now.date()
+
+    # Parse parameters
+    preset = request.GET.get('preset', 'this_month')
+    start_date_str = request.GET.get('start_date', '')
+    end_date_str = request.GET.get('end_date', '')
+    report_type = request.GET.get('report_type', '360_master')
+    export_format = request.GET.get('format', 'excel').lower()
+    staff_id_str = request.GET.get('staff_id', '')
+    staff_id = int(staff_id_str) if staff_id_str and staff_id_str.isdigit() else None
+
+    start_date = None
+    end_date = None
+
+    if preset == 'today':
+        start_date = today
+        end_date = today
+    elif preset == 'yesterday':
+        start_date = today - timedelta(days=1)
+        end_date = today - timedelta(days=1)
+    elif preset == 'last_7_days':
+        start_date = today - timedelta(days=7)
+        end_date = today
+    elif preset == 'this_month':
+        start_date = today.replace(day=1)
+        end_date = today
+    elif preset == 'last_month':
+        first_of_this_month = today.replace(day=1)
+        last_of_last_month = first_of_this_month - timedelta(days=1)
+        start_date = last_of_last_month.replace(day=1)
+        end_date = last_of_last_month
+    elif preset == 'this_year':
+        start_date = today.replace(month=1, day=1)
+        end_date = today
+    elif preset == 'all_time':
+        start_date = date(2020, 1, 1)
+        end_date = today
+    elif preset == 'custom' and start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except Exception:
+            start_date = today.replace(day=1)
+            end_date = today
+    else:
+        start_date = today.replace(day=1)
+        end_date = today
+
+    company_slug = "".join(c if c.isalnum() else "_" for c in company.name)[:25]
+    date_stamp = f"{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}"
+
+    if export_format == 'pdf':
+        pdf_buf = generate_crm_pdf_report(
+            company=company,
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date,
+            staff_id=staff_id,
+            generated_by_user=request.user
+        )
+        filename = f"ByteBoot_{company_slug}_CRM_{report_type}_{date_stamp}.pdf"
+        response = HttpResponse(pdf_buf.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    else:
+        excel_buf = generate_crm_excel_report(
+            company=company,
+            report_type=report_type,
+            start_date=start_date,
+            end_date=end_date,
+            staff_id=staff_id
+        )
+        filename = f"ByteBoot_{company_slug}_CRM_{report_type}_{date_stamp}.xlsx"
+        response = HttpResponse(
+            excel_buf.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
 
 
 @login_required

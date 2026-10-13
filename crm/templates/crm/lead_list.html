@@ -176,8 +176,8 @@
 
                 <div>
                     <select name="sort" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
-                        <option value="followup_latest" {% if sort_order == 'followup_latest' %}selected{% endif %}>Sort: Follow-up Time (Latest First)</option>
-                        <option value="followup_overdue" {% if sort_order == 'followup_overdue' %}selected{% endif %}>Sort: Follow-up Time (Overdue First)</option>
+                        <option value="followup_earliest" {% if sort_order == 'followup_earliest' or sort_order == 'followup_due' or sort_order == 'followup_overdue' or sort_order == 'next_followup_date' %}selected{% endif %}>Sort: Follow-up Date (Earliest / Due First)</option>
+                        <option value="followup_latest" {% if sort_order == 'followup_latest' or sort_order == '-next_followup_date' %}selected{% endif %}>Sort: Follow-up Date (Latest First)</option>
                         <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>Sort: Newest Lead First</option>
                         <option value="created_at" {% if sort_order == 'created_at' %}selected{% endif %}>Sort: Oldest Lead First</option>
                         <option value="company_name" {% if sort_order == 'company_name' %}selected{% endif %}>Sort: Company Name (A-Z)</option>
