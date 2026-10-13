@@ -13,7 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-bmj0=zig97i(1qbd62)5@kq38kf^d-kwo10wfc@^31dkeo140o")
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True")
+
 ALLOWED_HOSTS = ["*"]
 
 # Installed Apps

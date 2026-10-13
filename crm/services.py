@@ -481,6 +481,20 @@ def parse_and_import_leads(company, file_obj, uploaded_by, assignment_mode='self
     if not rows:
         return 0, ["The uploaded spreadsheet file has no rows to import."]
 
+    if not company:
+        from tenants.models import Company
+        company = Company.objects.filter(is_active=True).first() or Company.objects.first()
+        if not company:
+            company, _ = Company.objects.get_or_create(
+                code="BYTEBOOT",
+                defaults={
+                    "name": "Byteboot Techno Solutions Pvt Ltd",
+                    "currency_code": "INR",
+                    "currency_symbol": "₹",
+                    "is_active": True,
+                }
+            )
+
     # Resolve assignees
     company_staff_users = list(User.objects.filter(
         memberships__company=company,
