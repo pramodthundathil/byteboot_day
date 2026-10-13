@@ -343,6 +343,10 @@
                 <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> Sales Leads</span>
                 <span class="bg-[#00a0da]/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
             </a>
+            <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'won_leads' %}bg-[#1e2b3b] text-emerald-400 font-semibold{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-400"></i> Won Leads</span>
+                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
+            </a>
             <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'lost_leads' %}bg-[#1e2b3b] text-red-400 font-semibold{% endif %}">
                 <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-400"></i> Lost Leads</span>
                 <span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>

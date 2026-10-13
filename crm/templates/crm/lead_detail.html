@@ -40,6 +40,15 @@
             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
             Edit Lead
         </a>
+        {% if can_delete %}
+        <form action="{% url 'crm:lead_delete' lead.id %}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete lead {{ lead.lead_number }} ({{ lead.company_name|escapejs }})? This action cannot be undone.');" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-red-950/80 text-red-300 border border-red-800 text-xs font-semibold hover:bg-red-900 transition flex items-center gap-1.5" title="Delete Lead">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                Delete Lead
+            </button>
+        </form>
+        {% endif %}
         <a href="{% url 'crm:lead_list' %}" class="btn-secondary text-xs">
             Back to Directory
         </a>

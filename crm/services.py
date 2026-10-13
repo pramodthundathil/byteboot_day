@@ -302,17 +302,138 @@ def generate_sample_leads_csv():
         "Referred by policybazar client",
         (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%d 15:30")
     ])
+    writer.writerow([
+        "Malabar Agro Logistics",
+        "Mohammed Faizal",
+        "+91 9745123456",
+        "faizal@malabaragro.com",
+        "Warehouse Management ERP",
+        "350000.00",
+        "URGENT",
+        "Direct Outreach",
+        "Calicut Beach Road, Kozhikode",
+        "Urgent migration from legacy software",
+        (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%d 10:00")
+    ])
     return output.getvalue()
+
+
+def generate_sample_leads_excel():
+    """
+    Generates a professionally styled sample Excel (.xlsx) template for bulk uploading leads.
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Leads Import Template"
+
+    headers = [
+        "Company Name",
+        "Contact Person",
+        "Phone",
+        "Email",
+        "Service Interested",
+        "Estimated Value",
+        "Priority",
+        "Lead Source",
+        "Address",
+        "Notes",
+        "Next Followup Date"
+    ]
+    ws.append(headers)
+
+    # Style header row with distinctive dark fill and highlight mandatory fields
+    header_fill = PatternFill(start_color="101720", end_color="101720", fill_type="solid")
+    req_fill = PatternFill(start_color="008ec2", end_color="008ec2", fill_type="solid")
+    header_font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+    thin_border = Border(
+        left=Side(style='thin', color='CCCCCC'),
+        right=Side(style='thin', color='CCCCCC'),
+        top=Side(style='thin', color='CCCCCC'),
+        bottom=Side(style='thin', color='CCCCCC')
+    )
+
+    for col_idx, cell in enumerate(ws[1], 1):
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+        col_name = headers[col_idx - 1]
+        if col_name in ("Company Name", "Contact Person", "Phone"):
+            cell.fill = req_fill
+        else:
+            cell.fill = header_fill
+
+    sample_rows = [
+        [
+            "Apex Digital Media",
+            "Rahul Sharma",
+            "+91 9876543210",
+            "rahul@apexdigital.in",
+            "Custom ERP & Cloud Solution",
+            "250000.00",
+            "HIGH",
+            "Website",
+            "MG Road, Kochi",
+            "Looking for customized business automation",
+            (timezone.now() + timedelta(days=2)).strftime("%Y-%m-%d 11:00")
+        ],
+        [
+            "Green Valley Exports",
+            "Ananya Nair",
+            "+91 9845612345",
+            "ananya@greenvalley.com",
+            "Mobile App Development",
+            "180000.00",
+            "MEDIUM",
+            "Referral",
+            "Infopark Phase 2, Kochi",
+            "Referred by policybazar client",
+            (timezone.now() + timedelta(days=1)).strftime("%Y-%m-%d 15:30")
+        ],
+        [
+            "Malabar Agro Logistics",
+            "Mohammed Faizal",
+            "+91 9745123456",
+            "faizal@malabaragro.com",
+            "Warehouse Management ERP",
+            "350000.00",
+            "URGENT",
+            "Direct Outreach",
+            "Calicut Beach Road, Kozhikode",
+            "Urgent migration from legacy software",
+            (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%d 10:00")
+        ]
+    ]
+
+    for row_data in sample_rows:
+        ws.append(row_data)
+
+    for row in ws.iter_rows(min_row=2, max_row=len(sample_rows) + 1):
+        for cell in row:
+            cell.font = Font(name="Arial", size=10)
+            cell.border = thin_border
+
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            val_str = str(cell.value or '')
+            if len(val_str) > max_len:
+                max_len = len(val_str)
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 15)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
 
 
 def parse_and_import_leads(company, file_obj, uploaded_by, assignment_mode='self', target_user_id=None):
     """
-    Parses and imports leads from CSV or XLSX file.
-    assignment_mode:
-      - 'self': auto-assigns to uploaded_by (used when staff uploads)
-      - 'specific': assigns to User with ID target_user_id
-      - 'round_robin': evenly distributes across active staff in company
-      - 'unassigned': sets assigned_to to None
+    Parses and imports leads from CSV or XLSX Excel file.
+    Phone number is strictly mandatory for each lead.
     """
     filename = file_obj.name.lower()
     rows = []
@@ -333,22 +454,29 @@ def parse_and_import_leads(company, file_obj, uploaded_by, assignment_mode='self
                 rows.append(row_dict)
     elif filename.endswith('.xlsx') or filename.endswith('.xls'):
         import openpyxl
-        wb = openpyxl.load_workbook(file_obj, data_only=True)
-        sheet = wb.active
-        header = None
-        for r in sheet.iter_rows(values_only=True):
-            if not r or not any(r):
-                continue
-            if header is None:
-                header = [str(h or '').strip().lower() for h in r]
-            else:
-                row_dict = {}
-                for idx, col_name in enumerate(header):
-                    val = r[idx] if idx < len(r) else ''
-                    row_dict[col_name] = str(val or '').strip()
-                rows.append(row_dict)
+        try:
+            wb = openpyxl.load_workbook(file_obj, data_only=True)
+            sheet = wb.active
+            header = None
+            for r in sheet.iter_rows(values_only=True):
+                if not r or not any(r):
+                    continue
+                if header is None:
+                    header = [str(h or '').strip().lower() for h in r]
+                else:
+                    row_dict = {}
+                    for idx, col_name in enumerate(header):
+                        val = r[idx] if idx < len(r) else ''
+                        if isinstance(val, float) and val.is_integer():
+                            val = int(val)
+                        elif isinstance(val, (datetime, date)):
+                            val = val.strftime('%Y-%m-%d %H:%M')
+                        row_dict[col_name] = str(val or '').strip()
+                    rows.append(row_dict)
+        except Exception as e:
+            return 0, [f"Error reading Excel spreadsheet: {str(e)}. Please make sure it is a valid .xlsx file."]
     else:
-        return 0, ["Unsupported file format. Please upload a .csv or .xlsx spreadsheet file."]
+        return 0, ["Unsupported file format. Please upload a .xlsx or .csv spreadsheet file."]
 
     if not rows:
         return 0, ["The uploaded spreadsheet file has no rows to import."]
@@ -383,7 +511,7 @@ def parse_and_import_leads(company, file_obj, uploaded_by, assignment_mode='self
         for line_num, row in enumerate(rows, start=2):
             company_name = get_val(row, ['company name', 'company', 'client name', 'client'])
             contact_person = get_val(row, ['contact person', 'contact', 'person', 'name'])
-            phone = get_val(row, ['phone', 'mobile', 'cell', 'tel'])
+            phone = get_val(row, ['phone', 'mobile', 'cell', 'tel', 'contact number', 'phone number'])
             email = get_val(row, ['email', 'mail'])
             service = get_val(row, ['service interested', 'service', 'product', 'requirement'], 'Software Development')
             value_str = get_val(row, ['estimated value', 'estimated', 'value', 'amount', 'budget'], '0.00')
@@ -397,8 +525,15 @@ def parse_and_import_leads(company, file_obj, uploaded_by, assignment_mode='self
                 errors.append(f"Row {line_num}: Missing both Company Name and Contact Person. Skipped.")
                 continue
 
-            if not phone:
-                phone = "Not Provided"
+            # Strict mandatory Phone number validation
+            if not phone or not phone.strip() or phone.strip().lower() in ('none', 'null', 'nan', 'not provided', '-', 'n/a'):
+                lead_ref = company_name or contact_person or f"Row {line_num}"
+                errors.append(f"Row {line_num} ({lead_ref}): Phone number is mandatory. Skipped.")
+                continue
+
+            phone = phone.strip()
+            if phone.endswith('.0'):
+                phone = phone[:-2]
 
             # Parse estimated value
             try:

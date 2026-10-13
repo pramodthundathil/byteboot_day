@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, F
 
 from crm.models import Lead, LeadFollowup, Customer, CustomerContact
 from crm.services import (
@@ -20,6 +20,7 @@ from crm.services import (
     bulk_update_lead_priority,
     bulk_delete_leads,
     generate_sample_leads_csv,
+    generate_sample_leads_excel,
     parse_and_import_leads,
     get_staff_crm_performance
 )
@@ -36,6 +37,23 @@ def is_crm_admin(user, membership):
     if membership and (
         membership.role in ('COMPANY_ADMIN', 'PLATFORM_ADMIN') or
         membership.has_permission('crm', 'assign') or
+        membership.has_permission('crm', 'manage')
+    ):
+        return True
+    return False
+
+
+def can_delete_lead(user, membership):
+    """
+    Returns True if user is an administrator or has explicit delete permissions in CRM
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if membership and (
+        membership.role in ('COMPANY_ADMIN', 'PLATFORM_ADMIN') or
+        membership.has_permission('crm', 'delete') or
         membership.has_permission('crm', 'manage')
     ):
         return True
@@ -199,7 +217,7 @@ def lead_list(request):
     staff_filter = request.GET.get('staff', '')
     fup_filter = request.GET.get('fup', '')
     query = request.GET.get('q', '').strip()
-    sort_order = request.GET.get('sort', '-created_at')
+    sort_order = request.GET.get('sort', '')
 
     leads = Lead.objects.filter(company=company)
 
@@ -216,15 +234,19 @@ def lead_list(request):
             leads = leads.filter(assigned_to_id=staff_filter)
 
     is_lost_view = (status_filter == 'LOST')
+    is_won_view = (status_filter == 'WON')
     if is_lost_view:
         leads = leads.filter(status='LOST')
         active_sub = 'lost_leads'
+    elif is_won_view:
+        leads = leads.filter(status='WON')
+        active_sub = 'won_leads'
     elif status_filter:
         leads = leads.filter(status=status_filter)
         active_sub = 'leads'
     else:
-        # Main list strictly excludes LOST leads
-        leads = leads.exclude(status='LOST')
+        # Main list strictly excludes LOST and WON leads
+        leads = leads.exclude(status__in=['LOST', 'WON'])
         active_sub = 'leads'
 
     if priority_filter:
@@ -254,8 +276,10 @@ def lead_list(request):
     elif fup_filter == 'unscheduled':
         leads = leads.filter(next_followup_date__isnull=True).exclude(status__in=['WON', 'LOST'])
 
-    # Sorting
+    # Sorting (Defaults to latest scheduled follow-up first, with unscheduled at bottom)
     valid_sorts = {
+        'followup_latest': 'followup_latest',
+        'followup_overdue': 'followup_overdue',
         '-created_at': '-created_at',
         'created_at': 'created_at',
         'next_followup_date': 'next_followup_date',
@@ -264,13 +288,19 @@ def lead_list(request):
         'estimated_value': 'estimated_value',
         'company_name': 'company_name'
     }
-    order_by_field = valid_sorts.get(sort_order, '-created_at')
-    leads = leads.order_by(order_by_field).select_related('assigned_to', 'created_by')
+    sort_choice = valid_sorts.get(sort_order, 'followup_latest')
+    if sort_choice in ('followup_latest', '-next_followup_date'):
+        leads = leads.order_by(F('next_followup_date').desc(nulls_last=True), '-created_at')
+    elif sort_choice in ('followup_overdue', 'next_followup_date'):
+        leads = leads.order_by(F('next_followup_date').asc(nulls_last=True), '-created_at')
+    else:
+        leads = leads.order_by(sort_choice)
+    leads = leads.select_related('assigned_to', 'created_by')
 
     # Total counts for status tabs
     all_company_leads = Lead.objects.filter(company=company)
     total_leads_count = all_company_leads.count()
-    active_leads_count = all_company_leads.exclude(status='LOST').count()
+    active_leads_count = all_company_leads.exclude(status__in=['LOST', 'WON']).count()
     new_count = all_company_leads.filter(status='NEW').count()
     contacted_count = all_company_leads.filter(status='CONTACTED').count()
     followup_req_count = all_company_leads.filter(status='FOLLOW_UP').count()
@@ -294,11 +324,12 @@ def lead_list(request):
         'leads': leads_page,
         'status_filter': status_filter,
         'is_lost_view': is_lost_view,
+        'is_won_view': is_won_view,
         'priority_filter': priority_filter,
         'staff_filter': staff_filter,
         'fup_filter': fup_filter,
         'query': query,
-        'sort_order': sort_order,
+        'sort_order': sort_order or 'followup_latest',
         'total_leads_count': total_leads_count,
         'active_leads_count': active_leads_count,
         'new_count': new_count,
@@ -310,6 +341,7 @@ def lead_list(request):
         'won_count': won_count,
         'lost_count': lost_count,
         'is_admin': admin_mode,
+        'can_delete': can_delete_lead(request.user, membership),
         'assignable_users': assignable_users,
         'tomorrow_date': (now.date() + timedelta(days=1)).strftime('%Y-%m-%d'),
         'status_choices': Lead.STATUS_CHOICES,
@@ -477,16 +509,62 @@ def lead_edit(request, lead_id):
         return redirect('crm:lead_detail', lead_id=lead.id)
 
     assignable_users = get_assignable_users(company) if admin_mode else []
+    can_delete = can_delete_lead(request.user, membership)
 
     return render(request, 'crm/lead_form_edit.html', {
         'lead': lead,
         'is_admin': admin_mode,
+        'can_delete': can_delete,
         'assignable_users': assignable_users,
         'status_choices': Lead.STATUS_CHOICES,
         'priority_choices': Lead.PRIORITY_CHOICES,
         'active_tab': 'crm',
         'active_sub': 'leads'
     })
+
+
+@login_required
+def lead_delete(request, lead_id):
+    """
+    Permanently deletes a single lead record. Restricted strictly to Admin or permitted staff.
+    """
+    company = request.company
+    membership = getattr(request, 'membership', None)
+
+    if not can_delete_lead(request.user, membership):
+        messages.error(request, "Permission denied: Only administrators or permitted staff can delete leads.")
+        return redirect('crm:lead_list')
+
+    lead = get_object_or_404(Lead, id=lead_id, company=company)
+    was_lost = (lead.status == 'LOST')
+    if request.method == 'POST':
+        lead_num = lead.lead_number
+        lead_name = lead.company_name or lead.contact_person
+
+        AuditEvent.log(
+            company=company,
+            actor=request.user,
+            action='DELETE',
+            module='crm',
+            model_name='Lead',
+            object_id=str(lead.id),
+            object_repr=f"Deleted Lead {lead_num} - {lead_name}",
+            changes={'deleted_lead_id': lead.id, 'lead_number': lead_num, 'company_name': lead_name}
+        )
+
+        lead.delete()
+        messages.success(request, f"Lead {lead_num} ({lead_name}) has been permanently deleted.")
+
+        referer = request.POST.get('next') or request.META.get('HTTP_REFERER') or ''
+        # Avoid redirecting back to detail/edit view of the lead that was just deleted
+        if f"/leads/{lead_id}/" in referer or f"/leads/{lead_id}" in referer or not referer:
+            if was_lost:
+                return redirect(f"{reverse('crm:lead_list')}?status=LOST")
+            return redirect('crm:lead_list')
+
+        return redirect(referer)
+
+    return redirect('crm:lead_list')
 
 
 @login_required
@@ -577,6 +655,7 @@ def lead_detail(request, lead_id):
         'lead': lead,
         'followups': followups_page,
         'is_admin': admin_mode,
+        'can_delete': can_delete_lead(request.user, membership),
         'assignable_users': assignable_users,
         'audit_events': audit_events_page,
         'tomorrow_date': tomorrow_date,
@@ -719,8 +798,8 @@ def lead_bulk_action(request):
             messages.success(request, f"Successfully updated priority of {count} leads to {target_priority}.")
 
         elif action == 'delete':
-            if not admin_mode:
-                messages.error(request, "Only administrators can delete leads in bulk.")
+            if not can_delete_lead(request.user, membership):
+                messages.error(request, "Permission denied: Only administrators or permitted staff can delete leads in bulk.")
                 return redirect(request.META.get('HTTP_REFERER', 'crm:lead_list'))
             count = bulk_delete_leads(company, lead_ids, request.user)
             messages.success(request, f"Successfully deleted {count} leads.")
@@ -796,6 +875,21 @@ def lead_template_download(request):
     csv_data = generate_sample_leads_csv()
     response = HttpResponse(csv_data, content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="crm_leads_import_template.csv"'
+    return response
+
+
+@login_required
+@require_permission('crm', 'view')
+def lead_template_excel_download(request):
+    """
+    Generates and downloads a clean Excel (.xlsx) template for lead import
+    """
+    excel_data = generate_sample_leads_excel()
+    response = HttpResponse(
+        excel_data,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="crm_leads_import_template.xlsx"'
     return response
 
 
@@ -908,7 +1002,8 @@ def lead_ajax_detail(request, lead_id):
     return render(request, 'crm/lead_drawer_partial.html', {
         'lead': lead,
         'followups': lead.followups.all().select_related('staff')[:10],
-        'is_admin': admin_mode
+        'is_admin': admin_mode,
+        'can_delete': can_delete_lead(request.user, membership)
     })
 
 

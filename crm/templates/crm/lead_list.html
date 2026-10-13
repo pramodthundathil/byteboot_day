@@ -82,6 +82,26 @@
             Back to Active Pipeline
         </a>
     </div>
+    {% elif is_won_view %}
+    <!-- Won Deals Dedicated Header Banner -->
+    <div class="card p-4 mb-4 bg-emerald-950/20 border-emerald-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold">
+                <i data-lucide="award" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                    Won Deals & Converted Leads
+                    <span class="text-xs bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-mono">{{ leads.paginator.count }} Won</span>
+                </h3>
+                <p class="text-xs text-slate-400">Successfully closed sales deals and converted customers, isolated from the open pipeline.</p>
+            </div>
+        </div>
+        <a href="{% url 'crm:lead_list' %}" class="btn-secondary text-xs flex items-center gap-1.5 whitespace-nowrap">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            Back to Active Pipeline
+        </a>
+    </div>
     {% else %}
     <!-- Status & Pipeline Quick Filter Pills -->
     <div class="card p-3 mb-4 flex flex-wrap gap-2 items-center justify-between">
@@ -107,9 +127,6 @@
             </a>
             <a href="?status=NEGOTIATION" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'NEGOTIATION' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
                 Negotiation ({{ negotiation_count }})
-            </a>
-            <a href="?status=WON" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'WON' %}bg-emerald-600 text-white border-emerald-600{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
-                Won ({{ won_count }})
             </a>
         </div>
 
@@ -159,10 +176,10 @@
 
                 <div>
                     <select name="sort" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
-                        <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>Sort: Newest First</option>
-                        <option value="created_at" {% if sort_order == 'created_at' %}selected{% endif %}>Sort: Oldest First</option>
-                        <option value="next_followup_date" {% if sort_order == 'next_followup_date' %}selected{% endif %}>Sort: Follow-up Date (Earliest)</option>
-                        <option value="-estimated_value" {% if sort_order == '-estimated_value' %}selected{% endif %}>Sort: Deal Value (High to Low)</option>
+                        <option value="followup_latest" {% if sort_order == 'followup_latest' %}selected{% endif %}>Sort: Follow-up Time (Latest First)</option>
+                        <option value="followup_overdue" {% if sort_order == 'followup_overdue' %}selected{% endif %}>Sort: Follow-up Time (Overdue First)</option>
+                        <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>Sort: Newest Lead First</option>
+                        <option value="created_at" {% if sort_order == 'created_at' %}selected{% endif %}>Sort: Oldest Lead First</option>
                         <option value="company_name" {% if sort_order == 'company_name' %}selected{% endif %}>Sort: Company Name (A-Z)</option>
                     </select>
                 </div>
@@ -226,12 +243,15 @@
                 <button type="submit" class="btn-secondary text-xs py-1 px-2.5">Set Priority</button>
             </form>
 
-            <!-- Bulk Delete (Admin only) -->
-            {% if is_admin %}
+            <!-- Bulk Delete (Admin or permitted staff only) -->
+            {% if can_delete %}
             <form action="{% url 'crm:lead_bulk_action' %}" method="POST" onsubmit="return confirm('Are you sure you want to delete the selected leads? This cannot be undone.')" @submit="selectedLeads.forEach(id => { let inp = document.createElement('input'); inp.type = 'hidden'; inp.name = 'selected_lead_ids'; inp.value = id; $el.appendChild(inp); })">
                 {% csrf_token %}
                 <input type="hidden" name="bulk_action" value="delete">
-                <button type="submit" class="px-2.5 py-1 rounded-lg bg-red-950 text-red-300 border border-red-800 text-xs font-semibold hover:bg-red-900 transition">Delete</button>
+                <button type="submit" class="px-2.5 py-1 rounded-lg bg-red-950 text-red-300 border border-red-800 text-xs font-semibold hover:bg-red-900 transition flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    Delete Selected
+                </button>
             </form>
             {% endif %}
 
@@ -247,12 +267,11 @@
                     <th style="width: 38px;">
                         <input type="checkbox" x-model="selectAll" @change="toggleAll($event.target.checked)" class="rounded bg-slate-900 border-slate-700 text-[#00a0da] focus:ring-0">
                     </th>
-                    <th>Lead #</th>
+                    <th style="width: 48px;" class="text-center font-mono text-slate-400">#</th>
                     <th>Company / Client</th>
                     <th>Contact Person</th>
                     <th>Outreach & Contact</th>
                     <th>Assigned Staff</th>
-                    <th>Est. Value</th>
                     <th>Follow-up Timing</th>
                     <th>Status</th>
                     <th data-sortable="false" class="text-right">Actions</th>
@@ -266,16 +285,16 @@
                         <input type="checkbox" value="{{ lead.id }}" x-model="selectedLeads" class="lead-checkbox rounded bg-slate-900 border-slate-700 text-[#00a0da] focus:ring-0">
                     </td>
 
-                    <!-- Lead # -->
-                    <td>
-                        <button hx-get="{% url 'crm:lead_ajax_detail' lead.id %}" hx-target="#drawer-content" @click="drawerOpen = true" class="font-mono text-[#00a0da] font-bold hover:underline">
-                            {{ lead.lead_number }}
-                        </button>
+                    <!-- Serial Number -->
+                    <td class="text-center text-xs font-mono text-slate-400 font-semibold">
+                        {{ leads.start_index|add:forloop.counter0 }}
                     </td>
 
                     <!-- Company Name -->
                     <td>
-                        <div class="font-bold text-slate-100">{{ lead.company_name }}</div>
+                        <button type="button" hx-get="{% url 'crm:lead_ajax_detail' lead.id %}" hx-target="#drawer-content" @click="drawerOpen = true" class="font-bold text-slate-100 hover:text-[#00a0da] text-left transition">
+                            {{ lead.company_name }}
+                        </button>
                         <div class="text-[11px] text-slate-400">{{ lead.service_interested|truncatechars:30 }}</div>
                     </td>
 
@@ -317,11 +336,6 @@
                         {% endif %}
                     </td>
 
-                    <!-- Est. Value -->
-                    <td class="font-extrabold text-[#00a0da] text-xs">
-                        ₹{{ lead.estimated_value }}
-                    </td>
-
                     <!-- Next Follow-up timing pill -->
                     <td>
                         {% with badge=lead.followup_due_badge %}
@@ -353,12 +367,13 @@
                             <a href="{% url 'crm:lead_detail' lead.id %}" class="btn-secondary text-xs py-1 px-2 text-slate-400 hover:text-white" title="Full Details">
                                 <i data-lucide="arrow-right" class="w-3 h-3"></i>
                             </a>
+                            
                         </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr class="empty-row">
-                    <td colspan="10" class="text-center text-slate-500 py-10">No leads found matching current filters.</td>
+                    <td colspan="9" class="text-center text-slate-500 py-10">No leads found matching current filters.</td>
                 </tr>
                 {% endfor %}
             </tbody>
