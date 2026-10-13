@@ -1,0 +1,4448 @@
+[
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$at0aIb5OrNBdql7dJm6om4$/1mp6lylGd9wBrgEu9pE6wjFwM0g+CeDsw6yPI2tkVE=",
+    "last_login": "2026-10-13T04:27:14.251Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@byteboot.tech",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-10-09T14:04:03.136Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$TcUXHCwA1pQscvR1eBXjje$wR9OrdcHeODLFrVrL69aVNUYrs3LmFI02yUzQAhC74M=",
+    "last_login": "2026-10-12T10:08:17.302Z",
+    "is_superuser": false,
+    "username": "john_developer",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@byteboot.tech",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-10-09T14:04:03.444Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$mLHC6iia0FARKUTjC6WZLR$kyHIvKgvTG+NyUy3S77EmTWmdX66CRfzuX5F2NqezXc=",
+    "last_login": "2026-10-12T08:27:57.740Z",
+    "is_superuser": false,
+    "username": "efron",
+    "first_name": "Efron",
+    "last_name": "Antony",
+    "email": "antony@byteboot.in",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-10-09T15:25:53.567Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$qfP6LnXuVlMgg2LlHW3nAQ$fAwggafndL8C3u/tueJaBKpmH0ac87tAmUlL/aOTB+E=",
+    "last_login": "2026-10-13T03:43:09.854Z",
+    "is_superuser": false,
+    "username": "anjali",
+    "first_name": "Anjali",
+    "last_name": "MS",
+    "email": "anjali@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-10-13T03:42:30.980Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "09catausoeps5kktq4vbqdr7t0j2iiuc",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEoN:-zBIbUZf-lyssOT5rxLaWUZe_UifvkX42dXOgvaf88Y",
+    "expire_date": "2026-10-26T12:07:23.241Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "37ruriplrhgoci7j812083qbtgs0ri32",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEl9:ZDyZw65h-k3TEsCzE3A_3rnW-vSuRtzZxmbW6T2RAzU",
+    "expire_date": "2026-10-26T12:04:03.459Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "3y6hcvyweyztnbhxqvleou6t1rjjn535",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGDAW:P3rpFWUxf_X2F8qu1Jhle1Ymoxlpap1aIVemb3ieCYs",
+    "expire_date": "2026-10-26T10:22:08.205Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "48622h8yppafjfj84a4un27clbonq4ml",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlnE8ZeSPmewdtdrHEC2FCcV4u4QKQW0b2beS0TY1hK3zkuck7gILU6_GwI9uO4g3aHemqRW12VGuSvyoF1OLfHzerh_BwV6-dY2OTYD-JB9cKz0mCijympMlrIxYDRRCJ4ZObDP7oxWBxrBGPQ4ZCfeHwD1OME:1xGTPx:j6QVnTNiI161zY1atqYGdqNoX78muvPTBBKV5znQAIU",
+    "expire_date": "2026-10-27T03:43:09.855Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "49y41vfrsaj5wmulag43m0ufehaxvcb6",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGEjk:8lh1oRfrveRiaDuFfg8w4ybOOz3RaPyIFHAbRV7ezDk",
+    "expire_date": "2026-10-26T12:02:36.067Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4ils6e9ytek425c6gi6nw4auwmtqzcy0",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGTyD:ebpNtjTDvGsjCOA2nX_YGj3o4nbjiFQZoXGXPFGzyZY",
+    "expire_date": "2026-10-27T04:18:33.734Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "4n93u1z9zj7buuluc0p7mzkgegn85nrh",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQRP-FsyEUlk3r0bvfQBZ2K1UDSWlPjf9um_Sgmdu8N7OpQOuSw9pkDhOrq3Lq8ttFSi8pB-AnlUfVqZZlnqI-FH3Spu-V5X073b-DTC3va_EM1hAgDaMYh0YiI3Qo6E3feWv7lMCSeAR2jHbAPWOKQC6KGFCfL9W4N6A:1xFCU7:L-VLZA4y0-oh656FbFLNeI-kJOWTn5NdcZGUnk5kPsA",
+    "expire_date": "2026-10-23T15:26:11.222Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "5e3h86751mdl45ozixfu8e63b048gois",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGBew:33MXDbfapzt7lp21VAh9PCqSucHlN6dQXB680FevtPY",
+    "expire_date": "2026-10-26T08:45:26.990Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "5iofiqt983cyo1t244evrahr8uf4olrk",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0CBSX7v0GMswMtj6g6cPEGP_d1nSh23vuPbkvEWCe2jCPPISOxEFUYvebRcAr5xXQBfK5SCx5Groo14rc6ChPhfh23Lp_ghbGdlkrrtgy1X5vG-OciVbVKWmtlbOGGZWnhGTJaPDQMBowiqJh67V3ydlFCjh1Dw5Y7j3k5_dt_f4ABRI_yw:1xGEoR:ktkwh8SSDc-CDI3Cpbmkc7MBWJZL-rpYAyNtHeAG2BA",
+    "expire_date": "2026-10-26T12:07:27.136Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "6ttigwndedtbeaoak2g7uomk1mk6uxn1",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGDGN:JsZprMeoYheJpgWBnbI-tUdlbDheHj8dX4sZTFVCiBs",
+    "expire_date": "2026-10-26T10:28:11.037Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8lvzctopl4a4u26h7itkqnr18tv4pwfr",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGAtW:7m123gFHySli303jqKmALURkh_sBjVnjeyYRFl5a4fU",
+    "expire_date": "2026-10-26T07:56:26.289Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "94gsk4xkonqd8blsnnr8pf89p0to0wgz",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGC3k:6TOUkZ8RrB9hU29y-46N0pqWWthKnD9YjujE79K0vEA",
+    "expire_date": "2026-10-26T09:11:04.060Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ahwwl1t9z773s0orhueeianwfl8hzxne",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0CBSX7v0GMswMtj6g6cPEGP_d1nSh23vuPbkvEWCe2jCPPISOxEFUYvebRcAr5xXQBfK5SCx5Groo14rc6ChPhfh23Lp_ghbGdlkrrtgy1X5vG-OciVbVKWmtlbOGGZWnhGTJaPDQMBowiqJh67V3ydlFCjh1Dw5Y7j3k5_dt_f4ABRI_yw:1xGTLK:RYLs134ZJsrnJSn-dT_kGWDhUDHmvkNBf1VIhBJksTM",
+    "expire_date": "2026-10-27T03:38:22.537Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "aog8cml4i4fopstonfkfn37bztagw9zd",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGBOk:XKzDQU5pqQQcF-9OMbpeNfARL1r__q64lr-IgWTw-Ag",
+    "expire_date": "2026-10-26T08:28:42.432Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "c6d9kdpcee9w11gg2ftzheq0tcuhw6dq",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGCx7:Z602Oz9r7Xc2RTVp76LOi-zgzK8GUC_OTYN77OAaMi4",
+    "expire_date": "2026-10-26T10:08:17.303Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "cu6y1sm8ukl0m0yb8h2k0r6504489pkr",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEl0:D6JeuxGfrD7G1yeFDoGzBG_zvA0ZhaRSMyhhxYRBhGI",
+    "expire_date": "2026-10-26T12:03:54.819Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "dtxhfxbz2rs47cvjsz8vko43sqgqnzoe",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xFCmt:scSO5szX1elWFyCMJcEghxToWXyUW_L8lg6_y8Q464s",
+    "expire_date": "2026-10-23T15:45:35.191Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "e7gk9i6rlh4wz7b5ek86jh8qmzh9bfe8",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEnm:L_NEmC8EIdNAebzVwCeOeSBJel85Y_b7tRokMVrhwCk",
+    "expire_date": "2026-10-26T12:06:46.257Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "eu2wng3m2bzkx7bc1tgsmew122wdia4i",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xFBKO:Krrk5CFc0GwRZY6xc7yDi-T7Vv93a5RabVZEWkbrLsA",
+    "expire_date": "2026-10-23T14:12:04.260Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ffpt625qeklp65rnem0filmimuzo3s6h",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGCwx:wHUmNUxNfUGdFttk6vcX7Qvp3_ERYPlVgpSL1tsDVtQ",
+    "expire_date": "2026-10-26T10:08:07.147Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "fmaicdqy95wjolhh6b2g25m7mm24grbg",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGBz2:AiGCg9GUhK5wFzm5ipSOK9X5RzUAJhTGBp2NzZ0YkRA",
+    "expire_date": "2026-10-26T09:06:12.195Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "h29zyfxkhgvrowoktpb5km89qg69g9kq",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGDBw:tsmIMHqKsTvXWF6BCZks_bthrCDwid8FvhCwMdsfB6M",
+    "expire_date": "2026-10-26T10:23:36.003Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "ivq5oliak0d2wl9vollnauu2qu68s72n",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGBO9:-nMPNqbqgTSABrcNUcRInvRVpwmSnNYSNirjAsCPRaA",
+    "expire_date": "2026-10-26T08:28:05.807Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "jht7hiz356k4keczyqzy06i66ravj1d4",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGBOP:K8LIT7hsoaCQGTU5Uwg-sOxDr37hTmTxMa4YR7aGPsQ",
+    "expire_date": "2026-10-26T08:28:21.292Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "jogcbhcjmpv82i9k34la7rs1tctscn57",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGArb:wptJUWh7EsHQHqhqAlFlS5AV7vPic1VnWXi4UJcNKVI",
+    "expire_date": "2026-10-26T07:54:27.288Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "keews57v3hcar5yyykbz6clpghcizm9w",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0CBSX7v0GMswMtj6g6cPEGP_d1nSh23vuPbkvEWCe2jCPPISOxEFUYvebRcAr5xXQBfK5SCx5Groo14rc6ChPhfh23Lp_ghbGdlkrrtgy1X5vG-OciVbVKWmtlbOGGZWnhGTJaPDQMBowiqJh67V3ydlFCjh1Dw5Y7j3k5_dt_f4ABRI_yw:1xGU6U:8U6cLEM6QWSvI7npQq7izTPx65YxnlukhRdGzXxsePA",
+    "expire_date": "2026-10-27T04:27:06.908Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "l8hz407zvzsck8si14xvzah0cwg55lrr",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGD6y:L_B9inPzchy92d2NAUQzSNGTwePx_lOweZj6TQGqyRo",
+    "expire_date": "2026-10-26T10:18:28.473Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "lel60jzrd5gfv8lb631eguawieb0enve",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGTo6:tXa7jmcEaoI-giADIej40zFTKkER8P9Fo3Kt5Wa5fA4",
+    "expire_date": "2026-10-27T04:08:06.103Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "mtk8mk3srsqw2r1cqqxtuii0yhgw7b25",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGBfj:e94cCDNAH-JUpcMAmoOe-v9zp9tf-4gVQFu9nt9rXh4",
+    "expire_date": "2026-10-26T08:46:15.717Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "nx7t51fic8u0ro0rpe5ehtrcboui5xg4",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGBza:8jaIuiHL3lqi3EX4mIQBAeP695uAcvwoyscY5XFYLYU",
+    "expire_date": "2026-10-26T09:06:46.540Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "qmku2d55wgdb0ufztg03v0opafe6hn6g",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEju:m2JdpsYyW7ogfN2BE8bW7lDe2-kxbD96o9Oo73CZC34",
+    "expire_date": "2026-10-26T12:02:46.271Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "uignm0bae9vnby4t901qoifaosroikb0",
+  "fields": {
+    "session_data": ".eJxVjDsOwyAQRO9CHSFYMJ-U6X0GtCw4OIlAMnYV5e6xJRdJNdK8N_NmAbe1hK3nJcyJXRmwy28XkZ65HiA9sN4bp1bXZY78UPhJOx9byq_b6f4dFOxlX9scvXaJrIh7KIneIRpjpYMpIuphEiAHayQIJwiTIwDrJShjXCSt2OcL18c3DQ:1xGBex:6wxP9E3rv7qI5jOCovUxNHtTqhMsrlO65H-KLKCKhww",
+    "expire_date": "2026-10-26T08:45:27.304Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "uwkurzsfhh2pr8uaxdapa9dhv50e1sj1",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGDGY:S8a42OzsaxTZ_0VPe7YejxgDZvC8bP2QNkhzEeRcw2A",
+    "expire_date": "2026-10-26T10:28:22.895Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "uwtxrvkmxh3b7eu0lgjc85j0ncpve99e",
+  "fields": {
+    "session_data": ".eJxVjMEOwiAQRP-FsyEUlk3r0bvfQBZ2K1UDSWlPjf9um_Sgmdu8N7OpQOuSw9pkDhOrq3Lq8ttFSi8pB-AnlUfVqZZlnqI-FH3Spu-V5X073b-DTC3va_EM1hAgDaMYh0YiI3Qo6E3feWv7lMCSeAR2jHbAPWOKQC6KGFCfL9W4N6A:1xGBO1:l1Pe9y_do61VFv6UySU8xntTRYDS5Poy_3aS1M_MJJM",
+    "expire_date": "2026-10-26T08:27:57.741Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "w2ehukgncvn1axkcs2lw3l2qth8c18z7",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0yFBcuvcbyMAMtj6g6cPEGP_d1nSh23vuPbkv4XGeWj-PPPiOxEFUYvebBYxXziugC-ZzkbHkaeiCXCtyo6M8FeLbcev-CVoc22WtuGJgqt0eGmOtCaDqlLTWyoJhjspRigRkNDpsOBo0ioJhcNrZZGGRYpy6B_tY7j3m5_dt9f4ABRA_yg:1xGEnb:tqfN49W-brP_qZhmpSNpd6fp2Pa_T6hF2ET-zY1fehs",
+    "expire_date": "2026-10-26T12:06:35.074Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "wrj3zz36dle6sbdnynpbnxwmp2ub1z7y",
+  "fields": {
+    "session_data": ".eJxVjssOwiAQRf-FtSG0CBSX7v0GMswMtj6g6cPEGP_d1nSh23vuPbkvEWCe2jCPPISOxEFUYvebRcAr5xXQBfK5SCx5Groo14rc6ChPhfh23Lp_ghbGdlkrrtgy1X5vG-OciVbVKWmtlbOGGZWnhGTJaPDQMBowiqJh67V3ydlFCjh1Dw5Y7j3k5_dt_f4ABRI_yw:1xGU6c:n9kuZwM7XHVoPUie_foQTJ-PNCTwo_fpg3SNXvCciD0",
+    "expire_date": "2026-10-27T04:27:14.253Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "y08ocsnu2cd9de3l0cm779ixdm4u2lsi",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xG8Dw:0VPuyRDtBm0dzjKTe8DHkA14_HxUMZkwEJfiRm6YDKQ",
+    "expire_date": "2026-10-26T05:05:20.314Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "yc79wbofz2xgknedjxt35lzu0fxi9aqk",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGBzD:YjibzUKLFd2fKDOs2CcyePpQoGet1lwIj_rgODiApmQ",
+    "expire_date": "2026-10-26T09:06:23.422Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "zukqougha9cvkb190ln0q04p1jzkwe4v",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hBanKG4dN8zNAMzSNVAUtqV8e7apAvd_vfef6mJtjVPW5NlmlldVKdOv1ug-JCyA75TuVUda1mXOehd0Qdteqwsz-vh_h1kavlbG-kEhXt_xgGcg4CmT8laaxyCSDSeU2RksORpkAgEhgMIeutdcqjeH910N_E:1xGD7P:7hGGeLxPf0NTT3m82Kck0ofbGsYROUOJkGSA25mkWsY",
+    "expire_date": "2026-10-26T10:18:55.290Z"
+  }
+},
+{
+  "model": "tenants.company",
+  "pk": 1,
+  "fields": {
+    "name": "Byteboot Techno Solutions Pvt Ltd",
+    "code": "BYTEBOOT",
+    "tagline": "Multi-Tenant Enterprise Software Architectures",
+    "logo_url": "/static/js/img/company_logo_icon.png",
+    "email": "contact@byteboot.tech",
+    "phone": "+91 484 2901234",
+    "website": "",
+    "address": "Room 104, DD Milestone, Kadavantra Jn, \r\nSA Road , Kochi Pin: 682020",
+    "city": "Kochi",
+    "state": "Kerala",
+    "country": "India",
+    "pincode": "682042",
+    "gstin": "32AAACB1234F1Z5",
+    "registration_number": "",
+    "currency_code": "INR",
+    "currency_symbol": "₹",
+    "financial_year_start_month": 4,
+    "is_active": true,
+    "config": {},
+    "created_at": "2026-10-09T14:04:03.762Z",
+    "updated_at": "2026-10-12T08:55:26.141Z"
+  }
+},
+{
+  "model": "tenants.company",
+  "pk": 2,
+  "fields": {
+    "name": "Apex Digital Systems Pvt Ltd",
+    "code": "APEX",
+    "tagline": "Hardware & Cloud Infrastructure Solutions",
+    "logo_url": "",
+    "email": "sales@apexdigital.in",
+    "phone": "+91 44 28129999",
+    "website": "",
+    "address": "Mount Road",
+    "city": "Chennai",
+    "state": "Tamil Nadu",
+    "country": "India",
+    "pincode": "",
+    "gstin": "33BBBCD5678F2Z6",
+    "registration_number": "",
+    "currency_code": "INR",
+    "currency_symbol": "₹",
+    "financial_year_start_month": 4,
+    "is_active": true,
+    "config": {},
+    "created_at": "2026-10-09T14:04:03.764Z",
+    "updated_at": "2026-10-09T14:04:03.764Z"
+  }
+},
+{
+  "model": "tenants.userprofile",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "phone": "",
+    "avatar_url": "",
+    "designation": "",
+    "is_platform_admin": false,
+    "active_company": 1
+  }
+},
+{
+  "model": "tenants.userprofile",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "efron"
+    ],
+    "phone": "",
+    "avatar_url": "",
+    "designation": "",
+    "is_platform_admin": false,
+    "active_company": 1
+  }
+},
+{
+  "model": "tenants.userprofile",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "john_developer"
+    ],
+    "phone": "",
+    "avatar_url": "",
+    "designation": "",
+    "is_platform_admin": false,
+    "active_company": 1
+  }
+},
+{
+  "model": "tenants.userprofile",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "anjali"
+    ],
+    "phone": "",
+    "avatar_url": "",
+    "designation": "",
+    "is_platform_admin": false,
+    "active_company": 1
+  }
+},
+{
+  "model": "tenants.customrole",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "name": "Project Manager",
+    "description": "Senior Manager overseeing projects",
+    "permissions": {
+      "crm": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "invoicing": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "accounting": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "hr": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": true,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "projects": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false,
+        "approve": false,
+        "assign": true,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "reports": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      }
+    },
+    "created_at": "2026-10-10T08:06:20.044Z"
+  }
+},
+{
+  "model": "tenants.customrole",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "name": "Admin Manager",
+    "description": "Manage all Data",
+    "permissions": {
+      "crm": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": true
+      },
+      "invoicing": {
+        "view": true,
+        "create": true,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": true,
+        "record_payment": true,
+        "convert": false
+      },
+      "accounting": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "hr": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "projects": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false,
+        "approve": false,
+        "assign": true,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "reports": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      }
+    },
+    "created_at": "2026-10-12T07:55:45.452Z"
+  }
+},
+{
+  "model": "tenants.companymembership",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "company": 1,
+    "role": "COMPANY_ADMIN",
+    "custom_role": null,
+    "custom_role_name": "",
+    "department": "",
+    "is_active": true,
+    "date_joined": "2026-10-09T14:04:03.766Z",
+    "permissions": {}
+  }
+},
+{
+  "model": "tenants.companymembership",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "john_developer"
+    ],
+    "company": 1,
+    "role": "STAFF",
+    "custom_role": null,
+    "custom_role_name": "",
+    "department": "",
+    "is_active": true,
+    "date_joined": "2026-10-09T14:04:03.767Z",
+    "permissions": {}
+  }
+},
+{
+  "model": "tenants.companymembership",
+  "pk": 3,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "company": 2,
+    "role": "COMPANY_ADMIN",
+    "custom_role": null,
+    "custom_role_name": "",
+    "department": "",
+    "is_active": true,
+    "date_joined": "2026-10-09T14:04:03.768Z",
+    "permissions": {}
+  }
+},
+{
+  "model": "tenants.companymembership",
+  "pk": 4,
+  "fields": {
+    "user": [
+      "efron"
+    ],
+    "company": 1,
+    "role": "STAFF",
+    "custom_role": null,
+    "custom_role_name": "",
+    "department": "",
+    "is_active": true,
+    "date_joined": "2026-10-09T15:25:53.900Z",
+    "permissions": {
+      "crm": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "invoicing": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "accounting": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "hr": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      },
+      "projects": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false,
+        "approve": false,
+        "assign": false,
+        "post": false,
+        "record_payment": false,
+        "convert": false
+      }
+    }
+  }
+},
+{
+  "model": "tenants.companymembership",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "anjali"
+    ],
+    "company": 1,
+    "role": "STAFF",
+    "custom_role": null,
+    "custom_role_name": "",
+    "department": "",
+    "is_active": true,
+    "date_joined": "2026-10-13T03:42:31.315Z",
+    "permissions": {}
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CONVERT",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "1",
+    "object_repr": "LD-10001 - Policybazar Investments (Pramod Gopinath)",
+    "changes": {
+      "converted_customer_id": 1,
+      "customer_code": "CUST-1001"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T14:04:03.806Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "POST",
+    "module": "accounting",
+    "model_name": "JournalEntry",
+    "object_id": "1",
+    "object_repr": "JE-INV-INV-1001 [POSTED] - Invoice #INV-1001 for Policybazar Invest",
+    "changes": {
+      "total_debit": "236000.00",
+      "total_credit": "236000.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T14:04:03.829Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "POST",
+    "module": "accounting",
+    "model_name": "JournalEntry",
+    "object_id": "2",
+    "object_repr": "JE-PAY-PAY-1001 [POSTED] - Customer Payment #PAY-1001 from Policyba",
+    "changes": {
+      "total_debit": "236000.00",
+      "total_credit": "236000.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T14:04:03.842Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "invoicing",
+    "model_name": "CustomerPayment",
+    "object_id": "1",
+    "object_repr": "Payment Allocation to INV-1001",
+    "changes": {
+      "allocated_amount": "236000.00",
+      "invoice_balance_due": "0.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T14:04:03.844Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 5,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "POST",
+    "module": "accounting",
+    "model_name": "JournalEntry",
+    "object_id": "3",
+    "object_repr": "JE-INV-INV-1002 [POSTED] - Invoice #INV-1002 for Policybazar Invest",
+    "changes": {
+      "total_debit": "177000.00",
+      "total_credit": "177000.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T14:40:29.675Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 6,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "efron"
+    ],
+    "action": "CONVERT",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "2",
+    "object_repr": "LD-10002 - Excel erthings (Jijo)",
+    "changes": {
+      "converted_customer_id": 2,
+      "customer_code": "CUST-1002"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-09T15:30:19.870Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 7,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "POST",
+    "module": "accounting",
+    "model_name": "JournalEntry",
+    "object_id": "4",
+    "object_repr": "JE-PAY-PAY-1002 [POSTED] - Customer Payment #PAY-1002 from Excel er",
+    "changes": {
+      "total_debit": "100000.00",
+      "total_credit": "100000.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-10T05:39:20.668Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 8,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "invoicing",
+    "model_name": "CustomerPayment",
+    "object_id": "2",
+    "object_repr": "Payment Allocation to INV-1002",
+    "changes": {
+      "allocated_amount": "100000",
+      "invoice_balance_due": "77000.00"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-10T05:39:20.671Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 9,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "tenants",
+    "model_name": "CustomRole",
+    "object_id": "2",
+    "object_repr": "Admin Manager",
+    "changes": {
+      "permissions": {
+        "crm": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": true
+        },
+        "invoicing": {
+          "view": true,
+          "create": true,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": true,
+          "record_payment": true,
+          "convert": false
+        },
+        "accounting": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "hr": {
+          "view": true,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "projects": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "assign": true,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "reports": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        }
+      }
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T07:55:45.454Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 10,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "tenants",
+    "model_name": "CustomRole",
+    "object_id": "1",
+    "object_repr": "Project Manager",
+    "changes": {
+      "old": {
+        "crm": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "invoicing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "accounting": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "hr": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": true,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "projects": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": true,
+          "approve": false,
+          "assign": true,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "reports": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        }
+      },
+      "new": {
+        "crm": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "invoicing": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "accounting": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "hr": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": true,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "projects": {
+          "view": true,
+          "create": true,
+          "edit": true,
+          "delete": false,
+          "approve": false,
+          "assign": true,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        },
+        "reports": {
+          "view": false,
+          "create": false,
+          "edit": false,
+          "delete": false,
+          "approve": false,
+          "assign": false,
+          "post": false,
+          "record_payment": false,
+          "convert": false
+        }
+      }
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T07:56:26.306Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 11,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk_upload",
+    "object_repr": "Imported 2 leads via file test_leads.csv",
+    "changes": {
+      "imported_count": 2,
+      "assignment_mode": "self"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T09:57:28.093Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 12,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk_upload",
+    "object_repr": "Imported 2 leads via file round_robin.csv",
+    "changes": {
+      "imported_count": 2,
+      "assignment_mode": "round_robin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T09:58:11.501Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 13,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk assign 3 leads",
+    "changes": {
+      "lead_ids": [
+        12,
+        11,
+        10
+      ],
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T09:59:35.140Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 14,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk update 3 leads status to QUALIFIED",
+    "changes": {
+      "lead_ids": [
+        12,
+        11,
+        10
+      ],
+      "status": "QUALIFIED"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T09:59:35.143Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 15,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk update 3 leads priority to URGENT",
+    "changes": {
+      "lead_ids": [
+        12,
+        11,
+        10
+      ],
+      "priority": "URGENT"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T09:59:35.145Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 16,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "5",
+    "object_repr": "LD-10005 - Malabar Spices & Agro Export (Siddharth Menon)",
+    "changes": {
+      "company_name": "Malabar Spices & Agro Export",
+      "contact_person": "Siddharth Menon",
+      "phone": "+91 9745566778",
+      "estimated_value": "420000.00",
+      "priority": "HIGH",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:15:01.382Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 17,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "john_developer"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "5",
+    "object_repr": "LD-10005 - Follow-up via Phone Call (Malabar Spices & Agro Export)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Introduced Byteboot Business OS for export tracking.",
+      "outcome": "High interest shown by client",
+      "next_action": "Schedule demo presentation",
+      "status": "FOLLOW_UP"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:15:01.383Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 18,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "4",
+    "object_repr": "LD-10004 - Follow-up via Phone Call (Travancore Healthcare Group)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "test",
+      "outcome": "",
+      "next_action": "",
+      "next_followup_date": "2026-10-13 11:11:00+05:30",
+      "status": "FOLLOW_UP"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:20:12.609Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 19,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Zenith Logistics Hub",
+    "changes": {
+      "status": "NEW",
+      "priority": "HIGH",
+      "estimated_value": "540000.00",
+      "assigned_to": "Unassigned"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:20:43.429Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 20,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Follow-up via Phone Call (Zenith Logistics Hub)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "test",
+      "outcome": "",
+      "next_action": "",
+      "next_followup_date": "2026-02-10 11:11:00+05:30",
+      "status": "CONTACTED"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:21:19.728Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 21,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "12",
+    "object_repr": "LD-10012 - Quantum Cloud (Suresh Kumar)",
+    "changes": {
+      "company_name": "Quantum Cloud",
+      "contact_person": "Suresh Kumar",
+      "phone": "+91 9112233445",
+      "service_interested": "Cloud Migration",
+      "estimated_value": "300000.00",
+      "priority": "URGENT",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.667Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 22,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "11",
+    "object_repr": "LD-10011 - Starlight Media (Vikram Raj)",
+    "changes": {
+      "company_name": "Starlight Media",
+      "contact_person": "Vikram Raj",
+      "phone": "+91 9988776655",
+      "service_interested": "Mobile App Development",
+      "estimated_value": "120000.00",
+      "priority": "URGENT",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.670Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 23,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "10",
+    "object_repr": "LD-10010 - Green Valley Exports (Ananya Nair)",
+    "changes": {
+      "company_name": "Green Valley Exports",
+      "contact_person": "Ananya Nair",
+      "phone": "+91 9845612345",
+      "service_interested": "Mobile App Development",
+      "estimated_value": "180000.00",
+      "priority": "URGENT",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.672Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 24,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "9",
+    "object_repr": "LD-10009 - Apex Digital Media (Rahul Sharma)",
+    "changes": {
+      "company_name": "Apex Digital Media",
+      "contact_person": "Rahul Sharma",
+      "phone": "+91 9876543210",
+      "service_interested": "Custom ERP & Cloud Solution",
+      "estimated_value": "250000.00",
+      "priority": "HIGH",
+      "status": "NEW",
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.674Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 25,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Zenith Logistics Hub (Faisal Rahman)",
+    "changes": {
+      "company_name": "Zenith Logistics Hub",
+      "contact_person": "Faisal Rahman",
+      "phone": "+91 9895123987",
+      "service_interested": "Fleet & Dispatch Management ERP",
+      "estimated_value": "540000.00",
+      "priority": "HIGH",
+      "status": "NEW",
+      "assigned_to": "Unassigned"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.676Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 26,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "7",
+    "object_repr": "LD-10007 - Highland Hospitality Resorts (Deepak Nambiar)",
+    "changes": {
+      "company_name": "Highland Hospitality Resorts",
+      "contact_person": "Deepak Nambiar",
+      "phone": "+91 9995544332",
+      "service_interested": "Booking Engine & Guest Billing Portal",
+      "estimated_value": "320000.00",
+      "priority": "MEDIUM",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.679Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 27,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "john_developer"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "7",
+    "object_repr": "LD-10007 - Follow-up via Email (Highland Hospitality Resorts)",
+    "changes": {
+      "method": "EMAIL",
+      "summary": "Emailed formal proposal and quote for guest billing portal.",
+      "outcome": "Proposal under review",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "PROPOSAL_SENT"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.680Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 28,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "6",
+    "object_repr": "LD-10006 - CyberPark Tech Solutions (Rohit Kulkarni)",
+    "changes": {
+      "company_name": "CyberPark Tech Solutions",
+      "contact_person": "Rohit Kulkarni",
+      "phone": "+91 9123456780",
+      "service_interested": "Multi-Tenant SaaS Architecture",
+      "estimated_value": "950000.00",
+      "priority": "URGENT",
+      "status": "NEW",
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.682Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 29,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "6",
+    "object_repr": "LD-10006 - Follow-up via In-Person Meeting (CyberPark Tech Solutions)",
+    "changes": {
+      "method": "MEETING",
+      "summary": "In-person meeting at Kakkanad Infopark office. Discussed timeline, scope, and resource dedication.",
+      "outcome": "Draft proposal required",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "QUALIFIED"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.683Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 30,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "4",
+    "object_repr": "LD-10004 - Travancore Healthcare Group (Dr. Meera Pillai)",
+    "changes": {
+      "company_name": "Travancore Healthcare Group",
+      "contact_person": "Dr. Meera Pillai",
+      "phone": "+91 9846011223",
+      "service_interested": "Hospital Management Billing & Invoicing OS",
+      "estimated_value": "850000.00",
+      "priority": "HIGH",
+      "status": "NEW",
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.686Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 31,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "3",
+    "object_repr": "LD-10003 - Kochi Marine Technologies (Capt. Rajesh Varma)",
+    "changes": {
+      "company_name": "Kochi Marine Technologies",
+      "contact_person": "Capt. Rajesh Varma",
+      "phone": "+91 9447123456",
+      "service_interested": "Custom ERP & Vessel Logistics Portal",
+      "estimated_value": "650000.00",
+      "priority": "URGENT",
+      "status": "NEW",
+      "assigned_to": "john_developer"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.688Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 32,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "john_developer"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "3",
+    "object_repr": "LD-10003 - Follow-up via WhatsApp Message (Kochi Marine Technologies)",
+    "changes": {
+      "method": "WHATSAPP",
+      "summary": "Sent product deck over WhatsApp. Client confirmed receipt and requested schedule for management revi",
+      "outcome": "Awaiting meeting",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "FOLLOW_UP"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.690Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 33,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "john_developer"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "3",
+    "object_repr": "LD-10003 - Follow-up via Phone Call (Kochi Marine Technologies)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Initial discovery call with Capt. Varma. Shared company credentials and preliminary software archite",
+      "outcome": "Requested formal demo",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "FOLLOW_UP"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.691Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 34,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "2",
+    "object_repr": "LD-10002 - Excel erthings (Jijo)",
+    "changes": {
+      "company_name": "Excel erthings",
+      "contact_person": "Jijo",
+      "phone": "9141109785",
+      "service_interested": "Software Development ERP",
+      "estimated_value": "6000.00",
+      "priority": "MEDIUM",
+      "status": "NEW",
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.692Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 35,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "2",
+    "object_repr": "LD-10002 - Follow-up via Email (Excel erthings)",
+    "changes": {
+      "method": "EMAIL",
+      "summary": "Contaced on vew ",
+      "outcome": "",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "WON"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.694Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 36,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "2",
+    "object_repr": "LD-10002 - Follow-up via Phone Call (Excel erthings)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Follow up on next december",
+      "outcome": "",
+      "next_action": "",
+      "next_followup_date": null,
+      "status": "WON"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.695Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 37,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "1",
+    "object_repr": "LD-10001 - Policybazar Investments (Pramod Gopinath)",
+    "changes": {
+      "company_name": "Policybazar Investments",
+      "contact_person": "Pramod Gopinath",
+      "phone": "+91 9526377110",
+      "service_interested": "Enterprise Business OS ERP & Mobile App",
+      "estimated_value": "450000.00",
+      "priority": "MEDIUM",
+      "status": "NEW",
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:23:24.697Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 38,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Zenith Logistics Hub (Faisal Rahman)",
+    "changes": {
+      "reassigned_from": "Unassigned",
+      "reassigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:26:30.780Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 39,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Follow-up via Phone Call (Zenith Logistics Hub)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Spoke with Faisal Rahman regarding fleet logistics module rollout.",
+      "outcome": "Requested revised proposal",
+      "next_action": "Send pricing sheet",
+      "next_followup_date": "2026-10-13 10:00:00+05:30",
+      "status": "FOLLOW_UP"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:28:11.350Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 40,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "8",
+    "object_repr": "LD-10008 - Follow-up via Phone Call (Zenith Logistics Hub)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Confirmed tomorrow 2:30 PM call.",
+      "outcome": "",
+      "next_action": "",
+      "next_followup_date": "2026-10-13 14:30:00+05:30",
+      "status": "QUALIFIED"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:28:22.914Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 41,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "LeadFollowup",
+    "object_id": "5",
+    "object_repr": "LD-10005 - Follow-up via Phone Call (Malabar Spices & Agro Export)",
+    "changes": {
+      "method": "PHONE",
+      "summary": "Test",
+      "outcome": "No lead",
+      "next_action": "Nothing",
+      "next_followup_date": null,
+      "status": "LOST"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T10:28:50.463Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 42,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "DELETE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk deleted 1 leads",
+    "changes": {
+      "lead_ids": [
+        11
+      ]
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T11:09:43.604Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 43,
+  "fields": {
+    "company": 2,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk_upload",
+    "object_repr": "Imported 3 leads via file test_leads.xlsx",
+    "changes": {
+      "imported_count": 3,
+      "assignment_mode": "self"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T11:44:30.267Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 44,
+  "fields": {
+    "company": 2,
+    "actor": [
+      "admin"
+    ],
+    "action": "CREATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk_upload",
+    "object_repr": "Imported 0 leads via file bad_leads.xlsx",
+    "changes": {
+      "imported_count": 0,
+      "assignment_mode": "self"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-12T11:44:30.274Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 45,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk assign 8 leads",
+    "changes": {
+      "lead_ids": [
+        9,
+        7,
+        10,
+        8,
+        4,
+        6,
+        3,
+        12
+      ],
+      "assigned_to": "anjali"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-13T03:43:58.019Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 46,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk assign 8 leads",
+    "changes": {
+      "lead_ids": [
+        9,
+        7,
+        10,
+        8,
+        4,
+        6,
+        3,
+        12
+      ],
+      "assigned_to": "admin"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-13T03:44:23.604Z"
+  }
+},
+{
+  "model": "tenants.auditevent",
+  "pk": 47,
+  "fields": {
+    "company": 1,
+    "actor": [
+      "admin"
+    ],
+    "action": "UPDATE",
+    "module": "crm",
+    "model_name": "Lead",
+    "object_id": "bulk",
+    "object_repr": "Bulk assign 3 leads",
+    "changes": {
+      "lead_ids": [
+        9,
+        7,
+        10
+      ],
+      "assigned_to": "anjali"
+    },
+    "ip_address": null,
+    "timestamp": "2026-10-13T03:50:04.970Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10001",
+    "company_name": "Policybazar Investments",
+    "contact_person": "Pramod Gopinath",
+    "phone": "+91 9526377110",
+    "email": "pramod@policybazar.com",
+    "address": "MG Road, Kochi",
+    "source": "Website",
+    "industry": "",
+    "service_interested": "Enterprise Business OS ERP & Mobile App",
+    "estimated_value": "450000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "MEDIUM",
+    "status": "WON",
+    "pipeline_stage": "Won",
+    "conversion_probability": 100,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": null,
+    "last_followup_date": null,
+    "created_at": "2026-10-09T14:04:03.802Z",
+    "updated_at": "2026-10-09T14:04:03.805Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10002",
+    "company_name": "Excel erthings",
+    "contact_person": "Jijo",
+    "phone": "9141109785",
+    "email": "pramod.g@byteboot.in",
+    "address": "Test",
+    "source": "Referral",
+    "industry": "",
+    "service_interested": "Software Development ERP",
+    "estimated_value": "6000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "MEDIUM",
+    "status": "WON",
+    "pipeline_stage": "Won",
+    "conversion_probability": 100,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": null,
+    "last_followup_date": null,
+    "created_at": "2026-10-09T14:51:06.394Z",
+    "updated_at": "2026-10-09T15:30:19.869Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10003",
+    "company_name": "Kochi Marine Technologies",
+    "contact_person": "Capt. Rajesh Varma",
+    "phone": "+91 9447123456",
+    "email": "rajesh@kochimarine.com",
+    "address": "",
+    "source": "Website",
+    "industry": "",
+    "service_interested": "Custom ERP & Vessel Logistics Portal",
+    "estimated_value": "650000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "URGENT",
+    "status": "FOLLOW_UP",
+    "pipeline_stage": "FOLLOW_UP",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-10T09:00:00Z",
+    "last_followup_date": "2026-10-10T09:00:00Z",
+    "created_at": "2026-10-12T09:50:50.735Z",
+    "updated_at": "2026-10-12T09:50:50.735Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10004",
+    "company_name": "Travancore Healthcare Group",
+    "contact_person": "Dr. Meera Pillai",
+    "phone": "+91 9846011223",
+    "email": "meera.pillai@travancorehealth.org",
+    "address": "",
+    "source": "Referral",
+    "industry": "",
+    "service_interested": "Hospital Management Billing & Invoicing OS",
+    "estimated_value": "850000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "HIGH",
+    "status": "FOLLOW_UP",
+    "pipeline_stage": "Follow-up Required",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-13T05:41:00Z",
+    "last_followup_date": "2026-10-12T10:20:12.607Z",
+    "created_at": "2026-10-12T09:50:50.737Z",
+    "updated_at": "2026-10-12T10:20:12.608Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 5,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10005",
+    "company_name": "Malabar Spices & Agro Export",
+    "contact_person": "Siddharth Menon",
+    "phone": "+91 9745566778",
+    "email": "siddharth@malabarspice.in",
+    "address": "",
+    "source": "Cold Call",
+    "industry": "",
+    "service_interested": "Inventory Tracking & Export Billing OS",
+    "estimated_value": "420000.00",
+    "assigned_to": [
+      "john_developer"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "HIGH",
+    "status": "LOST",
+    "pipeline_stage": "Lost",
+    "conversion_probability": 0,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-12T10:00:00Z",
+    "last_followup_date": "2026-10-12T10:28:50.460Z",
+    "created_at": "2026-10-12T09:50:50.739Z",
+    "updated_at": "2026-10-12T10:28:50.461Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 6,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10006",
+    "company_name": "CyberPark Tech Solutions",
+    "contact_person": "Rohit Kulkarni",
+    "phone": "+91 9123456780",
+    "email": "rohit@cyberparktech.com",
+    "address": "",
+    "source": "Website",
+    "industry": "",
+    "service_interested": "Multi-Tenant SaaS Architecture",
+    "estimated_value": "950000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "URGENT",
+    "status": "QUALIFIED",
+    "pipeline_stage": "QUALIFIED",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-12T11:30:00Z",
+    "last_followup_date": "2026-10-12T11:30:00Z",
+    "created_at": "2026-10-12T09:50:50.741Z",
+    "updated_at": "2026-10-12T09:50:50.741Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 7,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10007",
+    "company_name": "Highland Hospitality Resorts",
+    "contact_person": "Deepak Nambiar",
+    "phone": "+91 9995544332",
+    "email": "deepak@highlandresorts.com",
+    "address": "",
+    "source": "Social Media",
+    "industry": "",
+    "service_interested": "Booking Engine & Guest Billing Portal",
+    "estimated_value": "320000.00",
+    "assigned_to": [
+      "anjali"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "MEDIUM",
+    "status": "PROPOSAL_SENT",
+    "pipeline_stage": "PROPOSAL_SENT",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-14T04:30:00Z",
+    "last_followup_date": "2026-10-14T04:30:00Z",
+    "created_at": "2026-10-12T09:50:50.742Z",
+    "updated_at": "2026-10-12T09:50:50.742Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 8,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10008",
+    "company_name": "Zenith Logistics Hub",
+    "contact_person": "Faisal Rahman",
+    "phone": "+91 9895123987",
+    "email": "faisal@zenithlogistics.in",
+    "address": "",
+    "source": "Referral",
+    "industry": "",
+    "service_interested": "Fleet & Dispatch Management ERP",
+    "estimated_value": "540000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "HIGH",
+    "status": "QUALIFIED",
+    "pipeline_stage": "Qualified",
+    "conversion_probability": 60,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": "2026-10-13T09:00:00Z",
+    "last_followup_date": "2026-10-12T10:28:22.912Z",
+    "created_at": "2026-10-12T09:50:50.744Z",
+    "updated_at": "2026-10-12T10:28:22.913Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 9,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10009",
+    "company_name": "Apex Digital Media",
+    "contact_person": "Rahul Sharma",
+    "phone": "+91 9876543210",
+    "email": "rahul@apexdigital.in",
+    "address": "MG Road, Kochi",
+    "source": "Website",
+    "industry": "",
+    "service_interested": "Custom ERP & Cloud Solution",
+    "estimated_value": "250000.00",
+    "assigned_to": [
+      "anjali"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "HIGH",
+    "status": "NEW",
+    "pipeline_stage": "New",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "Looking for customized business automation",
+    "next_followup_date": "2026-10-14T05:30:00Z",
+    "last_followup_date": null,
+    "created_at": "2026-10-12T09:57:28.091Z",
+    "updated_at": "2026-10-12T09:57:28.091Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 10,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10010",
+    "company_name": "Green Valley Exports",
+    "contact_person": "Ananya Nair",
+    "phone": "+91 9845612345",
+    "email": "ananya@greenvalley.com",
+    "address": "Infopark Phase 2, Kochi",
+    "source": "Referral",
+    "industry": "",
+    "service_interested": "Mobile App Development",
+    "estimated_value": "180000.00",
+    "assigned_to": [
+      "anjali"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "URGENT",
+    "status": "QUALIFIED",
+    "pipeline_stage": "Qualified",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "Referred by policybazar client",
+    "next_followup_date": "2026-10-13T10:00:00Z",
+    "last_followup_date": null,
+    "created_at": "2026-10-12T09:57:28.092Z",
+    "updated_at": "2026-10-12T09:57:28.092Z"
+  }
+},
+{
+  "model": "crm.lead",
+  "pk": 12,
+  "fields": {
+    "company": 1,
+    "lead_number": "LD-10012",
+    "company_name": "Quantum Cloud",
+    "contact_person": "Suresh Kumar",
+    "phone": "+91 9112233445",
+    "email": "suresh@quantum.in",
+    "address": "",
+    "source": "Website",
+    "industry": "",
+    "service_interested": "Cloud Migration",
+    "estimated_value": "300000.00",
+    "assigned_to": [
+      "admin"
+    ],
+    "created_by": [
+      "admin"
+    ],
+    "priority": "URGENT",
+    "status": "QUALIFIED",
+    "pipeline_stage": "Qualified",
+    "conversion_probability": 20,
+    "lost_reason": "",
+    "notes": "",
+    "next_followup_date": null,
+    "last_followup_date": null,
+    "created_at": "2026-10-12T09:58:11.501Z",
+    "updated_at": "2026-10-12T09:58:11.501Z"
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 1,
+  "fields": {
+    "lead": 2,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-09T14:51:22.371Z",
+    "summary": "Follow up on next december",
+    "outcome": "",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 2,
+  "fields": {
+    "lead": 2,
+    "staff": [
+      "admin"
+    ],
+    "method": "EMAIL",
+    "interaction_time": "2026-10-09T14:51:53.835Z",
+    "summary": "Contaced on vew ",
+    "outcome": "",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 3,
+  "fields": {
+    "lead": 3,
+    "staff": [
+      "john_developer"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T09:50:50.736Z",
+    "summary": "Initial discovery call with Capt. Varma. Shared company credentials and preliminary software architecture.",
+    "outcome": "Requested formal demo",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 4,
+  "fields": {
+    "lead": 3,
+    "staff": [
+      "john_developer"
+    ],
+    "method": "WHATSAPP",
+    "interaction_time": "2026-10-12T09:50:50.736Z",
+    "summary": "Sent product deck over WhatsApp. Client confirmed receipt and requested schedule for management review.",
+    "outcome": "Awaiting meeting",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 5,
+  "fields": {
+    "lead": 4,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T09:50:50.738Z",
+    "summary": "Spoke with IT Director. Discussed GST compliance, ledger automation, and multi-branch rollouts.",
+    "outcome": "Follow-up requested on Monday",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 6,
+  "fields": {
+    "lead": 5,
+    "staff": [
+      "john_developer"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T09:50:50.740Z",
+    "summary": "Introduced Byteboot Business OS for export tracking. Scheduled call for today at 3:30 PM.",
+    "outcome": "High interest",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 7,
+  "fields": {
+    "lead": 6,
+    "staff": [
+      "admin"
+    ],
+    "method": "MEETING",
+    "interaction_time": "2026-10-12T09:50:50.741Z",
+    "summary": "In-person meeting at Kakkanad Infopark office. Discussed timeline, scope, and resource dedication.",
+    "outcome": "Draft proposal required",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 8,
+  "fields": {
+    "lead": 7,
+    "staff": [
+      "john_developer"
+    ],
+    "method": "EMAIL",
+    "interaction_time": "2026-10-12T09:50:50.743Z",
+    "summary": "Emailed formal proposal and quote for guest billing portal.",
+    "outcome": "Proposal under review",
+    "next_action": "",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 9,
+  "fields": {
+    "lead": 4,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T10:20:12.607Z",
+    "summary": "test",
+    "outcome": "",
+    "next_action": "",
+    "next_followup_date": "2026-10-13T05:41:00Z"
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 10,
+  "fields": {
+    "lead": 8,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T10:21:19.726Z",
+    "summary": "test",
+    "outcome": "",
+    "next_action": "",
+    "next_followup_date": "2026-02-10T05:41:00Z"
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 11,
+  "fields": {
+    "lead": 8,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T10:28:11.349Z",
+    "summary": "Spoke with Faisal Rahman regarding fleet logistics module rollout.",
+    "outcome": "Requested revised proposal",
+    "next_action": "Send pricing sheet",
+    "next_followup_date": "2026-10-13T04:30:00Z"
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 12,
+  "fields": {
+    "lead": 8,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T10:28:22.912Z",
+    "summary": "Confirmed tomorrow 2:30 PM call.",
+    "outcome": "",
+    "next_action": "",
+    "next_followup_date": "2026-10-13T09:00:00Z"
+  }
+},
+{
+  "model": "crm.leadfollowup",
+  "pk": 13,
+  "fields": {
+    "lead": 5,
+    "staff": [
+      "admin"
+    ],
+    "method": "PHONE",
+    "interaction_time": "2026-10-12T10:28:50.460Z",
+    "summary": "Test",
+    "outcome": "No lead",
+    "next_action": "Nothing",
+    "next_followup_date": null
+  }
+},
+{
+  "model": "crm.customer",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "customer_code": "CUST-1001",
+    "name": "Policybazar Investments",
+    "company_name": "Policybazar Investments",
+    "email": "pramod@policybazar.com",
+    "phone": "+91 9526377110",
+    "billing_address": "MG Road, Kochi",
+    "city": "Kochi",
+    "state": "Kerala",
+    "country": "India",
+    "pincode": "",
+    "gstin": "",
+    "place_of_supply": "",
+    "credit_limit": "0.00",
+    "payment_terms_days": 30,
+    "tax_exempt": false,
+    "lead_reference": 1,
+    "created_at": "2026-10-09T14:04:03.805Z",
+    "updated_at": "2026-10-09T14:04:03.805Z"
+  }
+},
+{
+  "model": "crm.customer",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "customer_code": "CUST-1002",
+    "name": "Excel erthings",
+    "company_name": "Excel erthings",
+    "email": "pramod.g@byteboot.in",
+    "phone": "9141109785",
+    "billing_address": "Test",
+    "city": "Kochi",
+    "state": "Kerala",
+    "country": "India",
+    "pincode": "",
+    "gstin": "",
+    "place_of_supply": "",
+    "credit_limit": "0.00",
+    "payment_terms_days": 30,
+    "tax_exempt": false,
+    "lead_reference": 2,
+    "created_at": "2026-10-09T15:30:19.867Z",
+    "updated_at": "2026-10-09T15:30:19.867Z"
+  }
+},
+{
+  "model": "crm.customercontact",
+  "pk": 1,
+  "fields": {
+    "customer": 1,
+    "name": "Pramod Gopinath",
+    "email": "pramod@policybazar.com",
+    "phone": "+91 9526377110",
+    "designation": "Primary Contact",
+    "is_primary": true
+  }
+},
+{
+  "model": "crm.customercontact",
+  "pk": 2,
+  "fields": {
+    "customer": 2,
+    "name": "Jijo",
+    "email": "pramod.g@byteboot.in",
+    "phone": "9141109785",
+    "designation": "Primary Contact",
+    "is_primary": true
+  }
+},
+{
+  "model": "invoicing.invoice",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "invoice_number": "INV-1001",
+    "customer": 1,
+    "invoice_type": "TAX",
+    "date": "2026-10-09",
+    "due_date": "2026-10-09",
+    "place_of_supply": "Kerala",
+    "is_interstate": false,
+    "subtotal": "200000.00",
+    "cgst_total": "18000.00",
+    "sgst_total": "18000.00",
+    "igst_total": "0.00",
+    "rounding_adjustment": "0.00",
+    "grand_total": "236000.00",
+    "paid_amount": "236000.00",
+    "balance_due": "0.00",
+    "status": "PAID",
+    "notes": "Thank you for choosing Byteboot Techno Solutions.",
+    "payment_terms": "",
+    "bank_details": "",
+    "posted_journal": 1,
+    "approved_by": [
+      "admin"
+    ],
+    "project_id_ref": "",
+    "quotation_id_ref": "",
+    "created_at": "2026-10-09T14:04:03.807Z",
+    "updated_at": "2026-10-09T14:04:03.830Z"
+  }
+},
+{
+  "model": "invoicing.invoice",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "invoice_number": "INV-1002",
+    "customer": 1,
+    "invoice_type": "TAX",
+    "date": "2026-10-09",
+    "due_date": "2006-10-10",
+    "place_of_supply": "Kerala",
+    "is_interstate": false,
+    "subtotal": "150000.00",
+    "cgst_total": "13500.00",
+    "sgst_total": "13500.00",
+    "igst_total": "0.00",
+    "rounding_adjustment": "0.00",
+    "grand_total": "177000.00",
+    "paid_amount": "100000.00",
+    "balance_due": "77000.00",
+    "status": "PARTIALLY_PAID",
+    "notes": "Thank you for your business! Please remit payment via bank transfer.",
+    "payment_terms": "Payment due within 30 days.",
+    "bank_details": "Bank: HDFC Bank | A/C: 50200012345678 | IFSC: HDFC0001234",
+    "posted_journal": 3,
+    "approved_by": [
+      "admin"
+    ],
+    "project_id_ref": "",
+    "quotation_id_ref": "",
+    "created_at": "2026-10-09T14:40:08.359Z",
+    "updated_at": "2026-10-09T14:40:29.676Z"
+  }
+},
+{
+  "model": "invoicing.invoiceline",
+  "pk": 1,
+  "fields": {
+    "invoice": 1,
+    "description": "Byteboot Business OS Core SaaS Platform License & Deployment",
+    "hsn_sac_code": "998314",
+    "quantity": "1.00",
+    "rate": "200000.00",
+    "discount_amount": "0.00",
+    "taxable_amount": "200000.00",
+    "cgst_rate": "9.00",
+    "sgst_rate": "9.00",
+    "igst_rate": "18.00",
+    "cgst_amount": "18000.00",
+    "sgst_amount": "18000.00",
+    "igst_amount": "0.00",
+    "total_amount": "236000.00"
+  }
+},
+{
+  "model": "invoicing.invoiceline",
+  "pk": 2,
+  "fields": {
+    "invoice": 2,
+    "description": "Byteboot ERP Software Development Services",
+    "hsn_sac_code": "998314",
+    "quantity": "1.00",
+    "rate": "150000.00",
+    "discount_amount": "0.00",
+    "taxable_amount": "150000.00",
+    "cgst_rate": "9.00",
+    "sgst_rate": "9.00",
+    "igst_rate": "18.00",
+    "cgst_amount": "13500.00",
+    "sgst_amount": "13500.00",
+    "igst_amount": "0.00",
+    "total_amount": "177000.00"
+  }
+},
+{
+  "model": "invoicing.customerpayment",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "payment_number": "PAY-1001",
+    "customer": 1,
+    "payment_date": "2026-10-09",
+    "amount": "236000.00",
+    "payment_method": "BANK_TRANSFER",
+    "reference_number": "UTR9988776655",
+    "unallocated_amount": "0.00",
+    "status": "POSTED",
+    "posted_journal": 2,
+    "notes": "",
+    "created_at": "2026-10-09T14:04:03.831Z"
+  }
+},
+{
+  "model": "invoicing.customerpayment",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "payment_number": "PAY-1002",
+    "customer": 2,
+    "payment_date": "2026-10-10",
+    "amount": "100000.00",
+    "payment_method": "BANK_TRANSFER",
+    "reference_number": "UTISER",
+    "unallocated_amount": "0.00",
+    "status": "POSTED",
+    "posted_journal": 4,
+    "notes": "",
+    "created_at": "2026-10-10T05:39:20.646Z"
+  }
+},
+{
+  "model": "invoicing.paymentallocation",
+  "pk": 1,
+  "fields": {
+    "payment": 1,
+    "invoice": 1,
+    "allocated_amount": "236000.00",
+    "allocated_at": "2026-10-09T14:04:03.844Z"
+  }
+},
+{
+  "model": "invoicing.paymentallocation",
+  "pk": 2,
+  "fields": {
+    "payment": 2,
+    "invoice": 2,
+    "allocated_amount": "100000.00",
+    "allocated_at": "2026-10-10T05:39:20.670Z"
+  }
+},
+{
+  "model": "invoicing.paymentreceipt",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "receipt_number": "RCT-1001",
+    "payment": 1,
+    "customer": 1,
+    "receipt_date": "2026-10-09",
+    "amount": "236000.00",
+    "created_at": "2026-10-09T14:04:03.843Z"
+  }
+},
+{
+  "model": "invoicing.paymentreceipt",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "receipt_number": "RCT-1002",
+    "payment": 2,
+    "customer": 2,
+    "receipt_date": "2026-10-10",
+    "amount": "100000.00",
+    "created_at": "2026-10-10T05:39:20.669Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "code": "1010",
+    "name": "AXIS Bank Accoount",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.771Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "code": "1020",
+    "name": "Petty Cash Account",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.772Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "code": "1200",
+    "name": "Accounts Receivable (Customers)",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.773Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "code": "1500",
+    "name": "IT & Office Equipment (Fixed Asset)",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.774Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 5,
+  "fields": {
+    "company": 1,
+    "code": "2010",
+    "name": "Accounts Payable (Vendors)",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.775Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 6,
+  "fields": {
+    "company": 1,
+    "code": "2110",
+    "name": "CGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.776Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 7,
+  "fields": {
+    "company": 1,
+    "code": "2120",
+    "name": "SGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.777Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 8,
+  "fields": {
+    "company": 1,
+    "code": "2130",
+    "name": "IGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.777Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 9,
+  "fields": {
+    "company": 1,
+    "code": "2200",
+    "name": "Salaries & Wages Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.778Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 10,
+  "fields": {
+    "company": 1,
+    "code": "3010",
+    "name": "Owner Equity / Share Capital",
+    "account_type": "EQUITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.779Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 11,
+  "fields": {
+    "company": 1,
+    "code": "3020",
+    "name": "Retained Earnings",
+    "account_type": "EQUITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.780Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 12,
+  "fields": {
+    "company": 1,
+    "code": "4000",
+    "name": "Software Development & Consulting Sales",
+    "account_type": "INCOME",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.781Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 13,
+  "fields": {
+    "company": 1,
+    "code": "4100",
+    "name": "Other Operating Income",
+    "account_type": "INCOME",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.781Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 14,
+  "fields": {
+    "company": 1,
+    "code": "5010",
+    "name": "Employee Salaries & Allowances",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.782Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 15,
+  "fields": {
+    "company": 1,
+    "code": "5020",
+    "name": "Office Rent & Workspace Expense",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.783Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 16,
+  "fields": {
+    "company": 1,
+    "code": "5030",
+    "name": "Cloud Servers & Software Licenses",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.784Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 17,
+  "fields": {
+    "company": 1,
+    "code": "5040",
+    "name": "Depreciation Expense",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.785Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 18,
+  "fields": {
+    "company": 1,
+    "code": "5050",
+    "name": "Bad Debts Write-off",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.786Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 19,
+  "fields": {
+    "company": 2,
+    "code": "1010",
+    "name": "HDFC Main Bank Account",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.786Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 20,
+  "fields": {
+    "company": 2,
+    "code": "1020",
+    "name": "Petty Cash Account",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.787Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 21,
+  "fields": {
+    "company": 2,
+    "code": "1200",
+    "name": "Accounts Receivable (Customers)",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.788Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 22,
+  "fields": {
+    "company": 2,
+    "code": "1500",
+    "name": "IT & Office Equipment (Fixed Asset)",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.789Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 23,
+  "fields": {
+    "company": 2,
+    "code": "2010",
+    "name": "Accounts Payable (Vendors)",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.790Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 24,
+  "fields": {
+    "company": 2,
+    "code": "2110",
+    "name": "CGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.790Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 25,
+  "fields": {
+    "company": 2,
+    "code": "2120",
+    "name": "SGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.791Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 26,
+  "fields": {
+    "company": 2,
+    "code": "2130",
+    "name": "IGST Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.792Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 27,
+  "fields": {
+    "company": 2,
+    "code": "2200",
+    "name": "Salaries & Wages Payable",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.793Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 28,
+  "fields": {
+    "company": 2,
+    "code": "3010",
+    "name": "Owner Equity / Share Capital",
+    "account_type": "EQUITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.794Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 29,
+  "fields": {
+    "company": 2,
+    "code": "3020",
+    "name": "Retained Earnings",
+    "account_type": "EQUITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.794Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 30,
+  "fields": {
+    "company": 2,
+    "code": "4000",
+    "name": "Software Development & Consulting Sales",
+    "account_type": "INCOME",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.795Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 31,
+  "fields": {
+    "company": 2,
+    "code": "4100",
+    "name": "Other Operating Income",
+    "account_type": "INCOME",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.796Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 32,
+  "fields": {
+    "company": 2,
+    "code": "5010",
+    "name": "Employee Salaries & Allowances",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.797Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 33,
+  "fields": {
+    "company": 2,
+    "code": "5020",
+    "name": "Office Rent & Workspace Expense",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.798Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 34,
+  "fields": {
+    "company": 2,
+    "code": "5030",
+    "name": "Cloud Servers & Software Licenses",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.799Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 35,
+  "fields": {
+    "company": 2,
+    "code": "5040",
+    "name": "Depreciation Expense",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.800Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 36,
+  "fields": {
+    "company": 2,
+    "code": "5050",
+    "name": "Bad Debts Write-off",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-09T14:04:03.801Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 37,
+  "fields": {
+    "company": 1,
+    "code": "1100",
+    "name": "Undeposited Funds / Cash Clearing",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.821Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 38,
+  "fields": {
+    "company": 1,
+    "code": "1400",
+    "name": "Inventory & Hardware Stock",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.824Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 39,
+  "fields": {
+    "company": 1,
+    "code": "1550",
+    "name": "Accumulated Depreciation - Fixed Assets",
+    "account_type": "ASSET",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.826Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 40,
+  "fields": {
+    "company": 1,
+    "code": "2300",
+    "name": "TDS Payable / Statutory Dues",
+    "account_type": "LIABILITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.829Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 41,
+  "fields": {
+    "company": 1,
+    "code": "3030",
+    "name": "Owner Drawings / Capital Withdrawals",
+    "account_type": "EQUITY",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.831Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 42,
+  "fields": {
+    "company": 1,
+    "code": "4200",
+    "name": "Other Operating & Interest Income",
+    "account_type": "INCOME",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.834Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 43,
+  "fields": {
+    "company": 1,
+    "code": "5060",
+    "name": "Travel, Meals & Conveyance Expenses",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.837Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 44,
+  "fields": {
+    "company": 1,
+    "code": "5070",
+    "name": "Office Supplies, Internet & Utilities",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.838Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 45,
+  "fields": {
+    "company": 1,
+    "code": "5080",
+    "name": "Bank Charges & Gateway Processing Fees",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.839Z"
+  }
+},
+{
+  "model": "accounting.account",
+  "pk": 46,
+  "fields": {
+    "company": 1,
+    "code": "5090",
+    "name": "Depreciation & Amortization Expense",
+    "account_type": "EXPENSE",
+    "parent": null,
+    "description": "",
+    "opening_balance": "0.00",
+    "is_system": true,
+    "is_active": true,
+    "created_at": "2026-10-10T05:27:00.840Z"
+  }
+},
+{
+  "model": "accounting.journalentry",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "entry_number": "JE-INV-INV-1001",
+    "date": "2026-10-09",
+    "reference": "INV-1001",
+    "description": "Invoice #INV-1001 for Policybazar Investments",
+    "source_module": "INVOICE",
+    "source_id": "1",
+    "status": "POSTED",
+    "posted_at": "2026-10-09T14:04:03.829Z",
+    "posted_by": [
+      "admin"
+    ],
+    "reversal_of": null,
+    "created_at": "2026-10-09T14:04:03.818Z",
+    "updated_at": "2026-10-09T14:04:03.829Z"
+  }
+},
+{
+  "model": "accounting.journalentry",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "entry_number": "JE-PAY-PAY-1001",
+    "date": "2026-10-09",
+    "reference": "UTR9988776655",
+    "description": "Customer Payment #PAY-1001 from Policybazar Investments",
+    "source_module": "PAYMENT",
+    "source_id": "1",
+    "status": "POSTED",
+    "posted_at": "2026-10-09T14:04:03.842Z",
+    "posted_by": [
+      "admin"
+    ],
+    "reversal_of": null,
+    "created_at": "2026-10-09T14:04:03.840Z",
+    "updated_at": "2026-10-09T14:04:03.842Z"
+  }
+},
+{
+  "model": "accounting.journalentry",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "entry_number": "JE-INV-INV-1002",
+    "date": "2026-10-09",
+    "reference": "INV-1002",
+    "description": "Invoice #INV-1002 for Policybazar Investments",
+    "source_module": "INVOICE",
+    "source_id": "2",
+    "status": "POSTED",
+    "posted_at": "2026-10-09T14:40:29.674Z",
+    "posted_by": [
+      "admin"
+    ],
+    "reversal_of": null,
+    "created_at": "2026-10-09T14:40:29.661Z",
+    "updated_at": "2026-10-09T14:40:29.675Z"
+  }
+},
+{
+  "model": "accounting.journalentry",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "entry_number": "JE-PAY-PAY-1002",
+    "date": "2026-10-10",
+    "reference": "UTISER",
+    "description": "Customer Payment #PAY-1002 from Excel erthings",
+    "source_module": "PAYMENT",
+    "source_id": "2",
+    "status": "POSTED",
+    "posted_at": "2026-10-10T05:39:20.668Z",
+    "posted_by": [
+      "admin"
+    ],
+    "reversal_of": null,
+    "created_at": "2026-10-10T05:39:20.665Z",
+    "updated_at": "2026-10-10T05:39:20.668Z"
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 1,
+  "fields": {
+    "journal": 1,
+    "account": 3,
+    "description": "AR - Policybazar Investments",
+    "debit": "236000.00",
+    "credit": "0.00",
+    "party_type": "Customer",
+    "party_id": "1"
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 2,
+  "fields": {
+    "journal": 1,
+    "account": 12,
+    "description": "Sales Revenue - Invoice #INV-1001",
+    "debit": "0.00",
+    "credit": "200000.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 3,
+  "fields": {
+    "journal": 1,
+    "account": 6,
+    "description": "CGST Tax Collected",
+    "debit": "0.00",
+    "credit": "18000.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 4,
+  "fields": {
+    "journal": 1,
+    "account": 7,
+    "description": "SGST Tax Collected",
+    "debit": "0.00",
+    "credit": "18000.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 5,
+  "fields": {
+    "journal": 2,
+    "account": 1,
+    "description": "Received via Bank Transfer / NEFT / RTGS",
+    "debit": "236000.00",
+    "credit": "0.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 6,
+  "fields": {
+    "journal": 2,
+    "account": 3,
+    "description": "AR Cleared - Policybazar Investments",
+    "debit": "0.00",
+    "credit": "236000.00",
+    "party_type": "Customer",
+    "party_id": "1"
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 7,
+  "fields": {
+    "journal": 3,
+    "account": 3,
+    "description": "AR - Policybazar Investments",
+    "debit": "177000.00",
+    "credit": "0.00",
+    "party_type": "Customer",
+    "party_id": "1"
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 8,
+  "fields": {
+    "journal": 3,
+    "account": 12,
+    "description": "Sales Revenue - Invoice #INV-1002",
+    "debit": "0.00",
+    "credit": "150000.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 9,
+  "fields": {
+    "journal": 3,
+    "account": 6,
+    "description": "CGST Tax Collected",
+    "debit": "0.00",
+    "credit": "13500.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 10,
+  "fields": {
+    "journal": 3,
+    "account": 7,
+    "description": "SGST Tax Collected",
+    "debit": "0.00",
+    "credit": "13500.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 11,
+  "fields": {
+    "journal": 4,
+    "account": 1,
+    "description": "Received via Bank Transfer / NEFT / RTGS",
+    "debit": "100000.00",
+    "credit": "0.00",
+    "party_type": "",
+    "party_id": ""
+  }
+},
+{
+  "model": "accounting.journalline",
+  "pk": 12,
+  "fields": {
+    "journal": 4,
+    "account": 3,
+    "description": "AR Cleared - Excel erthings",
+    "debit": "0.00",
+    "credit": "100000.00",
+    "party_type": "Customer",
+    "party_id": "2"
+  }
+},
+{
+  "model": "hr.employee",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "employee_id": "EMP-101",
+    "user": [
+      "john_developer"
+    ],
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@byteboot.tech",
+    "phone": "+91 9876543210",
+    "department": "Engineering",
+    "designation": "Senior Full Stack Architect",
+    "reporting_manager": null,
+    "joining_date": "2026-10-09",
+    "status": "ACTIVE",
+    "basic_salary": "60000.00",
+    "hra": "24000.00",
+    "allowance": "6000.00",
+    "other_deductions": "0.00",
+    "bank_name": "",
+    "account_number": "",
+    "ifsc_code": "",
+    "created_at": "2026-10-09T14:04:03.846Z"
+  }
+},
+{
+  "model": "hr.employee",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "employee_id": "EMP-102",
+    "user": [
+      "efron"
+    ],
+    "first_name": "Efron",
+    "last_name": "Antony",
+    "email": "antony@byteboot.in",
+    "phone": "9141109783",
+    "department": "Engineering",
+    "designation": "Senior Full Stack Engineer",
+    "reporting_manager": null,
+    "joining_date": "2024-12-01",
+    "status": "ACTIVE",
+    "basic_salary": "10000.00",
+    "hra": "10000.00",
+    "allowance": "7000.00",
+    "other_deductions": "0.00",
+    "bank_name": "HDFC Bank",
+    "account_number": "502000000123",
+    "ifsc_code": "",
+    "created_at": "2026-10-09T14:50:07.320Z"
+  }
+},
+{
+  "model": "hr.employee",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "employee_id": "EMP-103",
+    "user": [
+      "anjali"
+    ],
+    "first_name": "Anjali",
+    "last_name": "MS",
+    "email": "anjali@gmail.com",
+    "phone": "+918075119654",
+    "department": "Admin",
+    "designation": "Administrative Executive",
+    "reporting_manager": null,
+    "joining_date": "2025-03-01",
+    "status": "ACTIVE",
+    "basic_salary": "6000.00",
+    "hra": "6000.00",
+    "allowance": "3000.00",
+    "other_deductions": "0.00",
+    "bank_name": "SBI",
+    "account_number": "502000000123",
+    "ifsc_code": "",
+    "created_at": "2026-10-13T03:42:31.316Z"
+  }
+},
+{
+  "model": "hr.leavetype",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "name": "Casual Leave",
+    "yearly_quota": 12
+  }
+},
+{
+  "model": "hr.leavetype",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "name": "Sick Leave",
+    "yearly_quota": 10
+  }
+},
+{
+  "model": "hr.leaverequest",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "employee": 2,
+    "leave_type": 2,
+    "start_date": "2026-10-13",
+    "end_date": "2026-10-14",
+    "duration_days": "1.0",
+    "reason": "personal",
+    "status": "APPROVED",
+    "approver": [
+      "admin"
+    ],
+    "approval_date": "2026-10-12T07:54:19.183Z",
+    "rejection_reason": "",
+    "created_at": "2026-10-12T07:53:05.935Z"
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "code": "PRJ-101",
+    "name": "Byteboot Business OS - Multi-Tenant ERP",
+    "customer": 1,
+    "description": "Enterprise Business OS for Byteboot Techno Solutions Pvt Ltd with double-entry accounting, CRM, HR, invoicing and team chat.",
+    "start_date": "2026-10-09",
+    "target_end_date": null,
+    "status": "IN_PROGRESS",
+    "priority": "MEDIUM",
+    "manager": [
+      "admin"
+    ],
+    "budget": "500000.00",
+    "estimated_hours": "300.00",
+    "created_at": "2026-10-09T14:04:03.848Z",
+    "updated_at": "2026-10-12T07:23:10.489Z"
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "code": "PRJ-102",
+    "name": "Kiosk Excel Project",
+    "customer": null,
+    "description": "Need to develop the cape work inside ",
+    "start_date": "2026-10-12",
+    "target_end_date": "2027-10-10",
+    "status": "IN_PROGRESS",
+    "priority": "MEDIUM",
+    "manager": [
+      "admin"
+    ],
+    "budget": "250000.00",
+    "estimated_hours": "200.00",
+    "created_at": "2026-10-09T15:12:51.202Z",
+    "updated_at": "2026-10-09T15:12:51.202Z"
+  }
+},
+{
+  "model": "projects.projectmember",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "user": [
+      "admin"
+    ],
+    "role": "MANAGER"
+  }
+},
+{
+  "model": "projects.projectmember",
+  "pk": 2,
+  "fields": {
+    "project": 1,
+    "user": [
+      "john_developer"
+    ],
+    "role": "MANAGER"
+  }
+},
+{
+  "model": "projects.projectmember",
+  "pk": 3,
+  "fields": {
+    "project": 2,
+    "user": [
+      "admin"
+    ],
+    "role": "MANAGER"
+  }
+},
+{
+  "model": "projects.projectmember",
+  "pk": 4,
+  "fields": {
+    "project": 1,
+    "user": [
+      "efron"
+    ],
+    "role": "MANAGER"
+  }
+},
+{
+  "model": "projects.task",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "project": 1,
+    "task_number": "TSK-501",
+    "title": "Double-Entry Accounting Engine & GST Tax Calculations",
+    "description": "Implement balanced debit/credit posting, CGST/SGST/IGST tax engine, and financial reports.",
+    "acceptance_criteria": "",
+    "assigned_to": [
+      "john_developer"
+    ],
+    "reporter": [
+      "admin"
+    ],
+    "parent_task": null,
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "estimated_hours": "16.00",
+    "start_date": null,
+    "due_date": null,
+    "completed_at": null,
+    "created_at": "2026-10-09T14:04:03.851Z",
+    "updated_at": "2026-10-12T09:02:53.512Z",
+    "assignees": []
+  }
+},
+{
+  "model": "projects.task",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "project": 1,
+    "task_number": "TSK-502",
+    "title": "Create New User pannel",
+    "description": "",
+    "acceptance_criteria": "",
+    "assigned_to": [
+      "admin"
+    ],
+    "reporter": [
+      "admin"
+    ],
+    "parent_task": null,
+    "status": "IN_REVIEW",
+    "priority": "HIGH",
+    "estimated_hours": "8.00",
+    "start_date": null,
+    "due_date": "0026-02-03",
+    "completed_at": null,
+    "created_at": "2026-10-09T15:10:56.738Z",
+    "updated_at": "2026-10-10T07:58:11.949Z",
+    "assignees": []
+  }
+},
+{
+  "model": "projects.task",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "project": 1,
+    "task_number": "TSK-503",
+    "title": "New Task Update",
+    "description": "Test",
+    "acceptance_criteria": "",
+    "assigned_to": [
+      "efron"
+    ],
+    "reporter": [
+      "admin"
+    ],
+    "parent_task": null,
+    "status": "TO_DO",
+    "priority": "MEDIUM",
+    "estimated_hours": "2.00",
+    "start_date": null,
+    "due_date": "2026-10-12",
+    "completed_at": null,
+    "created_at": "2026-10-12T08:27:09.085Z",
+    "updated_at": "2026-10-12T08:27:23.148Z",
+    "assignees": [
+      [
+        "efron"
+      ]
+    ]
+  }
+},
+{
+  "model": "projects.worklog",
+  "pk": 1,
+  "fields": {
+    "company": 1,
+    "task": 1,
+    "user": [
+      "john_developer"
+    ],
+    "work_date": "2026-10-09",
+    "hours_spent": "8.00",
+    "description": "Completed accounting engine and verified debit/credit balance tests.",
+    "is_billable": true,
+    "created_at": "2026-10-09T14:04:03.852Z"
+  }
+},
+{
+  "model": "projects.worklog",
+  "pk": 2,
+  "fields": {
+    "company": 1,
+    "task": 1,
+    "user": [
+      "admin"
+    ],
+    "work_date": "2026-10-09",
+    "hours_spent": "2.00",
+    "description": "The will be test",
+    "is_billable": true,
+    "created_at": "2026-10-09T14:45:08.191Z"
+  }
+},
+{
+  "model": "projects.worklog",
+  "pk": 3,
+  "fields": {
+    "company": 1,
+    "task": 1,
+    "user": [
+      "admin"
+    ],
+    "work_date": "2026-10-09",
+    "hours_spent": "2.00",
+    "description": "Meta date updated new value in the tak one \r\n",
+    "is_billable": true,
+    "created_at": "2026-10-09T14:45:46.752Z"
+  }
+},
+{
+  "model": "projects.worklog",
+  "pk": 4,
+  "fields": {
+    "company": 1,
+    "task": 2,
+    "user": [
+      "efron"
+    ],
+    "work_date": "2026-10-09",
+    "hours_spent": "2.00",
+    "description": "The pproject was atarted and controled \r\n",
+    "is_billable": true,
+    "created_at": "2026-10-09T15:40:06.457Z"
+  }
+},
+{
+  "model": "projects.worklog",
+  "pk": 5,
+  "fields": {
+    "company": 1,
+    "task": 2,
+    "user": [
+      "admin"
+    ],
+    "work_date": "2026-10-09",
+    "hours_spent": "2.00",
+    "description": "how ksfd",
+    "is_billable": true,
+    "created_at": "2026-10-09T15:43:14.400Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "admin"
+    ],
+    "message_text": "Hi team! The Tax Invoice INV-1001 for Policybazar Investments has been generated and posted to the General Ledger.",
+    "parent": null,
+    "related_entity_type": "INVOICE",
+    "related_entity_id": "INV-1001",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T14:04:03.853Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 2,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "john_developer"
+    ],
+    "message_text": "Great! Task TSK-501 for double-entry accounting engine is completed and fully verified with unit tests.",
+    "parent": null,
+    "related_entity_type": "TASK",
+    "related_entity_id": "TSK-501",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T14:04:03.854Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 3,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "admin"
+    ],
+    "message_text": "what is the status of task",
+    "parent": null,
+    "related_entity_type": "NONE",
+    "related_entity_id": "",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T15:11:28.058Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 4,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "efron"
+    ],
+    "message_text": "hai team",
+    "parent": null,
+    "related_entity_type": "NONE",
+    "related_entity_id": "",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T15:26:45.047Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 5,
+  "fields": {
+    "project": 2,
+    "sender": [
+      "admin"
+    ],
+    "message_text": "invoice posted ",
+    "parent": null,
+    "related_entity_type": "INVOICE",
+    "related_entity_id": "INV-10293",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T15:42:02.382Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 6,
+  "fields": {
+    "project": 2,
+    "sender": [
+      "efron"
+    ],
+    "message_text": "Task sheduled ",
+    "parent": null,
+    "related_entity_type": "TASK",
+    "related_entity_id": "TSK-501",
+    "related_entity_label": "",
+    "created_at": "2026-10-09T15:42:51.112Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 7,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "admin"
+    ],
+    "message_text": "hai",
+    "parent": null,
+    "related_entity_type": "NONE",
+    "related_entity_id": "",
+    "related_entity_label": "",
+    "created_at": "2026-10-12T05:05:47.272Z"
+  }
+},
+{
+  "model": "projects.projectmessage",
+  "pk": 8,
+  "fields": {
+    "project": 1,
+    "sender": [
+      "admin"
+    ],
+    "message_text": "completed task",
+    "parent": null,
+    "related_entity_type": "TASK",
+    "related_entity_id": "TASK-5001",
+    "related_entity_label": "",
+    "created_at": "2026-10-12T05:06:07.556Z"
+  }
+}
+]

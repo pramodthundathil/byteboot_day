@@ -5,8 +5,12 @@ Byteboot Business OS - Multi-Company Business Management ERP
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-bmj0=zig97i(1qbd62)5@kq38kf^d-kwo10wfc@^31dkeo140o")
 DEBUG = True
@@ -79,7 +83,7 @@ if DB_ENGINE == "django.db.backends.postgresql":
             "ENGINE": "django.db.backends.postgresql",
             "NAME": os.environ.get("DB_NAME", "byteboot_db"),
             "USER": os.environ.get("DB_USER", "postgres"),
-            "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),
+            "PASSWORD": os.environ.get("DB_PASSWORD", "1234"),
             "HOST": os.environ.get("DB_HOST", "localhost"),
             "PORT": os.environ.get("DB_PORT", "5432"),
         }
