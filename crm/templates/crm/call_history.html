@@ -1,0 +1,782 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div x-data="{
+    fupModalOpen: false,
+    adminReportExpanded: {% if staff_id %}true{% else %}false{% endif %},
+    customRangeOpen: {% if start_date or end_date %}true{% else %}false{% endif %},
+    selectedLeadId: null,
+    selectedLeadName: '',
+    selectedLeadCompany: '',
+    selectedLeadStatus: 'FOLLOW_UP',
+    selectedLeadPhone: '',
+    fupDate: '{{ tomorrow_date }}',
+    fupTime: '',
+    fupSummary: '',
+    fupOutcome: '',
+    fupNextAction: '',
+    openFupModal(id, name, company, status, phone) {
+        this.selectedLeadId = id;
+        this.selectedLeadName = name;
+        this.selectedLeadCompany = company;
+        this.selectedLeadStatus = status || 'FOLLOW_UP';
+        this.selectedLeadPhone = phone || '';
+        this.fupDate = '{{ tomorrow_date }}';
+        this.fupTime = '';
+        this.fupSummary = '';
+        this.fupOutcome = '';
+        this.fupNextAction = '';
+        this.fupModalOpen = true;
+    }
+}">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / <a href="{% url 'crm:lead_list' %}" class="hover:text-white">CRM</a> / <span class="text-[#00a0da]">Call & Contact History</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-100 flex items-center gap-2">
+                <i data-lucide="phone-call" class="w-6 h-6 text-emerald-400"></i>
+                CRM Call & Contact History & Lead Call Reports
+            </h1>
+            <p class="text-xs text-slate-400">
+                {% if is_admin %}
+                Admin Central: Real-time lead call reports, staff outreach velocities, scheduled follow-ups, and date-sorted contact logs
+                {% else %}
+                My Outreach Desk: Assigned lead phone numbers, calls done today, scheduled follow-ups, and contact history
+                {% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'crm:call_history_export' %}?tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if query %}&q={{ query }}{% endif %}" 
+               class="btn-secondary flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 border-emerald-800/40 hover:bg-emerald-950/40"
+               title="Export Current Call Report to Excel">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                Export Report (.xlsx)
+            </a>
+            <a href="{% url 'crm:followup_dashboard' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+                <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i>
+                Follow-up Hub
+            </a>
+            <a href="{% url 'crm:lead_list' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
+                <i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i>
+                Leads Directory
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Counter Metric Cards with Proper Counts -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <!-- Calls Done Today -->
+        <a href="?tab=today{% if staff_id %}&staff_id={{ staff_id }}{% endif %}" 
+           class="card p-4 border transition hover:border-emerald-500/50 {% if tab == 'today' %}ring-2 ring-emerald-500 bg-emerald-950/20 border-emerald-500/40{% else %}border-white/5{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-emerald-400">📞 Calls Done Today</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 {% if today_calls_count > 0 %}animate-ping{% endif %}"></span>
+            </div>
+            <div class="text-2xl font-black text-emerald-300">{{ today_calls_count }}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Interactions logged today</div>
+        </a>
+
+        <!-- Scheduled Tomorrow -->
+        <a href="?tab=tomorrow{% if staff_id %}&staff_id={{ staff_id }}{% endif %}" 
+           class="card p-4 border transition hover:border-sky-500/50 {% if tab == 'tomorrow' %}ring-2 ring-sky-500 bg-sky-950/20 border-sky-500/40{% else %}border-white/5{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-sky-400">📅 Calls for Tomorrow</span>
+                <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+            </div>
+            <div class="text-2xl font-black text-sky-300">{{ tomorrow_calls_count }}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Scheduled to call tomorrow</div>
+        </a>
+
+        <!-- Calls Done Yesterday -->
+        <a href="?tab=yesterday{% if staff_id %}&staff_id={{ staff_id }}{% endif %}" 
+           class="card p-4 border transition hover:border-amber-500/50 {% if tab == 'yesterday' %}ring-2 ring-amber-500 bg-amber-950/20 border-amber-500/40{% else %}border-white/5{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-amber-400">⏮️ Done Yesterday</span>
+                <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            </div>
+            <div class="text-2xl font-black text-amber-300">{{ yesterday_calls_count }}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Calls logged yesterday</div>
+        </a>
+
+        <!-- Overdue Calls -->
+        <a href="?tab=overdue{% if staff_id %}&staff_id={{ staff_id }}{% endif %}" 
+           class="card p-4 border transition hover:border-red-500/50 {% if tab == 'overdue' %}ring-2 ring-red-500 bg-red-950/20 border-red-500/40{% else %}border-white/5{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-red-400">🚨 Overdue Calls</span>
+                <span class="w-2 h-2 rounded-full bg-red-500 {% if overdue_calls_count > 0 %}animate-pulse{% endif %}"></span>
+            </div>
+            <div class="text-2xl font-black text-red-300">{{ overdue_calls_count }}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Past scheduled date</div>
+        </a>
+
+        <!-- Total Calls Logged / Assigned Leads -->
+        <a href="?tab=all{% if staff_id %}&staff_id={{ staff_id }}{% endif %}" 
+           class="card p-4 border transition hover:border-[#00a0da]/50 {% if tab == 'all' %}ring-2 ring-[#00a0da] bg-[#00a0da]/10 border-[#00a0da]/40{% else %}border-white/5{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-[#00a0da]">
+                    {% if is_admin %}🗂️ Total Call History{% else %}📋 Assigned Leads ({{ assigned_leads_count }}){% endif %}
+                </span>
+                <span class="w-2 h-2 rounded-full bg-[#00a0da]"></span>
+            </div>
+            <div class="text-2xl font-black text-slate-100">{{ total_calls_count }}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">
+                {% if is_admin %}All outreach calls logged{% else %}{{ total_calls_count }} calls logged by you{% endif %}
+            </div>
+        </a>
+    </div>
+
+    <!-- Admin: All Staffs Lead Call Performance Report Breakdown -->
+    {% if is_admin and staff_call_reports %}
+    <div class="card p-4 mb-6 border border-white/10 bg-slate-900/50">
+        <div class="flex items-center justify-between cursor-pointer" @click="adminReportExpanded = !adminReportExpanded">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
+                        Staff Lead Call Performance Report
+                        <span class="text-[11px] font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800/60 px-2 py-0.5 rounded-full">
+                            {{ staff_call_reports|length }} Team Members
+                        </span>
+                    </h3>
+                    <p class="text-xs text-slate-400">Administrator overview of all staff assigned leads, calls done today, calls scheduled tomorrow, and total outreach</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs text-[#00a0da] font-semibold" x-text="adminReportExpanded ? 'Hide Staff Summary' : 'Show Staff Summary'"></span>
+                <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 transition-transform" :class="adminReportExpanded ? 'rotate-180' : ''"></i>
+            </div>
+        </div>
+
+        <div x-show="adminReportExpanded" x-cloak class="mt-4 pt-4 border-t border-white/10">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead>
+                        <tr class="border-b border-white/10 text-slate-400 text-[11px] uppercase tracking-wider">
+                            <th class="pb-2.5 font-bold">Staff Member</th>
+                            <th class="pb-2.5 font-bold text-center">Assigned Leads</th>
+                            <th class="pb-2.5 font-bold text-center">Calls Done Today</th>
+                            <th class="pb-2.5 font-bold text-center">Calls Scheduled Tomorrow</th>
+                            <th class="pb-2.5 font-bold text-center">Total Calls Logged</th>
+                            <th class="pb-2.5 font-bold text-center">Won Leads</th>
+                            <th class="pb-2.5 font-bold text-right">Quick Filter</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        {% for s in staff_call_reports %}
+                        <tr class="hover:bg-slate-800/30 transition {% if staff_id == s.user.id|stringformat:'s' %}bg-[#00a0da]/10{% endif %}">
+                            <td class="py-2.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-[#1e2b3b] border border-white/10 flex items-center justify-center text-[10px] font-bold text-[#00a0da]">
+                                        {{ s.name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-slate-100">{{ s.name }}</div>
+                                        <div class="text-[10px] text-slate-500 font-mono">{{ s.email|default:s.user.username }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-2.5 text-center font-bold text-slate-200">{{ s.assigned_count }}</td>
+                            <td class="py-2.5 text-center">
+                                <span class="px-2 py-0.5 rounded font-bold {% if s.calls_today > 0 %}bg-emerald-950/80 text-emerald-300 border border-emerald-800/60{% else %}text-slate-500{% endif %}">
+                                    {{ s.calls_today }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-center">
+                                <span class="px-2 py-0.5 rounded font-bold {% if s.calls_tomorrow > 0 %}bg-sky-950/80 text-sky-300 border border-sky-800/60{% else %}text-slate-500{% endif %}">
+                                    {{ s.calls_tomorrow }}
+                                </span>
+                            </td>
+                            <td class="py-2.5 text-center font-mono font-bold text-[#00a0da]">{{ s.total_calls }}</td>
+                            <td class="py-2.5 text-center">
+                                <span class="px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 font-semibold font-mono">{{ s.won_count }}</span>
+                            </td>
+                            <td class="py-2.5 text-right">
+                                {% if staff_id == s.user.id|stringformat:'s' %}
+                                <a href="?tab={{ tab }}" class="btn-primary text-[10px] py-1 px-2">
+                                    ✓ Active Filter
+                                </a>
+                                {% else %}
+                                <a href="?tab={{ tab }}&staff_id={{ s.user.id }}" class="btn-secondary text-[10px] py-1 px-2 text-slate-300 hover:text-white">
+                                    Filter Staff
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filter and Search Toolbar -->
+    <div class="card p-4 mb-6">
+        <form method="GET" class="flex flex-col gap-3">
+            <input type="hidden" name="tab" value="{{ tab }}">
+            
+            <!-- Views and Navigation Tabs with Live Counts -->
+            <div class="flex flex-wrap gap-2 items-center justify-between pb-3 border-b border-white/5">
+                <div class="flex flex-wrap gap-1.5 items-center">
+                    <span class="text-xs font-bold text-slate-400 mr-1.5">Tabs:</span>
+                    
+                    <a href="?tab=today{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'today' %}bg-emerald-500 text-slate-950 border-emerald-500{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>Calls Done Today</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'today' %}bg-black/30 text-white{% else %}bg-emerald-950/80 text-emerald-300 border border-emerald-800/60{% endif %} font-mono font-bold">{{ today_calls_count }}</span>
+                    </a>
+
+                    <a href="?tab=tomorrow{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'tomorrow' %}bg-sky-500 text-white border-sky-500{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>Scheduled for Tomorrow</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'tomorrow' %}bg-black/30 text-white{% else %}bg-sky-950/80 text-sky-300 border border-sky-800/60{% endif %} font-mono font-bold">{{ tomorrow_calls_count }}</span>
+                    </a>
+
+                    <a href="?tab=yesterday{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'yesterday' %}bg-amber-500 text-slate-950 border-amber-500{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>Done Yesterday</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'yesterday' %}bg-black/30 text-white{% else %}bg-amber-950/80 text-amber-300 border border-amber-800/60{% endif %} font-mono font-bold">{{ yesterday_calls_count }}</span>
+                    </a>
+
+                    <a href="?tab=overdue{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'overdue' %}bg-red-500 text-white border-red-500{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>Overdue Calls</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'overdue' %}bg-black/30 text-white{% else %}bg-red-950/80 text-red-300 border border-red-800/60{% endif %} font-mono font-bold">{{ overdue_calls_count }}</span>
+                    </a>
+
+                    <a href="?tab=all{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'all' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>All Call History</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'all' %}bg-black/30 text-white{% else %}bg-slate-800 text-slate-300 border border-white/10{% endif %} font-mono font-bold">{{ total_calls_count }}</span>
+                    </a>
+
+                    <a href="?tab=assigned{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}" 
+                       class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition flex items-center gap-1.5 {% if tab == 'assigned' %}bg-purple-600 text-white border-purple-600{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+                        <span>{% if is_admin %}Assigned Leads Directory{% else %}My Assigned Phone Numbers{% endif %}</span>
+                        <span class="px-1.5 py-0.2 rounded-full text-[10px] {% if tab == 'assigned' %}bg-black/30 text-white{% else %}bg-purple-950/80 text-purple-300 border border-purple-800/60{% endif %} font-mono font-bold">{{ assigned_leads_count }}</span>
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button type="button" @click="customRangeOpen = !customRangeOpen" class="text-xs text-[#00a0da] hover:underline flex items-center gap-1">
+                        <i data-lucide="calendar-range" class="w-3.5 h-3.5"></i>
+                        <span x-text="customRangeOpen ? 'Hide Date Range' : 'Custom Date Range'"></span>
+                    </button>
+                    {% if query or staff_id or method or start_date or end_date or sort_order != '-interaction_time' %}
+                    <a href="?tab={{ tab }}" class="text-xs text-red-400 hover:text-red-300 underline ml-2">Clear Filters</a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Custom Date Range Bar (Collapsible) -->
+            <div x-show="customRangeOpen" x-cloak class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-900/60 rounded-xl border border-white/5">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">From Date</label>
+                    <input type="date" name="start_date" value="{{ start_date }}" class="w-full bg-[#101720] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">To Date</label>
+                    <input type="date" name="end_date" value="{{ end_date }}" class="w-full bg-[#101720] border border-white/10 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="btn-primary text-xs py-1.5 px-4 w-full sm:w-auto">Apply Date Range</button>
+                </div>
+            </div>
+
+            <!-- Filters, Sorting, and Search Inputs -->
+            <div class="flex flex-wrap gap-2.5 items-center justify-between">
+                <div class="flex flex-wrap gap-2 items-center flex-1">
+                    <!-- Admin Staff Selector -->
+                    {% if is_admin %}
+                    <div>
+                        <select name="staff_id" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                            <option value="">All Staff Reports (Company-wide)</option>
+                            <option value="unassigned" {% if staff_id == 'unassigned' %}selected{% endif %}>[Unassigned Leads]</option>
+                            {% for u in assignable_users %}
+                            <option value="{{ u.id }}" {% if staff_id == u.id|stringformat:'s' %}selected{% endif %}>
+                                {{ u.get_full_name|default:u.username }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- Channel / Method Filter (for history tabs) -->
+                    {% if not is_lead_view %}
+                    <div>
+                        <select name="method" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                            <option value="">All Outreach Channels</option>
+                            <option value="PHONE" {% if method == 'PHONE' %}selected{% endif %}>📞 Phone Calls ({{ phone_calls_count }})</option>
+                            <option value="WHATSAPP" {% if method == 'WHATSAPP' %}selected{% endif %}>💬 WhatsApp ({{ whatsapp_count }})</option>
+                            <option value="EMAIL" {% if method == 'EMAIL' %}selected{% endif %}>✉️ Email ({{ email_count }})</option>
+                            <option value="MEETING" {% if method == 'MEETING' %}selected{% endif %}>🤝 Meetings</option>
+                            <option value="VIDEO" {% if method == 'VIDEO' %}selected{% endif %}>📹 Video Call</option>
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- Date Sorting Dropdown -->
+                    <div>
+                        <select name="sort" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                            {% if is_lead_view %}
+                            <option value="next_followup_date" {% if sort_order == 'next_followup_date' %}selected{% endif %}>📅 Scheduled Reminder (Earliest)</option>
+                            <option value="-next_followup_date" {% if sort_order == '-next_followup_date' %}selected{% endif %}>📅 Scheduled Reminder (Furthest)</option>
+                            <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>🆕 Newest Lead Created</option>
+                            <option value="company_name" {% if sort_order == 'company_name' %}selected{% endif %}>🏢 Company (A-Z)</option>
+                            <option value="contact_person" {% if sort_order == 'contact_person' %}selected{% endif %}>👤 Contact Person (A-Z)</option>
+                            <option value="phone" {% if sort_order == 'phone' %}selected{% endif %}>📞 Phone Number</option>
+                            {% else %}
+                            <option value="-interaction_time" {% if sort_order == '-interaction_time' %}selected{% endif %}>⏱️ Call Date: Most Recent First</option>
+                            <option value="interaction_time" {% if sort_order == 'interaction_time' %}selected{% endif %}>⏱️ Call Date: Oldest First</option>
+                            <option value="next_followup_date" {% if sort_order == 'next_followup_date' %}selected{% endif %}>📅 Next Reminder (Earliest)</option>
+                            <option value="-next_followup_date" {% if sort_order == '-next_followup_date' %}selected{% endif %}>📅 Next Reminder (Furthest)</option>
+                            <option value="company_name" {% if sort_order == 'company_name' %}selected{% endif %}>🏢 Company (A-Z)</option>
+                            <option value="contact_person" {% if sort_order == 'contact_person' %}selected{% endif %}>👤 Contact Person (A-Z)</option>
+                            <option value="phone" {% if sort_order == 'phone' %}selected{% endif %}>📞 Phone Number</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <!-- Items per page selector -->
+                    <div>
+                        <select name="page_size" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2 py-1.5 outline-none focus:border-[#00a0da]" title="Records per page">
+                            <option value="15" {% if page_size == 15 %}selected{% endif %}>15 / page</option>
+                            <option value="25" {% if page_size == 25 %}selected{% endif %}>25 / page</option>
+                            <option value="50" {% if page_size == 50 %}selected{% endif %}>50 / page</option>
+                            <option value="100" {% if page_size == 100 %}selected{% endif %}>100 / page</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="relative w-full sm:w-64">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search client, phone, notes..." class="w-full bg-[#101720] border border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
+                    <button type="submit" class="absolute right-2 top-2 text-slate-400 hover:text-white">
+                        <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Calls / Leads Table Wrap -->
+    <div class="table-wrap mb-6">
+        <table class="app-table">
+            <thead>
+                <tr>
+                    {% if is_lead_view %}
+                    <th>Scheduled Reminder</th>
+                    <th>Lead #</th>
+                    <th>Company / Client</th>
+                    <th>Contact Person & Assigned Number</th>
+                    <th>Assigned Staff</th>
+                    <th>Deal Value & Stage</th>
+                    <th>Pipeline Status</th>
+                    <th data-sortable="false" class="text-right">Action</th>
+                    {% else %}
+                    <th>Call Date & Time</th>
+                    <th>Channel</th>
+                    <th>Company / Client</th>
+                    <th>Contact Person & Phone Number</th>
+                    <th>Staff Member (Caller)</th>
+                    <th>Outcome & Notes Summary</th>
+                    <th>Next Scheduled Follow-up</th>
+                    <th data-sortable="false" class="text-right">Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in records_page %}
+                <tr class="hover:bg-slate-800/40 transition">
+                    {% if is_lead_view %}
+                    <!-- Timing Badge -->
+                    <td>
+                        {% with badge=item.followup_due_badge %}
+                        <span class="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-md font-bold border {{ badge.class }}">
+                            {% if badge.type == 'OVERDUE' %}
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
+                            {% elif badge.type == 'TODAY' %}
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                            {% elif badge.type == 'UPCOMING' %}
+                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                            {% else %}
+                                <i data-lucide="calendar-off" class="w-3.5 h-3.5"></i>
+                            {% endif %}
+                            {{ badge.label }}
+                        </span>
+                        {% endwith %}
+                    </td>
+
+                    <!-- Lead # -->
+                    <td>
+                        <a href="{% url 'crm:lead_detail' item.id %}" class="font-mono text-[#00a0da] font-bold hover:underline">
+                            {{ item.lead_number }}
+                        </a>
+                    </td>
+
+                    <!-- Company / Client -->
+                    <td>
+                        <div class="font-bold text-slate-100">{{ item.company_name }}</div>
+                        <div class="text-[11px] text-slate-400">{{ item.service_interested|truncatechars:35 }}</div>
+                    </td>
+
+                    <!-- Contact Person & Assigned Phone Number -->
+                    <td>
+                        <div class="text-xs font-semibold text-slate-200">{{ item.contact_person }}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <a href="tel:{{ item.phone }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 text-xs font-mono font-bold hover:bg-emerald-900 transition" title="Click to Call">
+                                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                {{ item.phone }}
+                            </a>
+                            <a href="https://wa.me/{{ item.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="inline-flex items-center justify-center w-6 h-6 rounded bg-emerald-900/60 text-emerald-400 hover:bg-emerald-800 transition" title="WhatsApp Chat">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            </a>
+                            {% if item.email %}
+                            <a href="mailto:{{ item.email }}" class="inline-flex items-center justify-center w-6 h-6 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition" title="{{ item.email }}">
+                                <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+
+                    <!-- Assigned Staff -->
+                    <td>
+                        {% if item.assigned_to %}
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-6 h-6 rounded-full bg-[#1e2b3b] border border-white/10 flex items-center justify-center text-[10px] font-bold text-[#00a0da]">
+                                {{ item.assigned_to.first_name|first|default:item.assigned_to.username|first|upper }}
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">
+                                {{ item.assigned_to.get_full_name|default:item.assigned_to.username }}
+                            </span>
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-amber-400/80 italic font-mono">Unassigned</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Value -->
+                    <td>
+                        <div class="font-extrabold text-[#00a0da] text-xs">₹{{ item.estimated_value }}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">{{ item.pipeline_stage }}</div>
+                    </td>
+
+                    <!-- Status -->
+                    <td>
+                        <span class="status-pill text-[10px] py-0.5 {% if item.status == 'WON' %}status-success{% elif item.status == 'LOST' %}status-danger{% else %}status-warning{% endif %}">
+                            {{ item.get_status_display }}
+                        </span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button type="button" @click="openFupModal('{{ item.id }}', '{{ item.contact_person|escapejs }}', '{{ item.company_name|escapejs }}', '{{ item.status }}', '{{ item.phone|escapejs }}')" class="btn-primary text-xs py-1 px-2.5 flex items-center gap-1">
+                                <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                                Log Call
+                            </button>
+                            <a href="{% url 'crm:lead_detail' item.id %}" class="btn-secondary text-xs py-1 px-2 text-slate-400 hover:text-white" title="Full Lead Details">
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </td>
+
+                    {% else %}
+                    <!-- Call Date & Time -->
+                    <td>
+                        <div class="font-mono text-xs font-bold text-slate-200">
+                            {{ item.interaction_time|date:"d M Y" }}
+                        </div>
+                        <div class="text-[11px] text-[#00a0da] font-mono flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            {{ item.interaction_time|date:"h:i A" }}
+                        </div>
+                    </td>
+
+                    <!-- Channel -->
+                    <td>
+                        {% if item.method == 'PHONE' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                            <i data-lucide="phone" class="w-3 h-3"></i> Call
+                        </span>
+                        {% elif item.method == 'WHATSAPP' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-950/80 text-emerald-400 border border-emerald-800/60">
+                            <i data-lucide="message-circle" class="w-3 h-3"></i> WhatsApp
+                        </span>
+                        {% elif item.method == 'EMAIL' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-950/80 text-blue-300 border border-blue-800/60">
+                            <i data-lucide="mail" class="w-3 h-3"></i> Email
+                        </span>
+                        {% elif item.method == 'MEETING' %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-950/80 text-purple-300 border border-purple-800/60">
+                            <i data-lucide="users" class="w-3 h-3"></i> Meeting
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-sky-950/80 text-sky-300 border border-sky-800/60">
+                            <i data-lucide="video" class="w-3 h-3"></i> {{ item.get_method_display }}
+                        </span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Client / Company -->
+                    <td>
+                        <div class="font-bold text-slate-100">{{ item.lead.company_name }}</div>
+                        <a href="{% url 'crm:lead_detail' item.lead.id %}" class="text-[11px] font-mono text-[#00a0da] hover:underline">
+                            {{ item.lead.lead_number }}
+                        </a>
+                    </td>
+
+                    <!-- Contact Person & Phone -->
+                    <td>
+                        <div class="text-xs font-semibold text-slate-200">{{ item.lead.contact_person }}</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <a href="tel:{{ item.lead.phone }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 text-xs font-mono font-bold hover:bg-emerald-900 transition" title="Click to Call">
+                                <i data-lucide="phone" class="w-3.5 h-3.5"></i>
+                                {{ item.lead.phone }}
+                            </a>
+                            <a href="https://wa.me/{{ item.lead.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="inline-flex items-center justify-center w-6 h-6 rounded bg-emerald-900/60 text-emerald-400 hover:bg-emerald-800 transition" title="WhatsApp Chat">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </td>
+
+                    <!-- Staff Member (Caller) -->
+                    <td>
+                        <div class="flex items-center gap-1.5">
+                            <div class="w-6 h-6 rounded-full bg-[#1e2b3b] border border-white/10 flex items-center justify-center text-[10px] font-bold text-emerald-400">
+                                {{ item.staff.first_name|first|default:item.staff.username|first|upper }}
+                            </div>
+                            <div>
+                                <span class="text-xs font-medium text-slate-200 block">
+                                    {{ item.staff.get_full_name|default:item.staff.username }}
+                                </span>
+                                {% if item.lead.assigned_to and item.lead.assigned_to != item.staff %}
+                                <span class="text-[10px] text-slate-500 italic block">
+                                    Assigned: {{ item.lead.assigned_to.first_name|default:item.lead.assigned_to.username }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Outcome & Discussion Summary -->
+                    <td class="max-w-xs">
+                        {% if item.outcome %}
+                        <div class="mb-1">
+                            <span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-white/10">
+                                {{ item.outcome }}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <div class="text-xs text-slate-300 whitespace-pre-line line-clamp-2" title="{{ item.summary }}">
+                            {{ item.summary }}
+                        </div>
+                        {% if item.next_action %}
+                        <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1">
+                            <i data-lucide="arrow-right" class="w-3 h-3 text-[#00a0da]"></i>
+                            <span>{{ item.next_action }}</span>
+                        </div>
+                        {% endif %}
+                    </td>
+
+                    <!-- Next Scheduled Call -->
+                    <td>
+                        {% if item.next_followup_date %}
+                        <div class="text-xs font-mono font-bold text-slate-200">
+                            {{ item.next_followup_date|date:"d M Y" }}
+                        </div>
+                        <div class="text-[11px] text-sky-400 font-mono">
+                            {{ item.next_followup_date|date:"h:i A" }}
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-slate-500 italic">None scheduled</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="text-right whitespace-nowrap">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <button type="button" @click="openFupModal('{{ item.lead.id }}', '{{ item.lead.contact_person|escapejs }}', '{{ item.lead.company_name|escapejs }}', '{{ item.lead.status }}', '{{ item.lead.phone|escapejs }}')" class="btn-primary text-xs py-1 px-2.5 flex items-center gap-1">
+                                <i data-lucide="phone-call" class="w-3.5 h-3.5"></i>
+                                Log Call
+                            </button>
+                            <a href="{% url 'crm:lead_detail' item.lead.id %}" class="btn-secondary text-xs py-1 px-2 text-slate-400 hover:text-white" title="View Full Lead">
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </div>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr class="empty-row">
+                    <td colspan="8" class="text-center text-slate-500 py-12">
+                        <i data-lucide="phone-off" class="w-10 h-10 mx-auto mb-2 text-slate-600"></i>
+                        <p class="font-bold text-slate-300">No calls or interactions found</p>
+                        <p class="text-xs text-slate-500 mt-1">No call records match the selected date or filter criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Backend & Frontend Pagination Bar -->
+    <div class="card p-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-xs text-slate-400">
+            Showing <span class="font-bold text-white">{{ records_page.start_index|default:0 }}</span> to <span class="font-bold text-white">{{ records_page.end_index|default:0 }}</span> of <span class="font-bold text-white">{{ records_page.paginator.count }}</span> records
+        </div>
+
+        {% if records_page.has_other_pages %}
+        <div class="flex items-center gap-1">
+            <!-- First Page -->
+            {% if records_page.number > 2 %}
+            <a href="?page=1&tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}&page_size={{ page_size }}" 
+               class="btn-secondary text-xs py-1 px-2 text-slate-400 hover:text-white" title="First Page">
+                ««
+            </a>
+            {% endif %}
+
+            <!-- Previous Page -->
+            {% if records_page.has_previous %}
+            <a href="?page={{ records_page.previous_page_number }}&tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}&page_size={{ page_size }}" 
+               class="btn-secondary text-xs py-1 px-2.5">
+                ← Previous
+            </a>
+            {% else %}
+            <span class="btn-secondary text-xs py-1 px-2.5 opacity-40 cursor-not-allowed">← Previous</span>
+            {% endif %}
+
+            <!-- Dynamic Windowed Page Numbers -->
+            {% for p in page_range %}
+                {% if p == records_page.number %}
+                <span class="w-7 h-7 flex items-center justify-center rounded-lg bg-[#00a0da] text-white text-xs font-bold">{{ p }}</span>
+                {% else %}
+                <a href="?page={{ p }}&tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}&page_size={{ page_size }}" 
+                   class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 text-xs font-semibold">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Next Page -->
+            {% if records_page.has_next %}
+            <a href="?page={{ records_page.next_page_number }}&tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}&page_size={{ page_size }}" 
+               class="btn-secondary text-xs py-1 px-2.5">
+                Next →
+            </a>
+            {% else %}
+            <span class="btn-secondary text-xs py-1 px-2.5 opacity-40 cursor-not-allowed">Next →</span>
+            {% endif %}
+
+            <!-- Last Page -->
+            {% if records_page.number < records_page.paginator.num_pages|add:"-1" %}
+            <a href="?page={{ records_page.paginator.num_pages }}&tab={{ tab }}{% if staff_id %}&staff_id={{ staff_id }}{% endif %}{% if method %}&method={{ method }}{% endif %}{% if sort_order %}&sort={{ sort_order }}{% endif %}{% if query %}&q={{ query }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}&page_size={{ page_size }}" 
+               class="btn-secondary text-xs py-1 px-2 text-slate-400 hover:text-white" title="Last Page">
+                »»
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Fast Call / Follow-up Logger Modal -->
+    <div x-show="fupModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" @keydown.escape.window="fupModalOpen = false">
+        <div class="card w-full max-w-lg p-6 bg-[#0f1722] border border-white/10 shadow-2xl rounded-2xl" @click.outside="fupModalOpen = false">
+            <div class="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">📞 Quick Call & Interaction Logger</span>
+                    <h3 class="text-base font-bold text-slate-100" x-text="selectedLeadCompany + ' (' + selectedLeadName + ')'"></h3>
+                    <div class="text-xs text-slate-400 font-mono flex items-center gap-1.5 mt-0.5">
+                        <i data-lucide="phone" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span x-text="selectedLeadPhone"></span>
+                    </div>
+                </div>
+                <button type="button" @click="fupModalOpen = false" class="text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            </div>
+
+            <form :action="'/crm/leads/' + selectedLeadId + '/quick-followup/'" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="form-label text-xs">Outreach Channel / Method</label>
+                        <select name="method" class="form-control text-xs">
+                            <option value="PHONE" selected>📞 Phone Call</option>
+                            <option value="WHATSAPP">💬 WhatsApp Message</option>
+                            <option value="EMAIL">✉️ Email Outreach</option>
+                            <option value="MEETING">🤝 In-Person Meeting</option>
+                            <option value="VIDEO">📹 Video Call</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label text-xs">Update Pipeline Status</label>
+                        <select name="status" x-model="selectedLeadStatus" class="form-control text-xs">
+                            <option value="NEW">New</option>
+                            <option value="CONTACTED">Contacted</option>
+                            <option value="FOLLOW_UP">Follow-up Required</option>
+                            <option value="QUALIFIED">Qualified</option>
+                            <option value="PROPOSAL_SENT">Proposal Sent</option>
+                            <option value="NEGOTIATION">Negotiation</option>
+                            <option value="WON">🏆 Won</option>
+                            <option value="LOST">Lost</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label class="form-label text-xs">Call Summary / Discussion Notes <span class="text-red-400">*</span></label>
+                    <textarea name="summary" x-model="fupSummary" class="form-control text-xs" rows="2.5" placeholder="E.g. Spoke with client regarding requirements, shared pricing options, positive feedback..." required></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="form-label text-xs">Call Outcome / Result</label>
+                        <input type="text" name="outcome" x-model="fupOutcome" class="form-control text-xs" placeholder="E.g. Connected, Interested, Callback, Demo scheduled">
+                    </div>
+                    <div>
+                        <label class="form-label text-xs">Next Action</label>
+                        <input type="text" name="next_action" x-model="fupNextAction" class="form-control text-xs" placeholder="E.g. Send technical proposal">
+                    </div>
+                </div>
+
+                <div class="form-group mb-4" x-show="selectedLeadStatus !== 'LOST'">
+                    <label class="form-label text-xs flex justify-between items-center mb-1">
+                        <span class="font-bold text-slate-200">Next Scheduled Call / Follow-up</span>
+                        <span class="text-[10px] text-emerald-400 font-bold bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded">Auto-set to Tomorrow</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-[11px] text-slate-400 block mb-1">Follow-up Date <span class="text-red-400">*</span></label>
+                            <input type="date" name="next_followup_date" x-model="fupDate" class="form-control text-xs" :required="selectedLeadStatus !== 'LOST'">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-400 block mb-1">Time <span class="text-slate-500 font-normal">(Optional)</span></label>
+                            <input type="time" name="next_followup_time" x-model="fupTime" class="form-control text-xs" placeholder="10:00">
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        Pre-filled for tomorrow. You can change date or leave time blank (defaults to 10:00 AM).
+                    </div>
+                </div>
+
+                <div x-show="selectedLeadStatus === 'LOST'" class="card p-3 mb-4 bg-red-950/30 border border-red-500/30 text-xs text-red-300 flex items-center gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-red-400 flex-shrink-0"></i>
+                    <span>Pipeline status is <strong>Lost</strong>. No follow-up reminder is needed or scheduled.</span>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+                    <button type="button" @click="fupModalOpen = false" class="btn-secondary text-xs">Cancel</button>
+                    <button type="submit" class="btn-primary text-xs flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        Save Call Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

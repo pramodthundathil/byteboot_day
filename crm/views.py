@@ -722,7 +722,8 @@ def lead_quick_followup(request, lead_id):
         else:
             messages.error(request, "Discussion notes summary cannot be empty.")
 
-    return redirect(f"{reverse('crm:followup_dashboard')}?tab=today")
+    next_url = request.POST.get('next') or request.META.get('HTTP_REFERER') or f"{reverse('crm:followup_dashboard')}?tab=today"
+    return redirect(next_url)
 
 
 @login_required
@@ -1214,3 +1215,458 @@ def customer_detail(request, customer_id):
         'active_tab': 'crm',
         'active_sub': 'customers'
     })
+
+
+@login_required
+@require_permission('crm', 'view')
+def call_history(request):
+    """
+    CRM Call & Contacted History, Lead Call Report, and Assigned Calling List:
+    - History of calls and contacts made today, tomorrow, yesterday, all-time, or custom date range
+    - Date sorting (interaction date, next followup date, company, contact person, phone number)
+    - Proper live count metrics for today, tomorrow, yesterday, overdue, and all contacts
+    - Admin mode: full visibility across all staff lead call reports with staff breakdown & filter
+    - Staff mode: strictly restricted to their respective assigned numbers and lead call list
+    - Backend and Frontend pagination with preserved filter query parameters
+    - 1-click click-to-call, click-to-WhatsApp, and quick call logger modal
+    """
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_mode = is_crm_admin(request.user, membership)
+
+    now = timezone.localtime(timezone.now())
+    today = now.date()
+    tomorrow = today + timedelta(days=1)
+    yesterday = today - timedelta(days=1)
+
+    start_of_today = timezone.make_aware(datetime.combine(today, time.min))
+    end_of_today = timezone.make_aware(datetime.combine(today, time.max))
+
+    start_of_tomorrow = timezone.make_aware(datetime.combine(tomorrow, time.min))
+    end_of_tomorrow = timezone.make_aware(datetime.combine(tomorrow, time.max))
+
+    start_of_yesterday = timezone.make_aware(datetime.combine(yesterday, time.min))
+    end_of_yesterday = timezone.make_aware(datetime.combine(yesterday, time.max))
+
+    # Base querysets
+    base_fups = LeadFollowup.objects.filter(lead__company=company)
+    base_leads = Lead.objects.filter(company=company)
+
+    # Filter parameters
+    staff_id = request.GET.get('staff_id', '').strip()
+    tab = request.GET.get('tab', '').strip()
+    method = request.GET.get('method', '').strip()
+    sort_order = request.GET.get('sort', '-interaction_time').strip()
+    query = request.GET.get('q', '').strip()
+    start_date_str = request.GET.get('start_date', '').strip()
+    end_date_str = request.GET.get('end_date', '').strip()
+    page_size_str = request.GET.get('page_size', '15').strip()
+
+    # Staff vs Admin role permissions
+    if not admin_mode:
+        # Regular staff: strictly restricted to leads assigned to them or followups logged by them
+        base_fups = base_fups.filter(
+            Q(lead__assigned_to=request.user) | Q(staff=request.user)
+        )
+        base_leads = base_leads.filter(
+            Q(assigned_to=request.user) | Q(created_by=request.user)
+        )
+        staff_id = ''  # staff cannot filter by other staff
+    else:
+        # Admin: can filter by specific staff or unassigned
+        if staff_id:
+            if staff_id == 'unassigned':
+                base_fups = base_fups.filter(lead__assigned_to__isnull=True)
+                base_leads = base_leads.filter(assigned_to__isnull=True)
+            elif staff_id.isdigit():
+                sid = int(staff_id)
+                base_fups = base_fups.filter(Q(staff_id=sid) | Q(lead__assigned_to_id=sid))
+                base_leads = base_leads.filter(assigned_to_id=sid)
+
+    # Calculate live counters with proper counts
+    today_calls_count = base_fups.filter(
+        interaction_time__range=(start_of_today, end_of_today)
+    ).count()
+
+    tomorrow_calls_count = base_leads.filter(
+        next_followup_date__range=(start_of_tomorrow, end_of_tomorrow)
+    ).exclude(status__in=['WON', 'LOST']).count()
+
+    yesterday_calls_count = base_fups.filter(
+        interaction_time__range=(start_of_yesterday, end_of_yesterday)
+    ).count()
+
+    overdue_calls_count = base_leads.filter(
+        next_followup_date__lt=start_of_today
+    ).exclude(status__in=['WON', 'LOST']).count()
+
+    total_calls_count = base_fups.count()
+
+    assigned_leads_count = base_leads.exclude(status__in=['WON', 'LOST']).count()
+
+    phone_calls_count = base_fups.filter(method='PHONE').count()
+    whatsapp_count = base_fups.filter(method='WHATSAPP').count()
+    email_count = base_fups.filter(method='EMAIL').count()
+    meeting_count = base_fups.filter(method__in=['MEETING', 'VIDEO']).count()
+
+    # For Admin: Staff Lead Call Report summary list across all staff
+    staff_call_reports = []
+    assignable_users = []
+    if admin_mode:
+        assignable_users = get_assignable_users(company)
+        for u in assignable_users:
+            u_assigned = Lead.objects.filter(company=company, assigned_to=u).exclude(status__in=['WON', 'LOST']).count()
+            u_today = LeadFollowup.objects.filter(lead__company=company, staff=u, interaction_time__range=(start_of_today, end_of_today)).count()
+            u_tomorrow = Lead.objects.filter(company=company, assigned_to=u, next_followup_date__range=(start_of_tomorrow, end_of_tomorrow)).exclude(status__in=['WON', 'LOST']).count()
+            u_total = LeadFollowup.objects.filter(lead__company=company, staff=u).count()
+            u_won = Lead.objects.filter(company=company, assigned_to=u, status='WON').count()
+            last_call = LeadFollowup.objects.filter(lead__company=company, staff=u).order_by('-interaction_time').first()
+
+            staff_call_reports.append({
+                'user': u,
+                'name': u.get_full_name() or u.username,
+                'email': u.email,
+                'assigned_count': u_assigned,
+                'calls_today': u_today,
+                'calls_tomorrow': u_tomorrow,
+                'total_calls': u_total,
+                'won_count': u_won,
+                'last_call_time': last_call.interaction_time if last_call else None,
+            })
+
+    # Default tab selection
+    if not tab:
+        if today_calls_count > 0:
+            tab = 'today'
+        elif tomorrow_calls_count > 0:
+            tab = 'tomorrow'
+        else:
+            tab = 'all'
+
+    is_lead_view = (tab in ('tomorrow', 'overdue', 'assigned'))
+
+    if tab == 'today':
+        records_qs = base_fups.filter(interaction_time__range=(start_of_today, end_of_today))
+    elif tab == 'yesterday':
+        records_qs = base_fups.filter(interaction_time__range=(start_of_yesterday, end_of_yesterday))
+    elif tab == 'tomorrow':
+        records_qs = base_leads.filter(
+            next_followup_date__range=(start_of_tomorrow, end_of_tomorrow)
+        ).exclude(status__in=['WON', 'LOST'])
+    elif tab == 'overdue':
+        records_qs = base_leads.filter(
+            next_followup_date__lt=start_of_today
+        ).exclude(status__in=['WON', 'LOST'])
+    elif tab == 'assigned':
+        records_qs = base_leads.exclude(status__in=['WON', 'LOST'])
+    else:  # 'all'
+        records_qs = base_fups
+
+    # Method filter (applies to followups / calls history)
+    if method and not is_lead_view:
+        records_qs = records_qs.filter(method=method)
+
+    # Search filter
+    if query:
+        if is_lead_view:
+            records_qs = records_qs.filter(
+                Q(company_name__icontains=query) |
+                Q(contact_person__icontains=query) |
+                Q(phone__icontains=query) |
+                Q(email__icontains=query) |
+                Q(lead_number__icontains=query) |
+                Q(service_interested__icontains=query)
+            )
+        else:
+            records_qs = records_qs.filter(
+                Q(lead__company_name__icontains=query) |
+                Q(lead__contact_person__icontains=query) |
+                Q(lead__phone__icontains=query) |
+                Q(lead__email__icontains=query) |
+                Q(lead__lead_number__icontains=query) |
+                Q(summary__icontains=query) |
+                Q(outcome__icontains=query) |
+                Q(next_action__icontains=query)
+            )
+
+    # Custom Date Range filter
+    if start_date_str and end_date_str:
+        try:
+            sd = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            ed = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            custom_start_date = timezone.make_aware(datetime.combine(sd, time.min))
+            custom_end_date = timezone.make_aware(datetime.combine(ed, time.max))
+            if is_lead_view:
+                records_qs = records_qs.filter(next_followup_date__range=(custom_start_date, custom_end_date))
+            else:
+                records_qs = records_qs.filter(interaction_time__range=(custom_start_date, custom_end_date))
+        except Exception:
+            pass
+
+    # Sorting
+    if is_lead_view:
+        valid_lead_sorts = {
+            'next_followup_date': 'next_followup_date',
+            '-next_followup_date': '-next_followup_date',
+            '-created_at': '-created_at',
+            'created_at': 'created_at',
+            'company_name': 'company_name',
+            'contact_person': 'contact_person',
+            'phone': 'phone',
+        }
+        lead_sort = valid_lead_sorts.get(sort_order, 'next_followup_date')
+        if lead_sort == 'next_followup_date':
+            records_qs = records_qs.order_by(F('next_followup_date').asc(nulls_last=True), '-created_at')
+        elif lead_sort == '-next_followup_date':
+            records_qs = records_qs.order_by(F('next_followup_date').desc(nulls_last=True), '-created_at')
+        else:
+            records_qs = records_qs.order_by(lead_sort)
+        records_qs = records_qs.select_related('assigned_to', 'created_by')
+    else:
+        valid_fup_sorts = {
+            '-interaction_time': '-interaction_time',
+            'interaction_time': 'interaction_time',
+            'next_followup_date': 'next_followup_date',
+            '-next_followup_date': '-next_followup_date',
+            'company_name': 'lead__company_name',
+            'contact_person': 'lead__contact_person',
+            'phone': 'lead__phone',
+        }
+        fup_sort = valid_fup_sorts.get(sort_order, '-interaction_time')
+        if fup_sort == 'next_followup_date':
+            records_qs = records_qs.order_by(F('next_followup_date').asc(nulls_last=True), '-interaction_time')
+        elif fup_sort == '-next_followup_date':
+            records_qs = records_qs.order_by(F('next_followup_date').desc(nulls_last=True), '-interaction_time')
+        else:
+            records_qs = records_qs.order_by(fup_sort)
+        records_qs = records_qs.select_related('lead', 'lead__assigned_to', 'staff')
+
+    # Pagination setup
+    try:
+        page_size = int(page_size_str)
+        if page_size not in (10, 15, 25, 50, 100):
+            page_size = 15
+    except Exception:
+        page_size = 15
+
+    paginator = Paginator(records_qs, page_size)
+    page_number = request.GET.get('page', 1)
+    try:
+        records_page = paginator.get_page(page_number)
+    except Exception:
+        records_page = paginator.get_page(1)
+
+    # Dynamic pagination windowing helper (current page ± 2)
+    cur = records_page.number
+    total_p = paginator.num_pages
+    page_range = [p for p in range(max(1, cur - 2), min(total_p + 1, cur + 3))]
+
+    return render(request, 'crm/call_history.html', {
+        'records_page': records_page,
+        'is_lead_view': is_lead_view,
+        'tab': tab,
+        'staff_id': staff_id,
+        'method': method,
+        'sort_order': sort_order,
+        'query': query,
+        'start_date': start_date_str,
+        'end_date': end_date_str,
+        'page_size': page_size,
+        'page_range': page_range,
+        'is_admin': admin_mode,
+        'assignable_users': assignable_users,
+        'staff_call_reports': staff_call_reports,
+        'today': today,
+        'tomorrow_date': tomorrow.strftime('%Y-%m-%d'),
+        'today_calls_count': today_calls_count,
+        'tomorrow_calls_count': tomorrow_calls_count,
+        'yesterday_calls_count': yesterday_calls_count,
+        'overdue_calls_count': overdue_calls_count,
+        'total_calls_count': total_calls_count,
+        'assigned_leads_count': assigned_leads_count,
+        'phone_calls_count': phone_calls_count,
+        'whatsapp_count': whatsapp_count,
+        'email_count': email_count,
+        'meeting_count': meeting_count,
+        'active_tab': 'crm',
+        'active_sub': 'call_history'
+    })
+
+
+@login_required
+@require_permission('crm', 'view')
+def call_history_export(request):
+    """
+    Exports filtered Call & Contact History report in Excel (.xlsx) or CSV.
+    Respects admin vs staff permissions strictly.
+    """
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_mode = is_crm_admin(request.user, membership)
+
+    now = timezone.localtime(timezone.now())
+    today = now.date()
+    tomorrow = today + timedelta(days=1)
+    yesterday = today - timedelta(days=1)
+
+    start_of_today = timezone.make_aware(datetime.combine(today, time.min))
+    end_of_today = timezone.make_aware(datetime.combine(today, time.max))
+    start_of_tomorrow = timezone.make_aware(datetime.combine(tomorrow, time.min))
+    end_of_tomorrow = timezone.make_aware(datetime.combine(tomorrow, time.max))
+    start_of_yesterday = timezone.make_aware(datetime.combine(yesterday, time.min))
+    end_of_yesterday = timezone.make_aware(datetime.combine(yesterday, time.max))
+
+    base_fups = LeadFollowup.objects.filter(lead__company=company)
+    base_leads = Lead.objects.filter(company=company)
+
+    staff_id = request.GET.get('staff_id', '').strip()
+    tab = request.GET.get('tab', 'all').strip()
+    method = request.GET.get('method', '').strip()
+    query = request.GET.get('q', '').strip()
+
+    if not admin_mode:
+        base_fups = base_fups.filter(Q(lead__assigned_to=request.user) | Q(staff=request.user))
+        base_leads = base_leads.filter(Q(assigned_to=request.user) | Q(created_by=request.user))
+    elif staff_id:
+        if staff_id == 'unassigned':
+            base_fups = base_fups.filter(lead__assigned_to__isnull=True)
+            base_leads = base_leads.filter(assigned_to__isnull=True)
+        elif staff_id.isdigit():
+            sid = int(staff_id)
+            base_fups = base_fups.filter(Q(staff_id=sid) | Q(lead__assigned_to_id=sid))
+            base_leads = base_leads.filter(assigned_to_id=sid)
+
+    is_lead_view = (tab in ('tomorrow', 'overdue', 'assigned'))
+
+    if tab == 'today':
+        records = base_fups.filter(interaction_time__range=(start_of_today, end_of_today)).select_related('lead', 'staff')
+    elif tab == 'yesterday':
+        records = base_fups.filter(interaction_time__range=(start_of_yesterday, end_of_yesterday)).select_related('lead', 'staff')
+    elif tab == 'tomorrow':
+        records = base_leads.filter(next_followup_date__range=(start_of_tomorrow, end_of_tomorrow)).exclude(status__in=['WON', 'LOST']).select_related('assigned_to')
+    elif tab == 'overdue':
+        records = base_leads.filter(next_followup_date__lt=start_of_today).exclude(status__in=['WON', 'LOST']).select_related('assigned_to')
+    elif tab == 'assigned':
+        records = base_leads.exclude(status__in=['WON', 'LOST']).select_related('assigned_to')
+    else:
+        records = base_fups.select_related('lead', 'staff')
+
+    if method and not is_lead_view:
+        records = records.filter(method=method)
+
+    if query:
+        if is_lead_view:
+            records = records.filter(
+                Q(company_name__icontains=query) | Q(contact_person__icontains=query) | Q(phone__icontains=query)
+            )
+        else:
+            records = records.filter(
+                Q(lead__company_name__icontains=query) | Q(lead__contact_person__icontains=query) | Q(lead__phone__icontains=query)
+            )
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Call Report"
+    ws.views.sheetView[0].showGridLines = True
+
+    # Title header
+    ws.merge_cells('A1:J1')
+    title_cell = ws['A1']
+    title_cell.value = f"{company.name} - CRM Lead Call & Contact Report"
+    title_cell.font = Font(name='Calibri', size=16, bold=True, color='0F172A')
+
+    ws['A2'] = f"Generated On: {now.strftime('%d-%b-%Y %I:%M %p')} | View: {tab.upper()} | Staff: {'All' if not staff_id else staff_id}"
+    ws['A2'].font = Font(name='Calibri', size=10, italic=True, color='64748B')
+
+    if is_lead_view:
+        headers = [
+            'Lead #', 'Company / Client', 'Contact Person', 'Phone Number', 'Email',
+            'Assigned Staff', 'Scheduled Reminder', 'Deal Value', 'Priority', 'Pipeline Status'
+        ]
+    else:
+        headers = [
+            'Interaction Time', 'Lead #', 'Company / Client', 'Contact Person', 'Phone Number',
+            'Staff (Caller)', 'Channel', 'Discussion Notes / Summary', 'Outcome', 'Next Scheduled Call'
+        ]
+
+    header_font = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='1E293B', end_color='1E293B', fill_type='solid')
+    thin_border = Border(
+        left=Side(style='thin', color='CBD5E1'),
+        right=Side(style='thin', color='CBD5E1'),
+        top=Side(style='thin', color='CBD5E1'),
+        bottom=Side(style='thin', color='CBD5E1')
+    )
+
+    for col_idx, header in enumerate(headers, start=1):
+        cell = ws.cell(row=4, column=col_idx, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = thin_border
+    ws.row_dimensions[4].height = 26
+
+    for row_idx, item in enumerate(records[:1000], start=5):
+        if is_lead_view:
+            fup_str = timezone.localtime(item.next_followup_date).strftime('%d-%b-%Y %I:%M %p') if item.next_followup_date else 'Unscheduled'
+            row_data = [
+                item.lead_number,
+                item.company_name,
+                item.contact_person,
+                item.phone,
+                item.email or '-',
+                item.assigned_to.get_full_name() or item.assigned_to.username if item.assigned_to else 'Unassigned',
+                fup_str,
+                float(item.estimated_value),
+                item.get_priority_display(),
+                item.get_status_display()
+            ]
+        else:
+            fup_str = timezone.localtime(item.next_followup_date).strftime('%d-%b-%Y %I:%M %p') if item.next_followup_date else 'None'
+            inter_str = timezone.localtime(item.interaction_time).strftime('%d-%b-%Y %I:%M %p')
+            row_data = [
+                inter_str,
+                item.lead.lead_number,
+                item.lead.company_name,
+                item.lead.contact_person,
+                item.lead.phone,
+                item.staff.get_full_name() or item.staff.username,
+                item.get_method_display(),
+                item.summary,
+                item.outcome or '-',
+                fup_str
+            ]
+
+        fill = PatternFill(start_color='F8FAFC' if row_idx % 2 == 0 else 'FFFFFF', end_color='F8FAFC' if row_idx % 2 == 0 else 'FFFFFF', fill_type='solid')
+        for col_idx, val in enumerate(row_data, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.font = Font(name='Calibri', size=10)
+            cell.border = thin_border
+            cell.fill = fill
+            cell.alignment = Alignment(vertical='center')
+
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            val_str = str(cell.value or '')
+            if len(val_str) > max_len:
+                max_len = len(val_str)
+        ws.column_dimensions[col_letter].width = min(max(max_len + 3, 12), 40)
+
+    from io import BytesIO
+    buffer = BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+
+    filename = f"crm_call_report_{tab}_{today.strftime('%Y%m%d')}.xlsx"
+    response = HttpResponse(
+        buffer.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response

@@ -47,6 +47,10 @@
             <p class="text-xs text-slate-400">Manage pipeline stages, customer follow-ups, bulk assignments, and conversions</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="{% url 'crm:call_history' %}" class="btn-secondary flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 border-emerald-800/40 hover:bg-emerald-950/40">
+                <i data-lucide="phone-call" class="w-4 h-4"></i>
+                Call History
+            </a>
             <a href="{% url 'crm:followup_dashboard' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
                 <i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i>
                 Follow-up Hub

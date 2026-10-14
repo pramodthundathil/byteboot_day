@@ -38,6 +38,10 @@
             <p class="text-xs text-slate-400">Track overdue calls, scheduled meetings, and upcoming customer interactions with 1-click updates</p>
         </div>
         <div class="flex items-center gap-2">
+            <a href="{% url 'crm:call_history' %}" class="btn-secondary flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 border-emerald-800/40 hover:bg-emerald-950/40">
+                <i data-lucide="phone-call" class="w-4 h-4"></i>
+                Call History
+            </a>
             <a href="{% url 'crm:lead_bulk_upload' %}" class="btn-secondary flex items-center gap-1.5 text-xs">
                 <i data-lucide="upload-cloud" class="w-4 h-4"></i>
                 Bulk Import

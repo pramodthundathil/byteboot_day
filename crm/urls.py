@@ -21,6 +21,8 @@ urlpatterns = [
     path('leads/template-download/excel/', views.lead_template_excel_download, name='lead_template_excel_download'),
     path('analytics/', views.staff_analytics, name='staff_analytics'),
     path('analytics/export/', views.staff_analytics_export, name='staff_analytics_export'),
+    path('call-history/', views.call_history, name='call_history'),
+    path('call-history/export/', views.call_history_export, name='call_history_export'),
     path('customers/', views.customer_list, name='customer_list'),
     path('customers/<int:customer_id>/', views.customer_detail, name='customer_detail'),
 ]

@@ -340,6 +340,10 @@
                 <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i> Follow-up Reminders</span>
                 <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
             </a>
+            <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'call_history' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-400"></i> Call & Contact History</span>
+                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
+            </a>
             <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leads' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
                 <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> Sales Leads</span>
                 <span class="bg-[#00a0da]/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
