@@ -12,5 +12,10 @@ urlpatterns = [
     path('tasks/create/', views.task_create, name='task_create'),
     path('tasks/<int:task_id>/', views.task_detail, name='task_detail'),
     path('tasks/<int:task_id>/edit/', views.task_edit, name='task_edit'),
+    path('tasks/lookup/<str:task_number>/', views.task_lookup, name='task_lookup'),
+    path('invoices/lookup/<str:invoice_number>/', views.invoice_lookup, name='invoice_lookup'),
+    path('leads/lookup/<str:lead_number>/', views.lead_lookup, name='lead_lookup'),
+    path('api/entities/search/', views.api_entity_search, name='api_entity_search'),
     path('conversations/', views.conversations, name='conversations'),
 ]
+

@@ -3,11 +3,43 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from decimal import Decimal
+from datetime import datetime
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime, parse_date
 from django.db.models import Q, Count
-from projects.models import Project, ProjectMember, Task, WorkLog, ProjectMessage
-from crm.models import Customer
+from projects.models import Project, ProjectMember, Task, WorkLog, ProjectMessage, TaskAuditLog
+from projects.notifications import (
+    notify_task_created,
+    notify_task_updated,
+    notify_task_status_changed,
+    notify_work_logged,
+    notify_project_updated,
+    check_and_escalate_overdue_tasks,
+)
+from crm.models import Customer, Lead
+from invoicing.models import Invoice
 from tenants.decorators import require_permission
+from django.http import JsonResponse
+
+def parse_form_datetime(val):
+    if not val:
+        return None
+    if isinstance(val, datetime):
+        if timezone.is_naive(val):
+            return timezone.make_aware(val, timezone.get_current_timezone())
+        return val
+    val_str = str(val).strip()
+    dt = parse_datetime(val_str)
+    if dt is not None:
+        if timezone.is_naive(dt):
+            dt = timezone.make_aware(dt, timezone.get_current_timezone())
+        return dt
+    d = parse_date(val_str)
+    if d is not None:
+        naive_dt = datetime.combine(d, datetime.min.time())
+        return timezone.make_aware(naive_dt, timezone.get_current_timezone())
+    return None
+
 
 def is_project_admin(user, membership):
     if user.is_superuser:
@@ -33,6 +65,22 @@ def can_edit_project(user, membership, project):
     if project.members.filter(user=user, role='MANAGER').exists():
         return True
     if membership and membership.has_permission('projects', 'edit') and project.members.filter(user=user).exists():
+        return True
+    return False
+
+def can_user_approve_or_complete_task(user, membership, task):
+    if user.is_superuser:
+        return True
+    if membership and (
+        membership.role in ('COMPANY_ADMIN', 'PLATFORM_ADMIN') or
+        membership.has_permission('projects', 'approve')
+    ):
+        return True
+    if task.project.manager_id == user.id:
+        return True
+    if task.project.members.filter(user=user, role='MANAGER').exists():
+        return True
+    if task.reporter_id == user.id:
         return True
     return False
 
@@ -166,6 +214,7 @@ def project_detail(request, project_id):
             (Q(num_assignees__gte=active_users_count) if active_users_count > 0 else Q())
         ).distinct()
 
+    check_and_escalate_overdue_tasks(company=company, project=project)
     messages_list = project.messages.all()
 
     return render(request, 'projects/project_detail.html', {
@@ -265,6 +314,7 @@ def project_edit(request, project_id):
                 defaults={'role': role}
             )
 
+        notify_project_updated(project, user=request.user, summary=f"Updated project settings and {len(member_ids)} team member(s).")
         messages.success(request, f"Project {project.code} ({project.name}) and team members updated successfully.")
         return redirect('projects:project_detail', project_id=project.id)
 
@@ -318,6 +368,8 @@ def task_list(request):
     if status_filter:
         tasks = tasks.filter(status=status_filter)
 
+    check_and_escalate_overdue_tasks(company=company)
+
     return render(request, 'projects/task_list.html', {
         'tasks': tasks,
         'status_filter': status_filter,
@@ -368,6 +420,14 @@ def task_create(request):
 
         assigned_primary = selected_users[0] if selected_users else request.user
 
+        start_d = parse_form_datetime(request.POST.get('start_date'))
+        due_d = parse_form_datetime(request.POST.get('due_date'))
+        est_hrs_raw = request.POST.get('estimated_hours')
+        try:
+            est_hours = Decimal(est_hrs_raw) if est_hrs_raw else Decimal('8.00')
+        except Exception:
+            est_hours = Decimal('8.00')
+
         task = Task.objects.create(
             company=company,
             project=project,
@@ -378,10 +438,22 @@ def task_create(request):
             reporter=request.user,
             status=request.POST.get('status', 'TO_DO'),
             priority=request.POST.get('priority', 'MEDIUM'),
-            estimated_hours=Decimal(request.POST.get('estimated_hours', '8.00') or '0.00'),
-            due_date=request.POST.get('due_date') or None
+            estimated_hours=est_hours,
+            start_date=start_d,
+            due_date=due_d
         )
         task.assignees.set(selected_users)
+
+        TaskAuditLog.objects.create(
+            company=company,
+            task=task,
+            user=request.user,
+            action='CREATED',
+            to_status=task.status,
+            comment=f"Task {task.task_number} created with initial status {task.get_status_display()}."
+        )
+
+        notify_task_created(task, user=request.user)
 
         messages.success(request, f"Task {task.task_number} created and assigned to {len(selected_users)} employee(s)/user(s).")
         return redirect('projects:task_detail', task_id=task.id)
@@ -445,12 +517,29 @@ def task_edit(request, task_id):
         
         est_hrs = request.POST.get('estimated_hours')
         if est_hrs:
-            task.estimated_hours = Decimal(est_hrs)
+            try:
+                task.estimated_hours = Decimal(est_hrs)
+            except Exception:
+                pass
             
-        due_d = request.POST.get('due_date')
-        task.due_date = due_d if due_d else None
+        start_d_raw = request.POST.get('start_date')
+        if start_d_raw is not None:
+            task.start_date = parse_form_datetime(start_d_raw)
+
+        due_d_raw = request.POST.get('due_date')
+        if due_d_raw is not None:
+            task.due_date = parse_form_datetime(due_d_raw)
 
         task.save()
+        TaskAuditLog.objects.create(
+            company=company,
+            task=task,
+            user=request.user,
+            action='UPDATED',
+            to_status=task.status,
+            comment="Task specifications or assignments updated."
+        )
+        notify_task_updated(task, user=request.user, summary=f"Updated task specifications and assigned {len(selected_users)} employee(s).")
         messages.success(request, f"Task {task.task_number} updated successfully. Assigned to {len(selected_users)} employee(s)/user(s).")
         return redirect('projects:task_detail', task_id=task.id)
 
@@ -473,15 +562,81 @@ def task_edit(request, task_id):
 def task_detail(request, task_id):
     company = request.company
     task = get_object_or_404(Task, id=task_id, company=company)
+    membership = getattr(request, 'membership', None)
+
+    can_complete = can_user_approve_or_complete_task(request.user, membership, task)
+    is_assigned = (task.assigned_to_id == request.user.id) or task.assignees.filter(id=request.user.id).exists()
+    can_change_status = can_complete or is_assigned or request.user.is_superuser or (
+        membership and membership.has_permission('projects', 'edit')
+    )
 
     if request.method == 'POST':
         new_status = request.POST.get('status')
         if new_status:
-            task.status = new_status
-            if new_status == 'DONE':
-                task.completed_at = timezone.now()
-            task.save()
-            messages.success(request, f"Task {task.task_number} status updated to {task.get_status_display()}.")
+            valid_statuses = dict(Task.STATUS_CHOICES)
+            if new_status not in valid_statuses:
+                messages.error(request, "Invalid status choice selected.")
+                return redirect('projects:task_detail', task_id=task.id)
+
+            if not can_change_status:
+                messages.error(request, "Access Denied: You do not have permission to change this task's status.")
+                return redirect('projects:task_detail', task_id=task.id)
+
+            # Restrict DONE / Completed strictly to Admin, Project Manager, or Task Creator
+            if new_status == 'DONE' and not can_complete:
+                messages.error(request, f"Access Denied: Only Administrators or the task creator (@{task.reporter.username if task.reporter else 'reporter'}) can approve and mark this task as Done.")
+                return redirect('projects:task_detail', task_id=task.id)
+
+            old_status = task.status
+            comment = (request.POST.get('status_comment') or request.POST.get('review_comment') or '').strip()
+            if old_status != new_status:
+                task.status = new_status
+                if new_status == 'DONE':
+                    task.completed_at = timezone.now()
+                    task.is_escalated = False
+                    task.overdue_escalated_at = None
+                elif old_status == 'DONE' and new_status != 'DONE':
+                    task.completed_at = None
+                task.save()
+
+                if new_status == 'IN_REVIEW':
+                    action = 'SUBMIT_REVIEW'
+                    if not comment:
+                        comment = "Submitted task for QA & Management review."
+                elif new_status == 'DONE':
+                    action = 'APPROVED_DONE'
+                    if not comment:
+                        comment = "Task approved and marked as Completed."
+                elif new_status == 'REJECTED':
+                    action = 'REJECTED'
+                    if not comment:
+                        comment = "Task rejected / changes requested."
+                else:
+                    action = 'STATUS_CHANGE'
+
+                TaskAuditLog.objects.create(
+                    company=company,
+                    task=task,
+                    user=request.user,
+                    action=action,
+                    from_status=old_status,
+                    to_status=new_status,
+                    comment=comment
+                )
+                notify_task_status_changed(task, old_status, new_status, user=request.user, comment=comment)
+                messages.success(request, f"Task status transitioned to {task.get_status_display()}.")
+            elif comment:
+                TaskAuditLog.objects.create(
+                    company=company,
+                    task=task,
+                    user=request.user,
+                    action='STATUS_CHANGE',
+                    from_status=old_status,
+                    to_status=old_status,
+                    comment=comment
+                )
+                notify_task_status_changed(task, old_status, old_status, user=request.user, comment=comment)
+                messages.success(request, "Activity note recorded in task audit trail.")
 
         hours = request.POST.get('hours_spent')
         desc = request.POST.get('log_description')
@@ -494,13 +649,27 @@ def task_detail(request, task_id):
                 hours_spent=Decimal(hours),
                 description=desc
             )
+            TaskAuditLog.objects.create(
+                company=company,
+                task=task,
+                user=request.user,
+                action='WORK_LOGGED',
+                comment=f"Logged {hours} hours: {desc}"
+            )
+            notify_work_logged(task, user=request.user, hours=hours, description=desc)
             messages.success(request, f"Logged {hours} hours on {task.task_number}.")
 
         return redirect('projects:task_detail', task_id=task.id)
 
+    check_and_escalate_overdue_tasks(company=company, project=task.project)
+
     return render(request, 'projects/task_detail.html', {
         'task': task,
-        'work_logs': task.work_logs.all(),
+        'work_logs': task.work_logs.select_related('user', 'user__employee_profile').all(),
+        'audit_logs': task.audit_logs.select_related('user', 'user__employee_profile').all(),
+        'can_complete': can_complete,
+        'is_assigned': is_assigned,
+        'can_change_status': can_change_status,
         'active_tab': 'projects',
         'active_sub': 'tasks'
     })
@@ -533,7 +702,12 @@ def conversations(request):
             messages.error(request, "Access Denied: You are not an assigned team member of this project conversation.")
             active_project = projects.first()
     else:
-        active_project = projects.first()
+        active_project = None
+
+    # Permissions for entity distribution
+    can_view_invoices = admin_user or (membership and membership.has_permission('invoicing', 'view'))
+    can_view_leads = admin_user or (membership and membership.has_permission('crm', 'view'))
+    can_view_tasks = admin_user or (active_project and can_access_project(request.user, membership, active_project))
 
     if request.method == 'POST':
         if not active_project:
@@ -542,8 +716,25 @@ def conversations(request):
 
         text = request.POST.get('message_text')
         entity_type = request.POST.get('entity_type', 'NONE')
-        entity_id = request.POST.get('entity_id', '')
-        entity_label = request.POST.get('entity_label', '')
+        entity_id = request.POST.get('entity_id', '').strip()
+        entity_label = request.POST.get('entity_label', '').strip()
+
+        # Enforce permission checks on POST linking as well
+        if entity_type == 'TASK' and not can_view_tasks:
+            entity_type = 'NONE'
+            entity_id = ''
+            entity_label = ''
+        elif entity_type == 'INVOICE' and not can_view_invoices:
+            entity_type = 'NONE'
+            entity_id = ''
+            entity_label = ''
+        elif entity_type == 'LEAD' and not can_view_leads:
+            entity_type = 'NONE'
+            entity_id = ''
+            entity_label = ''
+        elif entity_type == 'NONE':
+            entity_id = ''
+            entity_label = ''
 
         if text:
             msg = ProjectMessage.objects.create(
@@ -557,14 +748,224 @@ def conversations(request):
             messages.success(request, "Message sent.")
             return redirect(f"{request.path}?project_id={active_project.id}")
 
-    chat_messages = active_project.messages.all() if active_project else []
+    if active_project:
+        check_and_escalate_overdue_tasks(company=company, project=active_project)
+
+    chat_messages = active_project.messages.select_related('sender', 'sender__employee_profile').all() if active_project else []
 
     return render(request, 'projects/conversations.html', {
         'projects': projects,
         'active_project': active_project,
         'chat_messages': chat_messages,
         'is_admin': admin_user,
+        'can_view_invoices': can_view_invoices,
+        'can_view_leads': can_view_leads,
+        'can_view_tasks': can_view_tasks,
         'active_tab': 'chat',
         'active_sub': 'chat'
     })
+
+
+@login_required
+def task_lookup(request, task_number):
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    task = get_object_or_404(Task, company=company, task_number=task_number)
+    if not admin_user and not can_access_project(request.user, membership, task.project):
+        messages.error(request, "Permission Denied: Only project team members and admins can access this task.")
+        return redirect('projects:project_list')
+    return redirect('projects:task_detail', task_id=task.id)
+
+
+@login_required
+def invoice_lookup(request, invoice_number):
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    if not admin_user and not (membership and membership.has_permission('invoicing', 'view')):
+        messages.error(request, "Permission Denied: You do not have permission to view invoices.")
+        return redirect('projects:conversations')
+
+    invoice = get_object_or_404(Invoice, company=company, invoice_number=invoice_number)
+    return redirect('invoicing:invoice_detail', invoice_id=invoice.id)
+
+
+@login_required
+def lead_lookup(request, lead_number):
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    if not admin_user and not (membership and membership.has_permission('crm', 'view')):
+        messages.error(request, "Permission Denied: You do not have permission to view CRM leads.")
+        return redirect('projects:conversations')
+
+    lead = get_object_or_404(Lead, company=company, lead_number=lead_number)
+    return redirect('crm:lead_detail', lead_id=lead.id)
+
+
+@login_required
+def api_entity_search(request):
+    """
+    Search and paginated delivery of tasks, leads, or invoices for automated chat entity linking.
+    Permission rules:
+      - TASK: Distributed ONLY to project team members and admins.
+      - INVOICE: Distributed ONLY if user has specific 'invoicing:view' permission or is admin.
+      - LEAD: Distributed ONLY if user has specific 'crm:view' permission or is admin.
+    """
+    company = request.company
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    entity_type = request.GET.get('entity_type', '').upper().strip()
+    project_id = request.GET.get('project_id', '').strip()
+    q = request.GET.get('q', '').strip()
+    
+    try:
+        page = max(1, int(request.GET.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+        
+    try:
+        page_size = max(1, min(50, int(request.GET.get('page_size', 10))))
+    except (ValueError, TypeError):
+        page_size = 10
+
+    offset = (page - 1) * page_size
+    results = []
+    total_count = 0
+
+    if entity_type == 'TASK':
+        # Tasks will distribute ONLY to team members and admin
+        if not project_id:
+            return JsonResponse({
+                'results': [],
+                'page': page,
+                'has_more': False,
+                'total': 0,
+                'error': 'Project ID required to distribute tasks.'
+            }, status=400)
+
+        project = Project.objects.filter(company=company, id=project_id).first()
+        if not project:
+            return JsonResponse({
+                'results': [],
+                'page': page,
+                'has_more': False,
+                'total': 0,
+                'error': 'Project not found.'
+            }, status=404)
+
+        if not admin_user and not can_access_project(request.user, membership, project):
+            return JsonResponse({
+                'results': [],
+                'page': page,
+                'has_more': False,
+                'total': 0,
+                'error': 'Permission Denied: Tasks are distributed only to project team members and admins.'
+            }, status=403)
+
+        qs = Task.objects.filter(company=company, project=project)
+        if q:
+            qs = qs.filter(Q(task_number__icontains=q) | Q(title__icontains=q))
+        
+        qs = qs.order_by('-created_at', '-id')
+        total_count = qs.count()
+        tasks = qs[offset:offset + page_size]
+        
+        for task in tasks:
+            results.append({
+                'id': task.task_number,
+                'number': task.task_number,
+                'title': task.title,
+                'label': f"{task.task_number} — {task.title}",
+                'status': task.get_status_display(),
+                'priority': task.priority,
+                'subtitle': f"Status: {task.get_status_display()} | Priority: {task.priority}",
+                'badge': task.status,
+            })
+
+    elif entity_type == 'LEAD':
+        # Specific permission check for leads
+        can_leads = admin_user or (membership and membership.has_permission('crm', 'view'))
+        if not can_leads:
+            return JsonResponse({
+                'results': [],
+                'page': page,
+                'has_more': False,
+                'total': 0,
+                'error': 'Permission Denied: Specific CRM Lead permission required.'
+            }, status=403)
+
+        qs = Lead.objects.filter(company=company)
+        if q:
+            qs = qs.filter(
+                Q(lead_number__icontains=q) |
+                Q(company_name__icontains=q) |
+                Q(contact_person__icontains=q) |
+                Q(phone__icontains=q)
+            )
+        qs = qs.order_by('-created_at', '-id')
+        total_count = qs.count()
+        leads = qs[offset:offset + page_size]
+        
+        for lead in leads:
+            results.append({
+                'id': lead.lead_number,
+                'number': lead.lead_number,
+                'title': f"{lead.company_name} ({lead.contact_person})",
+                'label': f"{lead.lead_number} — {lead.company_name}",
+                'status': lead.get_status_display(),
+                'priority': lead.priority,
+                'subtitle': f"{lead.contact_person} | Status: {lead.get_status_display()} | Est: ₹{lead.estimated_value}",
+                'badge': lead.status,
+            })
+
+    elif entity_type == 'INVOICE':
+        # Specific permission check for invoices
+        can_invoices = admin_user or (membership and membership.has_permission('invoicing', 'view'))
+        if not can_invoices:
+            return JsonResponse({
+                'results': [],
+                'page': page,
+                'has_more': False,
+                'total': 0,
+                'error': 'Permission Denied: Specific Invoicing permission required.'
+            }, status=403)
+
+        qs = Invoice.objects.filter(company=company).select_related('customer')
+        if q:
+            qs = qs.filter(
+                Q(invoice_number__icontains=q) |
+                Q(customer__name__icontains=q)
+            )
+        qs = qs.order_by('-date', '-invoice_number')
+        total_count = qs.count()
+        invoices = qs[offset:offset + page_size]
+        
+        for inv in invoices:
+            results.append({
+                'id': inv.invoice_number,
+                'number': inv.invoice_number,
+                'title': f"{inv.customer.name} — ₹{inv.grand_total}",
+                'label': f"{inv.invoice_number} — {inv.customer.name}",
+                'status': inv.get_status_display(),
+                'subtitle': f"Customer: {inv.customer.name} | Total: ₹{inv.grand_total} | Due: ₹{inv.balance_due}",
+                'badge': inv.status,
+            })
+
+    has_more = (offset + len(results)) < total_count
+
+    return JsonResponse({
+        'results': results,
+        'page': page,
+        'has_more': has_more,
+        'total': total_count
+    })
+
+
+
 

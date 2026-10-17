@@ -170,7 +170,7 @@
         }
     </style>
 </head>
-<body x-data="{ sidebarOpen: true, mobileMenuOpen: false, commandOpen: false, drawerOpen: false }" class="bg-[#090d12] text-slate-100 h-screen overflow-hidden flex">
+<body x-data="{ sidebarOpen: {% if active_tab == 'chat' %}false{% else %}true{% endif %}, mobileMenuOpen: false, commandOpen: false, drawerOpen: false }" class="bg-[#090d12] text-slate-100 h-screen overflow-hidden flex">
 
     <!-- Floating Toast Notifications Container -->
     {% if messages %}

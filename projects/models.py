@@ -81,6 +81,7 @@ class Task(models.Model):
         ('IN_PROGRESS', 'In Progress'),
         ('IN_REVIEW', 'In Review'),
         ('BLOCKED', 'Blocked'),
+        ('REJECTED', 'Rejected'),
         ('DONE', 'Done'),
     )
 
@@ -107,9 +108,11 @@ class Task(models.Model):
     priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='MEDIUM')
     
     estimated_hours = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'))
-    start_date = models.DateField(null=True, blank=True)
-    due_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    due_date = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    is_escalated = models.BooleanField(default=False)
+    overdue_escalated_at = models.DateTimeField(null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -120,6 +123,13 @@ class Task(models.Model):
 
     def __str__(self):
         return f"{self.task_number}: {self.title} [{self.status}]"
+
+    @property
+    def is_overdue(self):
+        if self.status != 'DONE' and self.due_date:
+            from django.utils import timezone
+            return self.due_date < timezone.now()
+        return False
 
     def total_actual_hours(self):
         return sum((wl.hours_spent for wl in self.work_logs.all()), Decimal('0.00'))
@@ -158,8 +168,16 @@ class ProjectMessage(models.Model):
         ('CUSTOMER', 'Customer'),
     )
 
+    MESSAGE_TYPE_CHOICES = (
+        ('CHAT', 'Chat Message'),
+        ('TASK_UPDATE', 'Task Update'),
+        ('ESCALATION', 'Overdue Escalation'),
+        ('PROJECT_UPDATE', 'Project Update'),
+    )
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='messages')
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='project_messages')
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='project_messages')
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPE_CHOICES, default='CHAT')
     message_text = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies')
     
@@ -175,3 +193,31 @@ class ProjectMessage(models.Model):
 
     def __str__(self):
         return f"Message by {self.sender.username} in {self.project.code} at {self.created_at.strftime('%H:%M')}"
+
+
+class TaskAuditLog(models.Model):
+    ACTION_CHOICES = (
+        ('STATUS_CHANGE', 'Status Changed'),
+        ('SUBMIT_REVIEW', 'Submitted for Review'),
+        ('APPROVED_DONE', 'Approved & Marked Done'),
+        ('REJECTED', 'Review Rejected / Changes Requested'),
+        ('WORK_LOGGED', 'Work Effort Logged'),
+        ('CREATED', 'Task Created'),
+        ('UPDATED', 'Task Updated'),
+    )
+
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='task_audit_logs')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='audit_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='task_audit_entries')
+    action = models.CharField(max_length=30, choices=ACTION_CHOICES, default='STATUS_CHANGE')
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status = models.CharField(max_length=20, blank=True)
+    comment = models.TextField(blank=True, help_text="Reason, feedback, or submission notes")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} {self.action} on {self.task.task_number} at {self.created_at}"
+

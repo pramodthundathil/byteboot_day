@@ -2,25 +2,27 @@
 
 {% block content %}
 <div class="h-[calc(100vh-100px)] -m-6 flex overflow-hidden bg-[#0b141a]">
-    <!-- Left Project Chat List Column (Team Chat Style) -->
-    <div class="w-80 bg-[#111b21] border-r border-white/10 flex flex-col">
+    <!-- Left Project Chat List Column (Team Chat Style, Collapsible) -->
+    <div id="projectListColumn" class="w-80 bg-[#111b21] border-r border-white/10 flex flex-col shrink-0 transition-all duration-200">
         <div class="p-4 border-b border-white/10 flex justify-between items-center">
             <h2 class="text-base font-bold text-gray-100 flex items-center gap-2">
                 <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i>
-                Project Chats
+                Project Team Chats
             </h2>
-            <span class="text-xs bg-sky-950 text-sky-400 border border-sky-800 px-2 py-0.5 rounded">Byteboot Chat</span>
+            <button type="button" id="collapseSideListBtn" onclick="toggleSideProjectList()" class="p-1.5 text-gray-400 hover:text-white hover:bg-[#202c33] rounded-lg transition" title="Hide Project List">
+                <i data-lucide="panel-left-close" class="w-4 h-4"></i>
+            </button>
         </div>
 
         <div class="p-3">
-            <input type="text" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a0da]">
+            <input type="text" id="projectSearchInput" onkeyup="filterProjectList()" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a0da]">
         </div>
 
         <!-- Project List Items -->
-        <div class="flex-1 overflow-y-auto flex flex-col">
+        <div class="flex-1 overflow-y-auto flex flex-col" id="projectListContainer">
             {% for prj in projects %}
-            <a href="?project_id={{ prj.id }}" class="flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a0da]{% endif %}">
-                <div class="w-10 h-10 rounded-full bg-sky-700 flex items-center justify-center font-bold text-xs text-white">
+            <a href="?project_id={{ prj.id }}" data-project-id="{{ prj.id }}" class="project-chat-item flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if active_project and prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a0da]{% endif %}">
+                <div class="w-10 h-10 rounded-full bg-sky-700 flex items-center justify-center font-bold text-xs text-white shrink-0">
                     {{ prj.code|slice:":3" }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -28,7 +30,7 @@
                         <h4 class="text-xs font-bold text-gray-100 truncate">{{ prj.name }}</h4>
                         <span class="text-[10px] text-gray-500 font-mono">{{ prj.code }}</span>
                     </div>
-                    <p class="text-[11px] text-gray-400 truncate mt-0.5">{{ prj.description|default:"Team conversation room" }}</p>
+                    <p class="text-[11px] text-gray-400 truncate mt-0.5 project-last-message">{{ prj.description|default:"Team conversation room" }}</p>
                 </div>
             </a>
             {% empty %}
@@ -41,47 +43,110 @@
     </div>
 
     <!-- Right Workspace Chat Area -->
-    <div class="flex-1 flex flex-col bg-[#0b141a] relative">
+    <div class="flex-1 flex flex-col bg-[#0b141a] relative min-w-0">
         {% if active_project %}
         <!-- Chat Room Header -->
-        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-[#00a0da] flex items-center justify-center text-xs font-bold text-white">
+        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-3 min-w-0">
+                <button type="button" id="expandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-gray-400 hover:text-[#00a0da] hover:bg-[#202c33] rounded-lg transition mr-1" title="Show Project List">
+                    <i data-lucide="panel-left-open" class="w-4 h-4"></i>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-[#00a0da] flex items-center justify-center text-xs font-bold text-white shrink-0">
                     {{ active_project.code|slice:":3" }}
                 </div>
-                <div>
-                    <h3 class="text-sm font-bold text-gray-100">{{ active_project.name }}</h3>
-                    <p class="text-[11px] text-gray-400 font-mono">{{ active_project.code }} | Manager: {{ active_project.manager.username }}</p>
+                <div class="min-w-0">
+                    <h3 class="text-sm font-bold text-gray-100 truncate">{{ active_project.name }}</h3>
+                    <p class="text-[11px] text-gray-400 font-mono truncate">
+                        {{ active_project.code }} • Manager: {% if active_project.manager %}{{ active_project.manager.username }}{% else %}Unassigned{% endif %}
+                    </p>
                 </div>
             </div>
-            <a href="{% url 'projects:project_detail' active_project.id %}" class="btn-secondary text-xs py-1 px-3">View Project Board</a>
+            <div class="flex items-center gap-2 shrink-0">
+                <a href="{% url 'projects:task_create' %}?project_id={{ active_project.id }}" class="btn-primary text-xs py-1 px-2.5 flex items-center gap-1">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Task
+                </a>
+                <a href="{% url 'projects:project_detail' active_project.id %}" class="btn-secondary text-xs py-1 px-3">View Project Board</a>
+            </div>
         </div>
 
         <!-- Chat Feed Messages -->
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4" id="chatFeed">
             {% for msg in chat_messages %}
-            <div class="flex flex-col {% if msg.sender == request.user %}items-end{% else %}items-start{% endif %}">
-                <div class="text-[10px] text-gray-400 mb-1 px-1">{{ msg.sender.username }} • {{ msg.created_at|date:"H:i" }}</div>
-                <div class="max-w-md p-3 rounded-xl text-xs shadow {% if msg.sender == request.user %}bg-[#008ec2] text-white rounded-tr-none{% else %}bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10{% endif %}">
-                    <div>{{ msg.message_text }}</div>
+            <div class="flex flex-col {% if msg.message_type == 'CHAT' and msg.sender == request.user %}items-end{% else %}items-start{% endif %}">
+                <!-- Message Sender & Time Header -->
+                <div class="text-[10px] text-gray-400 mb-1 px-1 flex items-center gap-1.5">
+                    <span class="font-semibold text-slate-300">
+                        {% if msg.message_type == 'ESCALATION' %}
+                            <span class="text-rose-400 flex items-center gap-1 font-bold">
+                                <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400"></i>
+                                Task Escalation Alert
+                            </span>
+                        {% elif msg.message_type == 'TASK_UPDATE' %}
+                            <span class="text-sky-400 flex items-center gap-1 font-bold">
+                                <i data-lucide="bot" class="w-3 h-3 text-sky-400"></i>
+                                Task Notification
+                            </span>
+                        {% elif msg.message_type == 'PROJECT_UPDATE' %}
+                            <span class="text-blue-400 flex items-center gap-1 font-bold">
+                                <i data-lucide="megaphone" class="w-3 h-3 text-blue-400"></i>
+                                Project Update
+                            </span>
+                        {% elif msg.sender.employee_profile %}
+                            {{ msg.sender.employee_profile.full_name }}
+                        {% elif msg.sender.get_full_name %}
+                            {{ msg.sender.get_full_name }}
+                        {% elif msg.sender %}
+                            {{ msg.sender.username }}
+                        {% else %}
+                            System
+                        {% endif %}
+                    </span>
+                    <span>•</span>
+                    <span class="font-mono text-gray-500">{{ msg.created_at|date:"H:i" }}</span>
+                </div>
+
+                <!-- Chat Message Bubble with tailored color -->
+                <div class="max-w-md p-3 rounded-xl text-xs shadow 
+                    {% if msg.message_type == 'ESCALATION' %}
+                        bg-[#381119] text-rose-100 border border-rose-700/70 rounded-tl-none
+                    {% elif msg.message_type == 'TASK_UPDATE' %}
+                        {% if 'Approved' in msg.message_text or 'DONE' in msg.message_text %}
+                            bg-[#0d2e1c] text-emerald-100 border border-emerald-700/70 rounded-tl-none
+                        {% elif 'Review' in msg.message_text or 'IN_REVIEW' in msg.message_text %}
+                            bg-[#26133b] text-purple-100 border border-purple-700/70 rounded-tl-none
+                        {% elif 'Rejected' in msg.message_text or 'REJECTED' in msg.message_text or 'Blocked' in msg.message_text %}
+                            bg-[#361719] text-rose-100 border border-rose-700/70 rounded-tl-none
+                        {% else %}
+                            bg-[#102738] text-sky-100 border border-sky-700/70 rounded-tl-none
+                        {% endif %}
+                    {% elif msg.message_type == 'PROJECT_UPDATE' %}
+                        bg-[#142038] text-blue-100 border border-blue-700/70 rounded-tl-none
+                    {% elif msg.sender == request.user %}
+                        bg-[#008ec2] text-white rounded-tr-none
+                    {% else %}
+                        bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10
+                    {% endif %}">
+                    
+                    <!-- Message Body -->
+                    <div class="whitespace-pre-line leading-relaxed">{{ msg.message_text }}</div>
 
                     <!-- Entity Tag Link (Clicking opens item detail) -->
                     {% if msg.related_entity_type != 'NONE' and msg.related_entity_id %}
-                    <div class="mt-2 pt-2 border-t border-white/20 flex items-center gap-2">
-                        <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded">
+                    <div class="mt-2 pt-2 border-t border-white/15 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded font-mono">
                             🔗 Linked {{ msg.related_entity_type }}
                         </span>
                         {% if msg.related_entity_type == 'TASK' %}
-                        <a href="{% url 'projects:task_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
-                            #{{ msg.related_entity_id }}
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-sky-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% elif msg.related_entity_type == 'INVOICE' %}
-                        <a href="{% url 'invoicing:invoice_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
-                            #{{ msg.related_entity_id }}
+                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% elif msg.related_entity_type == 'LEAD' %}
-                        <a href="{% url 'crm:lead_list' %}" class="text-sky-300 font-mono font-bold hover:underline">
-                            #{{ msg.related_entity_id }}
+                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-amber-300 font-mono font-bold hover:underline">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% endif %}
                     </div>
@@ -89,37 +154,672 @@
                 </div>
             </div>
             {% empty %}
-            <div class="my-auto text-center text-gray-500 text-xs">No team messages sent in {{ active_project.code }} yet. Start the conversation below!</div>
+            <div id="chatEmptyState" class="my-auto text-center text-gray-500 text-xs">
+                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
+                    <i data-lucide="messages-square" class="w-6 h-6"></i>
+                </div>
+                No team messages in {{ active_project.code }} yet.
+            </div>
             {% endfor %}
         </div>
 
-        <!-- Chat Input Form with Entity Link Dropdown -->
-        <div class="p-4 bg-[#111b21] border-t border-white/10">
-            <form method="POST" class="flex flex-col gap-2">
+        <!-- Chat Input Form with Automated Entity Link Dropdown -->
+        <div class="p-4 bg-[#111b21] border-t border-white/10 shrink-0">
+            <form method="POST" class="flex flex-col gap-2.5" id="chatMessageForm">
                 {% csrf_token %}
-                <div class="flex items-center gap-2">
-                    <select name="entity_type" class="bg-[#202c33] text-gray-300 text-xs rounded border border-white/10 px-2 py-1 outline-none">
-                        <option value="NONE">No Entity Link</option>
-                        <option value="TASK">Link Task (#TSK)</option>
-                        <option value="INVOICE">Link Invoice (#INV)</option>
-                        <option value="LEAD">Link Lead (#LD)</option>
-                    </select>
-                    <input type="text" name="entity_id" placeholder="Entity ID (e.g. TSK-501)" class="bg-[#202c33] text-gray-300 text-xs rounded border border-white/10 px-2 py-1 outline-none w-40">
+                
+                <!-- Entity Linking Bar -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex items-center gap-1.5 bg-[#202c33] text-gray-300 text-xs rounded-lg border border-white/10 px-2.5 py-1.5">
+                        <span class="text-gray-400">🔗 Link:</span>
+                        <select name="entity_type" id="entityTypeSelect" class="bg-transparent text-gray-200 text-xs outline-none cursor-pointer font-medium">
+                            <option value="NONE" class="bg-[#202c33] text-gray-300">No Entity Link</option>
+                            {% if can_view_tasks %}
+                            <option value="TASK" class="bg-[#202c33] text-sky-300">Task (#TSK)</option>
+                            {% endif %}
+                            {% if can_view_leads %}
+                            <option value="LEAD" class="bg-[#202c33] text-amber-300">Lead (#LD)</option>
+                            {% endif %}
+                            {% if can_view_invoices %}
+                            <option value="INVOICE" class="bg-[#202c33] text-emerald-300">Invoice (#INV)</option>
+                            {% endif %}
+                        </select>
+                    </div>
+
+                    <!-- Hidden fields holding chosen entity -->
+                    <input type="hidden" name="entity_id" id="selectedEntityId" value="">
+                    <input type="hidden" name="entity_label" id="selectedEntityLabel" value="">
+
+                    <!-- Automated Dropdown Wrapper (Shown when entity_type != 'NONE') -->
+                    <div id="entityDropdownWrapper" class="relative hidden flex-1 min-w-[260px] max-w-lg">
+                        
+                        <!-- Search & Input Box -->
+                        <div id="entitySearchBoxContainer" class="relative w-full">
+                            <div class="flex items-center bg-[#202c33] border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus-within:border-sky-500 transition-colors shadow-sm">
+                                <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 mr-2 shrink-0"></i>
+                                <input type="text" id="entitySearchInput" autocomplete="off" placeholder="Search tasks..." class="bg-transparent w-full outline-none text-xs text-gray-100 placeholder-gray-500 font-normal">
+                                <button type="button" id="entityDropdownToggleBtn" class="text-gray-400 hover:text-gray-200 ml-1.5 px-1 py-0.5 text-[10px] shrink-0" title="Toggle list">▼</button>
+                            </div>
+
+                            <!-- Popover Dropdown with 10-Item Infinite Scroll (Floats upward) -->
+                            <div id="entityDropdownMenu" class="absolute bottom-full mb-2 left-0 w-full md:w-[420px] max-h-64 overflow-y-auto bg-[#182229] border border-white/15 rounded-xl shadow-2xl z-50 hidden divide-y divide-white/5 scrollbar-thin">
+                                <div class="p-2.5 bg-[#111b21] sticky top-0 border-b border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium z-10">
+                                    <span id="entityDropdownHeader" class="font-semibold text-gray-300">Select Entity</span>
+                                    <span id="entityCountBadge" class="text-[10px] font-mono text-sky-400 bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-800/40"></span>
+                                </div>
+                                <div id="entityItemsList" class="divide-y divide-white/5"></div>
+                                <div id="entityLoadingIndicator" class="p-2.5 text-center text-xs text-sky-400 hidden flex items-center justify-center gap-2 bg-[#182229]">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    <span class="text-[11px]">Loading 10 more...</span>
+                                </div>
+                                <div id="entityEmptyState" class="p-4 text-center text-xs text-gray-400 hidden">
+                                    No matching items found
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Entity Tag Badge (Displayed once an item is chosen) -->
+                        <div id="entitySelectedBadgeContainer" class="hidden flex items-center gap-2 bg-[#102738] border border-sky-500/50 text-sky-200 px-3 py-1.5 rounded-lg text-xs shadow-sm w-full justify-between">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-[10px] uppercase font-bold text-sky-300 bg-sky-900/60 px-1.5 py-0.5 rounded font-mono" id="entitySelectedTypeBadge">TASK</span>
+                                <span class="font-mono font-semibold text-sky-100 truncate text-xs" id="entitySelectedDisplayLabel">TSK-501 — Task Title</span>
+                            </div>
+                            <button type="button" id="entityClearSelectionBtn" title="Remove linked entity" class="text-sky-400 hover:text-rose-400 text-sm font-bold px-1 transition-colors">✕</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex gap-2">
-                    <input type="text" name="message_text" placeholder="Type a message to project team..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a0da]" required autofocus>
-                    <button type="submit" class="btn-primary px-5">Send</button>
+                    <input type="text" id="chatMessageInput" name="message_text" placeholder="Type a message to project team (use @username to mention)..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a0da]" required autofocus>
+                    <button type="submit" id="chatSubmitBtn" class="btn-primary px-5">Send</button>
                 </div>
             </form>
         </div>
         {% else %}
-        <div class="m-auto text-center text-gray-500 text-sm max-w-sm p-6">
-            <div class="w-12 h-12 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center mx-auto mb-3 text-xl text-gray-400">🔒</div>
-            <h4 class="text-sm font-bold text-gray-300 mb-1">No Accessible Project Conversation</h4>
-            <p class="text-xs text-gray-500 leading-relaxed">Only assigned team members can access project chat rooms. Select an assigned room on the left to start messaging.</p>
+        <!-- Blank Initial WhatsApp Desktop Style Focus Area -->
+        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center shrink-0">
+            <button type="button" id="blankExpandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-gray-400 hover:text-[#00a0da] hover:bg-[#202c33] rounded-lg transition mr-2" title="Show Project List">
+                <i data-lucide="panel-left-open" class="w-4 h-4"></i>
+            </button>
+            <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-[#00a0da]"></i>
+                Team Chat Workspace
+            </span>
+        </div>
+        <div class="m-auto text-center max-w-md p-8 flex flex-col items-center">
+            <div class="w-20 h-20 rounded-full bg-[#111b21] border border-white/10 flex items-center justify-center mb-4 text-[#00a0da] shadow-2xl">
+                <i data-lucide="messages-square" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-100 mb-2">Byteboot Team Chat</h3>
+            <p class="text-xs text-gray-400 leading-relaxed mb-4 max-w-sm">
+                Select a project discussion from the left to view conversations, collaborate with assigned team members, and track real-time project updates.
+            </p>
+            <div class="flex items-center gap-2 text-[11px] text-gray-500 font-mono bg-[#111b21] px-3 py-1.5 rounded-full border border-white/5">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>Multi-Tenant Enterprise Isolation</span>
+            </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<script>
+function filterProjectList() {
+    const q = document.getElementById('projectSearchInput').value.toLowerCase();
+    const items = document.querySelectorAll('.project-chat-item');
+    items.forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(q) ? 'flex' : 'none';
+    });
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+// Option to hide/show the side project list
+function toggleSideProjectList() {
+    const listCol = document.getElementById('projectListColumn');
+    const expandBtn = document.getElementById('expandSideListBtn');
+    const blankExpandBtn = document.getElementById('blankExpandSideListBtn');
+    if (!listCol) return;
+
+    const isHidden = listCol.classList.contains('hidden');
+    if (isHidden) {
+        listCol.classList.remove('hidden');
+        if (expandBtn) expandBtn.classList.add('hidden');
+        if (blankExpandBtn) blankExpandBtn.classList.add('hidden');
+        localStorage.setItem('sideProjectListHidden', 'false');
+    } else {
+        listCol.classList.add('hidden');
+        if (expandBtn) expandBtn.classList.remove('hidden');
+        if (blankExpandBtn) blankExpandBtn.classList.remove('hidden');
+        localStorage.setItem('sideProjectListHidden', 'true');
+    }
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+}
+
+// Automatically close the secondary sidebar navigation drawer on chat screen
+document.addEventListener('DOMContentLoaded', function() {
+    const body = document.querySelector('body');
+    if (body && body._x_dataStack && body._x_dataStack[0]) {
+        body._x_dataStack[0].sidebarOpen = false;
+    }
+
+    // Restore user preference for side project list if saved
+    if (localStorage.getItem('sideProjectListHidden') === 'true') {
+        const listCol = document.getElementById('projectListColumn');
+        const expandBtn = document.getElementById('expandSideListBtn');
+        const blankExpandBtn = document.getElementById('blankExpandSideListBtn');
+        if (listCol) {
+            listCol.classList.add('hidden');
+            if (expandBtn) expandBtn.classList.remove('hidden');
+            if (blankExpandBtn) blankExpandBtn.classList.remove('hidden');
+        }
+    }
+
+    const collapseBtn = document.getElementById('collapseSideListBtn');
+    if (collapseBtn) {
+        collapseBtn.addEventListener('click', toggleSideProjectList);
+    }
+    const expandBtn = document.getElementById('expandSideListBtn');
+    if (expandBtn) {
+        expandBtn.addEventListener('click', toggleSideProjectList);
+    }
+    const blankExpandBtn = document.getElementById('blankExpandSideListBtn');
+    if (blankExpandBtn) {
+        blankExpandBtn.addEventListener('click', toggleSideProjectList);
+    }
+
+    const feed = document.getElementById('chatFeed');
+    if (feed) {
+        feed.scrollTop = feed.scrollHeight;
+    }
+
+    if (window.lucide) {
+        lucide.createIcons();
+    }
+});
+
+// Automated Entity Linking Dropdown with Live Search & 10-Item Infinite Scroll
+(function() {
+    const entityTypeSelect = document.getElementById('entityTypeSelect');
+    const entityDropdownWrapper = document.getElementById('entityDropdownWrapper');
+    const entitySearchBoxContainer = document.getElementById('entitySearchBoxContainer');
+    const entitySearchInput = document.getElementById('entitySearchInput');
+    const entityDropdownToggleBtn = document.getElementById('entityDropdownToggleBtn');
+    const entityDropdownMenu = document.getElementById('entityDropdownMenu');
+    const entityDropdownHeader = document.getElementById('entityDropdownHeader');
+    const entityCountBadge = document.getElementById('entityCountBadge');
+    const entityItemsList = document.getElementById('entityItemsList');
+    const entityLoadingIndicator = document.getElementById('entityLoadingIndicator');
+    const entityEmptyState = document.getElementById('entityEmptyState');
+    const entitySelectedBadgeContainer = document.getElementById('entitySelectedBadgeContainer');
+    const entitySelectedTypeBadge = document.getElementById('entitySelectedTypeBadge');
+    const entitySelectedDisplayLabel = document.getElementById('entitySelectedDisplayLabel');
+    const entityClearSelectionBtn = document.getElementById('entityClearSelectionBtn');
+    const selectedEntityId = document.getElementById('selectedEntityId');
+    const selectedEntityLabel = document.getElementById('selectedEntityLabel');
+
+    if (!entityTypeSelect) return;
+
+    const activeProjectId = "{{ active_project.id|default:'' }}";
+    const activeProjectCode = "{{ active_project.code|default:'' }}";
+
+    let currentEntityType = 'NONE';
+    let currentPage = 1;
+    let hasMore = false;
+    let isLoading = false;
+    let searchQuery = '';
+    let searchDebounceTimer = null;
+
+    function openDropdownMenu() {
+        entityDropdownMenu.classList.remove('hidden');
+    }
+
+    function closeDropdownMenu() {
+        entityDropdownMenu.classList.add('hidden');
+    }
+
+    function clearSelectedEntity() {
+        selectedEntityId.value = '';
+        selectedEntityLabel.value = '';
+        entitySelectedBadgeContainer.classList.add('hidden');
+        entitySearchBoxContainer.classList.remove('hidden');
+        entitySearchInput.value = '';
+        searchQuery = '';
+    }
+    // Expose globally for WebSocket form reset
+    window.clearSelectedEntity = clearSelectedEntity;
+
+    function updateConfigForType(type) {
+        if (type === 'TASK') {
+            entitySearchInput.placeholder = `Search tasks in ${activeProjectCode}...`;
+            entityDropdownHeader.innerText = `Tasks in ${activeProjectCode}`;
+        } else if (type === 'LEAD') {
+            entitySearchInput.placeholder = 'Search CRM leads (name, company, phone)...';
+            entityDropdownHeader.innerText = 'CRM Leads';
+        } else if (type === 'INVOICE') {
+            entitySearchInput.placeholder = 'Search Invoices (INV-#, customer)...';
+            entityDropdownHeader.innerText = 'Invoices';
+        }
+    }
+
+    async function fetchEntities(reset = false) {
+        if (currentEntityType === 'NONE') return;
+        if (reset) {
+            currentPage = 1;
+            entityItemsList.innerHTML = '';
+            entityEmptyState.classList.add('hidden');
+        }
+        if (isLoading) return;
+
+        isLoading = true;
+        entityLoadingIndicator.classList.remove('hidden');
+
+        let url = `/projects/api/entities/search/?entity_type=${encodeURIComponent(currentEntityType)}&page=${currentPage}&page_size=10&q=${encodeURIComponent(searchQuery)}`;
+        if (currentEntityType === 'TASK' && activeProjectId) {
+            url += `&project_id=${encodeURIComponent(activeProjectId)}`;
+        }
+
+        try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            if (resp.status === 403) {
+                entityEmptyState.innerText = data.error || 'Permission Denied: Access restricted.';
+                entityEmptyState.classList.remove('hidden');
+                entityCountBadge.innerText = 'Restricted';
+                return;
+            }
+
+            hasMore = data.has_more;
+
+            if (reset && (!data.results || data.results.length === 0)) {
+                entityEmptyState.innerText = 'No matching items found';
+                entityEmptyState.classList.remove('hidden');
+                entityCountBadge.innerText = '0 found';
+            } else {
+                entityEmptyState.classList.add('hidden');
+                entityCountBadge.innerText = `${data.total} total`;
+                renderItems(data.results);
+            }
+        } catch (err) {
+            console.error('Error fetching entities:', err);
+        } finally {
+            isLoading = false;
+            entityLoadingIndicator.classList.add('hidden');
+        }
+    }
+
+    function renderItems(items) {
+        if (!items || !items.length) return;
+
+        items.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'p-2.5 hover:bg-[#202c33] cursor-pointer transition-colors flex items-center justify-between gap-3 text-left group';
+
+            let badgeClass = 'bg-white/10 text-gray-300';
+            if (item.badge === 'DONE' || item.badge === 'PAID') {
+                badgeClass = 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/50';
+            } else if (item.badge === 'IN_REVIEW' || item.badge === 'PARTIALLY_PAID') {
+                badgeClass = 'bg-purple-950/80 text-purple-300 border border-purple-700/50';
+            } else if (item.badge === 'OVERDUE' || item.badge === 'BLOCKED' || item.badge === 'LOST') {
+                badgeClass = 'bg-rose-950/80 text-rose-300 border border-rose-700/50';
+            }
+
+            row.innerHTML = `
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono text-sky-400 font-bold text-xs shrink-0">${item.number}</span>
+                        <span class="text-xs text-gray-200 font-medium truncate">${item.title}</span>
+                    </div>
+                    <div class="text-[11px] text-gray-400 truncate mt-0.5">${item.subtitle || ''}</div>
+                </div>
+                <div class="shrink-0">
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${badgeClass}">${item.badge || ''}</span>
+                </div>
+            `;
+
+            row.addEventListener('click', function() {
+                selectEntity(item);
+            });
+
+            entityItemsList.appendChild(row);
+        });
+    }
+
+    function selectEntity(item) {
+        selectedEntityId.value = item.number;
+        selectedEntityLabel.value = item.label;
+
+        entitySelectedTypeBadge.innerText = currentEntityType;
+        entitySelectedDisplayLabel.innerText = item.label;
+
+        entitySearchBoxContainer.classList.add('hidden');
+        entitySelectedBadgeContainer.classList.remove('hidden');
+        closeDropdownMenu();
+    }
+
+    // Entity type change event
+    entityTypeSelect.addEventListener('change', function() {
+        currentEntityType = entityTypeSelect.value;
+        clearSelectedEntity();
+
+        if (currentEntityType === 'NONE') {
+            entityDropdownWrapper.classList.add('hidden');
+            closeDropdownMenu();
+        } else {
+            entityDropdownWrapper.classList.remove('hidden');
+            updateConfigForType(currentEntityType);
+            openDropdownMenu();
+            fetchEntities(true);
+            setTimeout(() => entitySearchInput.focus(), 50);
+        }
+    });
+
+    // Search input typing filter with debounce
+    entitySearchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => {
+            searchQuery = entitySearchInput.value.trim();
+            openDropdownMenu();
+            fetchEntities(true);
+        }, 220);
+    });
+
+    entitySearchInput.addEventListener('focus', function() {
+        if (currentEntityType !== 'NONE') {
+            openDropdownMenu();
+            if (entityItemsList.children.length === 0) {
+                fetchEntities(true);
+            }
+        }
+    });
+
+    entityDropdownToggleBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (entityDropdownMenu.classList.contains('hidden')) {
+            openDropdownMenu();
+            if (entityItemsList.children.length === 0) {
+                fetchEntities(true);
+            }
+        } else {
+            closeDropdownMenu();
+        }
+    });
+
+    // Clear selection
+    entityClearSelectionBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        clearSelectedEntity();
+        openDropdownMenu();
+        fetchEntities(true);
+        setTimeout(() => entitySearchInput.focus(), 50);
+    });
+
+    // Infinite Scroll: distribute 10 numbers each and on scroll give another 10
+    entityDropdownMenu.addEventListener('scroll', function() {
+        const threshold = 25;
+        if (entityDropdownMenu.scrollTop + entityDropdownMenu.clientHeight >= entityDropdownMenu.scrollHeight - threshold) {
+            if (hasMore && !isLoading) {
+                currentPage++;
+                fetchEntities(false);
+            }
+        }
+    });
+
+    // Click outside to close dropdown
+    document.addEventListener('click', function(e) {
+        if (!entityDropdownWrapper.contains(e.target) && e.target !== entityTypeSelect) {
+            closeDropdownMenu();
+        }
+    });
+})();
+
+// Real-Time WebSockets & Channels Integration for Team Chat
+(function() {
+    const activeProjectId = "{{ active_project.id|default:'' }}";
+    if (!activeProjectId) return;
+
+    const currentUserId = {{ request.user.id|default:'null' }};
+    const chatFeed = document.getElementById('chatFeed');
+    const chatForm = document.getElementById('chatMessageForm');
+    const chatMessageInput = document.getElementById('chatMessageInput');
+    const entityTypeSelect = document.getElementById('entityTypeSelect');
+    const selectedEntityId = document.getElementById('selectedEntityId');
+    const selectedEntityLabel = document.getElementById('selectedEntityLabel');
+    const entityDropdownWrapper = document.getElementById('entityDropdownWrapper');
+
+    let chatSocket = null;
+    let reconnectTimer = null;
+    let isConnecting = false;
+
+    function connectWebSocket() {
+        if (isConnecting) return;
+        isConnecting = true;
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${window.location.host}/ws/projects/${activeProjectId}/chat/`;
+
+        try {
+            chatSocket = new WebSocket(wsUrl);
+
+            chatSocket.onopen = function() {
+                isConnecting = false;
+                clearTimeout(reconnectTimer);
+            };
+
+            chatSocket.onmessage = function(e) {
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.type === 'chat_message' && data.message) {
+                        appendMessageToFeed(data.message);
+                    }
+                } catch (err) {
+                    console.error('Error handling WebSocket message:', err);
+                }
+            };
+
+            chatSocket.onclose = function(e) {
+                isConnecting = false;
+                // Attempt reconnect after 2.5s if not closed with authorization error
+                if (e.code !== 4003 && e.code !== 4001) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(connectWebSocket, 2500);
+                }
+            };
+
+            chatSocket.onerror = function(err) {
+                console.error('WebSocket connection error:', err);
+                chatSocket.close();
+            };
+        } catch (err) {
+            isConnecting = false;
+            clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(connectWebSocket, 3000);
+        }
+    }
+
+    function appendMessageToFeed(msg) {
+        if (!chatFeed) return;
+
+        // Remove empty state placeholder if present
+        const emptyState = document.getElementById('chatEmptyState');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        const isMe = (currentUserId !== null && msg.sender_id === currentUserId);
+        const isEscalation = (msg.message_type === 'ESCALATION');
+        const isTaskUpdate = (msg.message_type === 'TASK_UPDATE');
+        const isProjectUpdate = (msg.message_type === 'PROJECT_UPDATE');
+        const isChat = (msg.message_type === 'CHAT');
+
+        const msgContainer = document.createElement('div');
+        msgContainer.className = `flex flex-col ${isChat && isMe ? 'items-end' : 'items-start'}`;
+
+        // Sender header label
+        let senderHtml = '';
+        if (isEscalation) {
+            senderHtml = `
+                <span class="text-rose-400 flex items-center gap-1 font-bold">
+                    <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400"></i>
+                    Task Escalation Alert
+                </span>
+            `;
+        } else if (isTaskUpdate) {
+            senderHtml = `
+                <span class="text-sky-400 flex items-center gap-1 font-bold">
+                    <i data-lucide="bot" class="w-3 h-3 text-sky-400"></i>
+                    Task Notification
+                </span>
+            `;
+        } else if (isProjectUpdate) {
+            senderHtml = `
+                <span class="text-blue-400 flex items-center gap-1 font-bold">
+                    <i data-lucide="megaphone" class="w-3 h-3 text-blue-400"></i>
+                    Project Update
+                </span>
+            `;
+        } else {
+            senderHtml = escapeHtml(msg.sender_name || 'System');
+        }
+
+        // Bubble styling
+        let bubbleClass = '';
+        if (isEscalation) {
+            bubbleClass = 'bg-[#381119] text-rose-100 border border-rose-700/70 rounded-tl-none';
+        } else if (isTaskUpdate) {
+            const text = msg.message_text || '';
+            if (text.includes('Approved') || text.includes('DONE')) {
+                bubbleClass = 'bg-[#0d2e1c] text-emerald-100 border border-emerald-700/70 rounded-tl-none';
+            } else if (text.includes('Review') || text.includes('IN_REVIEW')) {
+                bubbleClass = 'bg-[#26133b] text-purple-100 border border-purple-700/70 rounded-tl-none';
+            } else if (text.includes('Rejected') || text.includes('REJECTED') || text.includes('Blocked')) {
+                bubbleClass = 'bg-[#361719] text-rose-100 border border-rose-700/70 rounded-tl-none';
+            } else {
+                bubbleClass = 'bg-[#102738] text-sky-100 border border-sky-700/70 rounded-tl-none';
+            }
+        } else if (isProjectUpdate) {
+            bubbleClass = 'bg-[#142038] text-blue-100 border border-blue-700/70 rounded-tl-none';
+        } else if (isMe) {
+            bubbleClass = 'bg-[#008ec2] text-white rounded-tr-none';
+        } else {
+            bubbleClass = 'bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10';
+        }
+
+        // Entity link
+        let entityLinkHtml = '';
+        if (msg.related_entity_type && msg.related_entity_type !== 'NONE' && msg.related_entity_id) {
+            let lookupUrl = '#';
+            let linkClass = 'text-sky-300 font-mono font-bold hover:underline';
+            if (msg.related_entity_type === 'TASK') {
+                lookupUrl = `/projects/tasks/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
+                linkClass = 'text-sky-300 font-mono font-bold hover:underline';
+            } else if (msg.related_entity_type === 'INVOICE') {
+                lookupUrl = `/projects/invoices/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
+                linkClass = 'text-emerald-300 font-mono font-bold hover:underline';
+            } else if (msg.related_entity_type === 'LEAD') {
+                lookupUrl = `/projects/leads/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
+                linkClass = 'text-amber-300 font-mono font-bold hover:underline';
+            }
+
+            const labelText = msg.related_entity_label ? ` (${escapeHtml(msg.related_entity_label)})` : '';
+            entityLinkHtml = `
+                <div class="mt-2 pt-2 border-t border-white/15 flex items-center gap-2">
+                    <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded font-mono">
+                        🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                    </span>
+                    <a href="${lookupUrl}" class="${linkClass}">
+                        #${escapeHtml(msg.related_entity_id)}${labelText}
+                    </a>
+                </div>
+            `;
+        }
+
+        msgContainer.innerHTML = `
+            <div class="text-[10px] text-gray-400 mb-1 px-1 flex items-center gap-1.5">
+                <span class="font-semibold text-slate-300">
+                    ${senderHtml}
+                </span>
+                <span>•</span>
+                <span class="font-mono text-gray-500">${escapeHtml(msg.created_at || '')}</span>
+            </div>
+            <div class="max-w-md p-3 rounded-xl text-xs shadow ${bubbleClass}">
+                <div class="whitespace-pre-line leading-relaxed">${escapeHtml(msg.message_text || '')}</div>
+                ${entityLinkHtml}
+            </div>
+        `;
+
+        chatFeed.appendChild(msgContainer);
+        chatFeed.scrollTop = chatFeed.scrollHeight;
+
+        // Render any Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Update preview in left project list item
+        const prjItem = document.querySelector(`.project-chat-item[data-project-id="${msg.project_id}"]`);
+        if (prjItem) {
+            const previewEl = prjItem.querySelector('.project-last-message');
+            if (previewEl) {
+                previewEl.innerText = msg.message_text;
+            }
+        }
+    }
+
+    // Intercept form submit: send via WebSocket if open, else fall back to normal HTTP POST
+    if (chatForm && chatMessageInput) {
+        chatForm.addEventListener('submit', function(e) {
+            if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                e.preventDefault();
+                const text = chatMessageInput.value.trim();
+                if (!text) return;
+
+                const payload = {
+                    action: 'send_message',
+                    message_text: text,
+                    entity_type: entityTypeSelect ? entityTypeSelect.value : 'NONE',
+                    entity_id: selectedEntityId ? selectedEntityId.value.trim() : '',
+                    entity_label: selectedEntityLabel ? selectedEntityLabel.value.trim() : '',
+                };
+
+                chatSocket.send(JSON.stringify(payload));
+
+                // Clear input text
+                chatMessageInput.value = '';
+
+                // Reset entity selection
+                if (entityTypeSelect) {
+                    entityTypeSelect.value = 'NONE';
+                }
+                if (window.clearSelectedEntity) {
+                    window.clearSelectedEntity();
+                }
+                if (entityDropdownWrapper) {
+                    entityDropdownWrapper.classList.add('hidden');
+                }
+
+                chatMessageInput.focus();
+            }
+            // If socket is closed/connecting, allow form to submit normally via HTTP POST fallback!
+        });
+    }
+
+    // Initiate WebSocket connection
+    connectWebSocket();
+})();
+</script>
+
 {% endblock %}

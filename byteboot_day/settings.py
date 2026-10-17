@@ -19,6 +19,7 @@ ALLOWED_HOSTS = ["*"]
 
 # Installed Apps
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -29,6 +30,7 @@ INSTALLED_APPS = [
     # Third party
     "rest_framework",
     "corsheaders",
+    "channels",
     
     # Byteboot Apps
     "tenants",
@@ -77,6 +79,25 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "byteboot_day.wsgi.application"
+ASGI_APPLICATION = "byteboot_day.asgi.application"
+
+# Django Channels layer configuration: Redis if REDIS_URL configured, otherwise in-memory
+REDIS_URL = os.environ.get("REDIS_URL")
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
 
 # Database configuration: PostgreSQL with SQLite fallback for seamless execution
 DB_ENGINE = os.environ.get("DB_ENGINE", "django.db.backends.sqlite3")

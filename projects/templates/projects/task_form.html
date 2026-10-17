@@ -23,14 +23,38 @@
     <form method="POST" class="card">
         {% csrf_token %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="form-group col-span-2">
-                <label class="form-label">Project Context</label>
-                <select name="project_id" class="form-control" required>
-                    <option value="">-- Select Project --</option>
-                    {% for p in projects %}
-                    <option value="{{ p.id }}" {% if selected_project_id and selected_project_id|add:"0" == p.id %}selected{% endif %}>{{ p.code }} - {{ p.name }}</option>
-                    {% endfor %}
-                </select>
+            <!-- Custom Searchable Project Context Dropdown -->
+            <div class="form-group col-span-2 relative" id="projectDropdownContainer">
+                <label class="form-label flex items-center justify-between mb-1.5">
+                    <span class="flex items-center gap-1.5 text-slate-200">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-[#00a0da]"></i>
+                        Project Context
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-mono">Required</span>
+                </label>
+
+                <!-- Hidden Input for Form Submission -->
+                <input type="hidden" name="project_id" id="id_project_id" value="{% if selected_project_id %}{{ selected_project_id }}{% endif %}" required>
+
+                <!-- Searchable Custom Input -->
+                <div class="relative">
+                    <div class="relative flex items-center bg-slate-900 border border-slate-700/80 rounded-lg px-3 py-2 text-xs focus-within:ring-2 focus-within:ring-[#00a0da] focus-within:border-[#00a0da] transition shadow-sm cursor-text" id="projectTriggerBox">
+                        <i data-lucide="folder" class="w-4 h-4 text-[#00a0da] mr-2.5 flex-shrink-0"></i>
+                        <input type="text" id="projectSearchInput" class="w-full bg-transparent border-0 p-0 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-0 text-xs" placeholder="Search or select a project (type name or PRJ code)..." autocomplete="off">
+                        <button type="button" id="btnClearProject" class="hidden text-slate-400 hover:text-slate-200 px-1.5 py-0.5 rounded mr-1" title="Clear selection">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 pointer-events-none transition-transform duration-200" id="projectChevron"></i>
+                    </div>
+
+                    <!-- Floating Dropdown List (hidden by default) -->
+                    <div id="projectDropdownList" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-slate-900 border border-slate-800 rounded-lg max-h-56 overflow-y-auto divide-y divide-slate-800 shadow-2xl z-50">
+                        <div id="projectItemsContainer"></div>
+                        <div id="projectEmptyMessage" class="hidden text-xs text-slate-500 p-3 text-center">
+                            No projects match your search.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="form-group col-span-2">
@@ -38,16 +62,19 @@
                 <input type="text" name="title" class="form-control" required placeholder="e.g. Implement Double-Entry Accounting Engine">
             </div>
 
-            <!-- Custom Searchable Multi-Select Employee Dropdown -->
-            <div class="form-group col-span-2">
-                <div class="flex justify-between items-center mb-1.5">
+            <!-- Custom Searchable Multi-Select Employee Dropdown (10 items on click, infinite scroll) -->
+            <div class="form-group col-span-2 relative" id="employeeDropdownContainer">
+                <div class="flex justify-between items-center mb-1.5 flex-wrap gap-2">
                     <label class="form-label mb-0 flex items-center gap-1.5 text-slate-200">
                         <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i>
                         Assigned Employees & Users
                     </label>
                     <div class="flex items-center gap-2 text-xs">
+                        <span id="assigneeCounterBadge" class="px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold bg-sky-950/60 text-sky-400 border border-sky-800/40">
+                            0 Selected
+                        </span>
                         <button type="button" id="btnSelectAll" class="text-[#00a0da] hover:underline flex items-center gap-1 font-medium">
-                            <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Select All Employees
+                            <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Select All
                         </button>
                         <span class="text-slate-600">|</span>
                         <button type="button" id="btnClearAll" class="text-slate-400 hover:underline">
@@ -58,55 +85,35 @@
 
                 <!-- Selected Assignees Tag Pills Area -->
                 <div id="selectedAssigneesContainer" class="flex flex-wrap gap-1.5 p-2 bg-slate-900 border border-slate-700/60 rounded-t-lg min-h-[44px] items-center">
-                    <span id="noAssigneesText" class="text-xs text-slate-500 italic pl-1">No employees selected. Type name or Employee ID below to search and assign.</span>
+                    <span id="noAssigneesText" class="text-xs text-slate-500 italic pl-1">No employees selected. Click the search bar below to choose team members.</span>
                 </div>
 
-                <!-- Custom Search Input -->
+                <!-- Custom Search Input with Dropdown -->
                 <div class="relative">
                     <div class="relative">
-                        <input type="text" id="employeeSearchInput" placeholder="Type employee name or ID (e.g. EMP-101, Pramod) to filter..." 
+                        <input type="text" id="employeeSearchInput" placeholder="Click or type employee name / ID (e.g. EMP-101) to search..." 
                                class="form-control pl-9 rounded-t-none border-t-0 bg-slate-900 text-xs focus:ring-[#00a0da]" autocomplete="off" />
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none"></i>
+                        <span id="dropdownIndicator" class="absolute right-3 top-2.5 text-[10px] text-slate-400 font-mono pointer-events-none flex items-center gap-1">
+                            <span id="renderedCountLabel">Click to browse</span>
+                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200" id="employeeChevron"></i>
+                        </span>
                     </div>
 
-                    <!-- Scrollable Search Results List -->
-                    <div id="assigneeDropdownList" class="mt-1 bg-slate-900 border border-slate-800 rounded-lg max-h-56 overflow-y-auto divide-y divide-slate-800 shadow-xl">
-                        {% for u in assignable_users %}
-                        <div class="assignee-item p-2.5 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition text-xs select-none"
-                             data-user-id="{{ u.id }}"
-                             data-search-term="{% if u.employee_profile %}{{ u.employee_profile.full_name }} {{ u.employee_profile.employee_id }} {{ u.employee_profile.designation }}{% else %}{{ u.username }} {{ u.get_full_name }}{% endif %}"
-                             data-display-name="{% if u.employee_profile %}{{ u.employee_profile.full_name }}{% elif u.get_full_name %}{{ u.get_full_name }}{% else %}{{ u.username }}{% endif %}"
-                             data-subtitle="{% if u.employee_profile %}{{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}{% else %}User: {{ u.username }}{% endif %}">
-                            <div class="flex items-center gap-2.5">
-                                <div class="item-checkbox-icon w-4 h-4 rounded border border-slate-600 flex items-center justify-center text-white font-bold transition">
-                                    <i data-lucide="check" class="w-3 h-3 hidden check-mark"></i>
-                                </div>
-                                <div>
-                                    <span class="font-semibold text-slate-200 block">
-                                        {% if u.employee_profile %}
-                                            {{ u.employee_profile.full_name }}
-                                        {% elif u.get_full_name %}
-                                            {{ u.get_full_name }}
-                                        {% else %}
-                                            {{ u.username }}
-                                        {% endif %}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 font-mono">
-                                        {% if u.employee_profile %}
-                                            {{ u.employee_profile.employee_id }} • {{ u.employee_profile.designation }}
-                                        {% else %}
-                                            Username: {{ u.username }}
-                                        {% endif %}
-                                    </span>
-                                </div>
-                            </div>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-[#00a0da]">
-                                {% if u.employee_profile %}Employee{% else %}User{% endif %}
-                            </span>
+                    <!-- Floating Dropdown List: Hidden by default, opens on click / focus -->
+                    <div id="assigneeDropdownList" class="hidden absolute left-0 right-0 top-full mt-1 bg-slate-900 border border-slate-800 rounded-b-lg rounded-t-none max-h-60 overflow-y-auto divide-y divide-slate-800 shadow-2xl z-50">
+                        <!-- Items rendered in batches of 10 -->
+                        <div id="assigneeItemsContainer"></div>
+                        
+                        <!-- Scroll loader indicator -->
+                        <div id="assigneeScrollLoader" class="hidden p-2 text-center text-[11px] text-slate-400 font-mono bg-slate-900/90 flex items-center justify-center gap-2">
+                            <i data-lucide="loader" class="w-3.5 h-3.5 animate-spin text-[#00a0da]"></i>
+                            Scroll down to load 10 more...
                         </div>
-                        {% empty %}
-                        <div class="text-xs text-slate-500 p-3">No active employees or users found in company.</div>
-                        {% endfor %}
+                        
+                        <div id="assigneeEmptyMessage" class="hidden text-xs text-slate-500 p-3 text-center">
+                            No active employees or users found matching your search.
+                        </div>
                     </div>
                 </div>
 
@@ -134,14 +141,82 @@
                 </select>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Estimated Hours</label>
-                <input type="number" step="0.5" name="estimated_hours" class="form-control" value="8.0">
-            </div>
+            <!-- Schedule & Effort Calculation Section -->
+            <div class="col-span-2 p-4 rounded-xl bg-slate-900/90 border border-slate-800 shadow-inner">
+                <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-[#00a0da]"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Task Schedule & Effort Estimation</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                        Bidirectional Auto-Calculation
+                    </span>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">Due Date</label>
-                <input type="date" name="due_date" class="form-control">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Start Date & Time -->
+                    <div class="form-group mb-0">
+                        <label for="id_start_date" class="form-label flex items-center justify-between mb-1.5">
+                            <span class="flex items-center gap-1.5 text-slate-200">
+                                <i data-lucide="play-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                Start Date & Time
+                            </span>
+                            <span class="text-[10px] text-slate-500 font-mono">Required</span>
+                        </label>
+                        <input type="datetime-local" id="id_start_date" name="start_date" class="form-control text-xs" required>
+                    </div>
+
+                    <!-- Estimated Hours -->
+                    <div class="form-group mb-0">
+                        <label for="id_estimated_hours" class="form-label flex items-center justify-between mb-1.5">
+                            <span class="flex items-center gap-1.5 text-slate-200">
+                                <i data-lucide="clock" class="w-3.5 h-3.5 text-[#00a0da]"></i>
+                                Estimated Effort (Hours)
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono" id="estDaysBadge">1.0 work day</span>
+                        </label>
+                        <div class="relative">
+                            <input type="number" step="0.25" min="0" id="id_estimated_hours" name="estimated_hours" class="form-control text-xs pr-12 font-mono font-bold text-sky-400" value="8.0" placeholder="e.g. 8.0" required>
+                            <span class="absolute right-3 top-2.5 text-xs text-slate-400 font-mono pointer-events-none">hrs</span>
+                        </div>
+                    </div>
+
+                    <!-- Due Date & Time -->
+                    <div class="form-group mb-0">
+                        <label for="id_due_date" class="form-label flex items-center justify-between mb-1.5">
+                            <span class="flex items-center gap-1.5 text-slate-200">
+                                <i data-lucide="flag" class="w-3.5 h-3.5 text-rose-400"></i>
+                                Due Date & Time
+                            </span>
+                            <span class="text-[10px] text-[#00a0da] font-mono">Target Deadline</span>
+                        </label>
+                        <input type="datetime-local" id="id_due_date" name="due_date" class="form-control text-xs" required>
+                    </div>
+                </div>
+
+                <!-- Quick Effort Presets & Realtime Calculation Info -->
+                <div class="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="text-[11px] text-slate-400 mr-1 font-medium">Quick Presets:</span>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="2">2h</button>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="4">4h (Half Day)</button>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="8">8h (1 Day)</button>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="16">16h (2 Days)</button>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="24">24h (3 Days)</button>
+                        <button type="button" class="btn-preset px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" data-hours="40">40h (1 Week)</button>
+                    </div>
+
+                    <div id="scheduleSummaryPill" class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-300 text-[11px]">
+                        <i data-lucide="info" class="w-3.5 h-3.5 text-[#00a0da]"></i>
+                        <span id="scheduleSummaryText">Type hours or due date to auto-calculate</span>
+                    </div>
+                </div>
+
+                <div id="scheduleWarning" class="hidden mt-2 p-2 rounded bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs flex items-center gap-2">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+                    <span id="scheduleWarningText">Due date and time cannot be earlier than start date and time.</span>
+                </div>
             </div>
 
             <div class="form-group col-span-2">
@@ -162,12 +237,167 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const selectedUsers = new Map(); // id -> { name, subtitle }
-    const searchInput = document.getElementById('employeeSearchInput');
+    // --- DATA STORE: PROJECTS & EMPLOYEES ---
+    const ALL_PROJECTS = [
+        {% for p in projects %}
+        {
+            id: "{{ p.id }}",
+            code: "{{ p.code|escapejs }}",
+            name: "{{ p.name|escapejs }}",
+            searchTerm: "{{ p.code|escapejs }} {{ p.name|escapejs }}".toLowerCase()
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const ALL_EMPLOYEES = [
+        {% for u in assignable_users %}
+        {
+            id: "{{ u.id }}",
+            displayName: "{% if u.employee_profile %}{{ u.employee_profile.full_name|escapejs }}{% elif u.get_full_name %}{{ u.get_full_name|escapejs }}{% else %}{{ u.username|escapejs }}{% endif %}",
+            subtitle: "{% if u.employee_profile %}{{ u.employee_profile.employee_id|escapejs }} • {{ u.employee_profile.designation|escapejs }}{% else %}User: {{ u.username|escapejs }}{% endif %}",
+            empId: "{% if u.employee_profile %}{{ u.employee_profile.employee_id|escapejs }}{% else %}{{ u.username|escapejs }}{% endif %}",
+            isEmployee: {% if u.employee_profile %}true{% else %}false{% endif %},
+            searchTerm: "{% if u.employee_profile %}{{ u.employee_profile.full_name|escapejs }} {{ u.employee_profile.employee_id|escapejs }} {{ u.employee_profile.designation|escapejs }}{% else %}{{ u.username|escapejs }} {{ u.get_full_name|escapejs }}{% endif %}".toLowerCase()
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // --- 1. CUSTOM PROJECT DROPDOWN LOGIC ---
+    const projectContainer = document.getElementById('projectDropdownContainer');
+    const projectIdInput = document.getElementById('id_project_id');
+    const projectSearchInput = document.getElementById('projectSearchInput');
+    const projectDropdownList = document.getElementById('projectDropdownList');
+    const projectItemsContainer = document.getElementById('projectItemsContainer');
+    const projectEmptyMessage = document.getElementById('projectEmptyMessage');
+    const btnClearProject = document.getElementById('btnClearProject');
+    const projectChevron = document.getElementById('projectChevron');
+
+    let selectedProjectId = projectIdInput ? projectIdInput.value : '';
+
+    function renderProjects(query = '') {
+        projectItemsContainer.innerHTML = '';
+        const q = query.toLowerCase().trim();
+        const matches = q 
+            ? ALL_PROJECTS.filter(p => p.searchTerm.includes(q))
+            : ALL_PROJECTS;
+
+        if (matches.length === 0) {
+            projectEmptyMessage.classList.remove('hidden');
+        } else {
+            projectEmptyMessage.classList.add('hidden');
+            matches.forEach(p => {
+                const isSelected = String(p.id) === String(selectedProjectId);
+                const item = document.createElement('div');
+                item.className = `p-2.5 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between text-xs transition ${isSelected ? 'bg-[#00a0da]/15 border-l-2 border-l-[#00a0da]' : ''}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-[#00a0da] text-[11px] px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/60">${escapeHtml(p.code)}</span>
+                        <span class="font-medium text-slate-200">${escapeHtml(p.name)}</span>
+                    </div>
+                    ${isSelected ? '<i data-lucide="check" class="w-4 h-4 text-[#00a0da]"></i>' : ''}
+                `;
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectProject(p);
+                });
+                projectItemsContainer.appendChild(item);
+            });
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function selectProject(project) {
+        selectedProjectId = String(project.id);
+        projectIdInput.value = project.id;
+        projectSearchInput.value = `${project.code} - ${project.name}`;
+        btnClearProject.classList.remove('hidden');
+        closeProjectDropdown();
+    }
+
+    function clearProject() {
+        selectedProjectId = '';
+        projectIdInput.value = '';
+        projectSearchInput.value = '';
+        btnClearProject.classList.add('hidden');
+        renderProjects('');
+        openProjectDropdown();
+        projectSearchInput.focus();
+    }
+
+    function openProjectDropdown() {
+        projectDropdownList.classList.remove('hidden');
+        projectChevron.classList.add('rotate-180');
+        renderProjects(projectSearchInput.value);
+    }
+
+    function closeProjectDropdown() {
+        projectDropdownList.classList.add('hidden');
+        projectChevron.classList.remove('rotate-180');
+        if (selectedProjectId) {
+            const p = ALL_PROJECTS.find(item => String(item.id) === String(selectedProjectId));
+            if (p) projectSearchInput.value = `${p.code} - ${p.name}`;
+        } else {
+            projectSearchInput.value = '';
+        }
+    }
+
+    // Initial Project Selection from context or URL parameter
+    if (selectedProjectId) {
+        const initP = ALL_PROJECTS.find(p => String(p.id) === String(selectedProjectId));
+        if (initP) {
+            projectSearchInput.value = `${initP.code} - ${initP.name}`;
+            btnClearProject.classList.remove('hidden');
+        }
+    }
+
+    projectSearchInput.addEventListener('focus', openProjectDropdown);
+    projectSearchInput.addEventListener('click', openProjectDropdown);
+    projectSearchInput.addEventListener('input', () => {
+        openProjectDropdown();
+        renderProjects(projectSearchInput.value);
+    });
+    btnClearProject.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearProject();
+    });
+
+    // --- 2. CUSTOM EMPLOYEE MULTI-SELECT DROPDOWN (10 ITEMS + INFINITE SCROLL) ---
+    const employeeContainer = document.getElementById('employeeDropdownContainer');
+    const employeeSearchInput = document.getElementById('employeeSearchInput');
+    const assigneeDropdownList = document.getElementById('assigneeDropdownList');
+    const assigneeItemsContainer = document.getElementById('assigneeItemsContainer');
+    const assigneeEmptyMessage = document.getElementById('assigneeEmptyMessage');
+    const assigneeScrollLoader = document.getElementById('assigneeScrollLoader');
+    const renderedCountLabel = document.getElementById('renderedCountLabel');
+    const employeeChevron = document.getElementById('employeeChevron');
+    const assigneeCounterBadge = document.getElementById('assigneeCounterBadge');
+
     const selectedContainer = document.getElementById('selectedAssigneesContainer');
     const noAssigneesText = document.getElementById('noAssigneesText');
     const hiddenInputsContainer = document.getElementById('hiddenInputsContainer');
-    const items = document.querySelectorAll('.assignee-item');
+
+    const selectedUsers = new Map(); // id -> { name, subtitle }
+    let filteredEmployees = ALL_EMPLOYEES.slice();
+    let renderedCount = 0;
+    const BATCH_SIZE = 10;
+    let isEmployeeDropdownOpen = false;
+
+    function updateAssigneeCounterBadge() {
+        if (assigneeCounterBadge) {
+            assigneeCounterBadge.textContent = `${selectedUsers.size} Selected`;
+        }
+    }
 
     function renderTagsAndInputs() {
         selectedContainer.querySelectorAll('.assignee-pill').forEach(el => el.remove());
@@ -181,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const pill = document.createElement('span');
                 pill.className = 'assignee-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#00a0da]/20 border border-[#00a0da]/40 text-[#00a0da] text-xs font-medium shadow-sm';
                 pill.innerHTML = `
-                    <span>${data.name} <small class="text-slate-400 font-mono text-[10px]">(${data.subtitle})</small></span>
+                    <span>${escapeHtml(data.name)} <small class="text-slate-400 font-mono text-[10px]">(${escapeHtml(data.subtitle)})</small></span>
                     <button type="button" class="hover:text-red-400 font-bold ml-1 cursor-pointer" data-remove-id="${id}">✕</button>
                 `;
                 selectedContainer.appendChild(pill);
@@ -194,6 +424,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        updateAssigneeCounterBadge();
+        updateVisibleItemCheckboxes();
+    }
+
+    function updateVisibleItemCheckboxes() {
+        const items = assigneeItemsContainer.querySelectorAll('.assignee-item');
         items.forEach(item => {
             const id = item.getAttribute('data-user-id');
             const checkMark = item.querySelector('.check-mark');
@@ -215,25 +451,117 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        if (window.lucide) {
-            window.lucide.createIcons();
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function renderBatch(reset = false) {
+        if (reset) {
+            assigneeItemsContainer.innerHTML = '';
+            renderedCount = 0;
+            assigneeDropdownList.scrollTop = 0;
+        }
+
+        if (filteredEmployees.length === 0) {
+            assigneeEmptyMessage.classList.remove('hidden');
+            assigneeScrollLoader.classList.add('hidden');
+            renderedCountLabel.textContent = '0 items';
+            return;
+        }
+
+        assigneeEmptyMessage.classList.add('hidden');
+
+        const nextBatch = filteredEmployees.slice(renderedCount, renderedCount + BATCH_SIZE);
+        nextBatch.forEach(emp => {
+            const isSelected = selectedUsers.has(emp.id);
+            const item = document.createElement('div');
+            item.className = `assignee-item p-2.5 hover:bg-slate-800/80 cursor-pointer flex items-center justify-between transition text-xs select-none ${isSelected ? 'bg-[#00a0da]/15 border-l-2 border-l-[#00a0da]' : ''}`;
+            item.setAttribute('data-user-id', emp.id);
+
+            item.innerHTML = `
+                <div class="flex items-center gap-2.5">
+                    <div class="item-checkbox-icon w-4 h-4 rounded border ${isSelected ? 'bg-[#00a0da] border-[#00a0da]' : 'border-slate-600'} flex items-center justify-center text-white font-bold transition">
+                        <i data-lucide="check" class="w-3 h-3 ${isSelected ? '' : 'hidden'} check-mark"></i>
+                    </div>
+                    <div>
+                        <span class="font-semibold text-slate-200 block">${escapeHtml(emp.displayName)}</span>
+                        <span class="text-[10px] text-slate-400 font-mono">${escapeHtml(emp.subtitle)}</span>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-[#00a0da]">
+                    ${emp.isEmployee ? 'Employee' : 'User'}
+                </span>
+            `;
+
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (selectedUsers.has(emp.id)) {
+                    selectedUsers.delete(emp.id);
+                } else {
+                    selectedUsers.set(emp.id, { name: emp.displayName, subtitle: emp.subtitle });
+                }
+                renderTagsAndInputs();
+            });
+
+            assigneeItemsContainer.appendChild(item);
+        });
+
+        renderedCount += nextBatch.length;
+
+        if (renderedCount < filteredEmployees.length) {
+            assigneeScrollLoader.classList.remove('hidden');
+            renderedCountLabel.textContent = `${renderedCount} of ${filteredEmployees.length}`;
+        } else {
+            assigneeScrollLoader.classList.add('hidden');
+            renderedCountLabel.textContent = `${filteredEmployees.length} of ${filteredEmployees.length}`;
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    function openEmployeeDropdown() {
+        if (!isEmployeeDropdownOpen) {
+            isEmployeeDropdownOpen = true;
+            assigneeDropdownList.classList.remove('hidden');
+            employeeChevron.classList.add('rotate-180');
+            if (renderedCount === 0) {
+                renderBatch(true);
+            }
         }
     }
 
-    items.forEach(item => {
-        item.addEventListener('click', function() {
-            const id = this.getAttribute('data-user-id');
-            const name = this.getAttribute('data-display-name');
-            const subtitle = this.getAttribute('data-subtitle');
-            if (selectedUsers.has(id)) {
-                selectedUsers.delete(id);
-            } else {
-                selectedUsers.set(id, { name, subtitle });
-            }
-            renderTagsAndInputs();
-        });
+    function closeEmployeeDropdown() {
+        if (isEmployeeDropdownOpen) {
+            isEmployeeDropdownOpen = false;
+            assigneeDropdownList.classList.add('hidden');
+            employeeChevron.classList.remove('rotate-180');
+        }
+    }
+
+    // Infinite scroll: when user scrolls near the bottom of assigneeDropdownList, load next 10!
+    assigneeDropdownList.addEventListener('scroll', function() {
+        const atBottom = (this.scrollTop + this.clientHeight) >= (this.scrollHeight - 30);
+        if (atBottom && renderedCount < filteredEmployees.length) {
+            renderBatch(false);
+        }
     });
 
+    // Open on focus or click
+    employeeSearchInput.addEventListener('focus', openEmployeeDropdown);
+    employeeSearchInput.addEventListener('click', openEmployeeDropdown);
+
+    // Search filter on employee name and employee ID
+    employeeSearchInput.addEventListener('input', function() {
+        openEmployeeDropdown();
+        const query = this.value.toLowerCase().trim();
+        if (!query) {
+            filteredEmployees = ALL_EMPLOYEES.slice();
+        } else {
+            filteredEmployees = ALL_EMPLOYEES.filter(emp => emp.searchTerm.includes(query));
+        }
+        renderBatch(true);
+    });
+
+    // Remove Tag Pill
     selectedContainer.addEventListener('click', function(e) {
         if (e.target && e.target.hasAttribute('data-remove-id')) {
             const id = e.target.getAttribute('data-remove-id');
@@ -242,34 +570,222 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = this.value.toLowerCase().trim();
-            items.forEach(item => {
-                const term = item.getAttribute('data-search-term').toLowerCase();
-                if (term.includes(query)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        });
-    }
-
+    // Select All (Selects all matching / filtered employees)
     document.getElementById('btnSelectAll').addEventListener('click', function() {
-        items.forEach(item => {
-            const id = item.getAttribute('data-user-id');
-            const name = item.getAttribute('data-display-name');
-            const subtitle = item.getAttribute('data-subtitle');
-            selectedUsers.set(id, { name, subtitle });
+        filteredEmployees.forEach(emp => {
+            selectedUsers.set(emp.id, { name: emp.displayName, subtitle: emp.subtitle });
         });
         renderTagsAndInputs();
     });
 
+    // Clear All
     document.getElementById('btnClearAll').addEventListener('click', function() {
         selectedUsers.clear();
         renderTagsAndInputs();
     });
+
+    // Click outside handler for both Project and Employee dropdowns
+    document.addEventListener('click', function(e) {
+        if (projectContainer && !projectContainer.contains(e.target)) {
+            closeProjectDropdown();
+        }
+        if (employeeContainer && !employeeContainer.contains(e.target)) {
+            closeEmployeeDropdown();
+        }
+    });
+
+    // Form submit check for required project
+    const mainForm = document.querySelector('form');
+    if (mainForm) {
+        mainForm.addEventListener('submit', function(e) {
+            if (!projectIdInput.value) {
+                e.preventDefault();
+                projectSearchInput.focus();
+                openProjectDropdown();
+                const triggerBox = document.getElementById('projectTriggerBox');
+                if (triggerBox) {
+                    triggerBox.classList.add('border-rose-500', 'ring-1', 'ring-rose-500');
+                    setTimeout(() => triggerBox.classList.remove('border-rose-500', 'ring-1', 'ring-rose-500'), 3000);
+                }
+            }
+        });
+    }
+
+    // --- Schedule & Effort Auto-Calculation Logic ---
+    const startDateInput = document.getElementById('id_start_date');
+    const estHoursInput = document.getElementById('id_estimated_hours');
+    const dueDateInput = document.getElementById('id_due_date');
+    const scheduleSummaryPill = document.getElementById('scheduleSummaryPill');
+    const scheduleSummaryText = document.getElementById('scheduleSummaryText');
+    const scheduleWarning = document.getElementById('scheduleWarning');
+    const scheduleWarningText = document.getElementById('scheduleWarningText');
+    const estDaysBadge = document.getElementById('estDaysBadge');
+
+    function toLocalISOString(date) {
+        const pad = (n) => String(n).padStart(2, '0');
+        const y = date.getFullYear();
+        const m = pad(date.getMonth() + 1);
+        const d = pad(date.getDate());
+        const h = pad(date.getHours());
+        const min = pad(date.getMinutes());
+        return `${y}-${m}-${d}T${h}:${min}`;
+    }
+
+    function formatDisplayDate(date) {
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
+
+    let isCalculating = false;
+
+    function updateSummaryAndUI() {
+        if (!startDateInput.value || !dueDateInput.value) {
+            scheduleWarning.classList.add('hidden');
+            scheduleSummaryText.textContent = "Please provide start date and time.";
+            return;
+        }
+
+        const start = new Date(startDateInput.value);
+        const due = new Date(dueDateInput.value);
+
+        if (isNaN(start.getTime()) || isNaN(due.getTime())) {
+            scheduleWarning.classList.add('hidden');
+            return;
+        }
+
+        const diffMs = due.getTime() - start.getTime();
+        if (diffMs < 0) {
+            scheduleWarning.classList.remove('hidden');
+            scheduleWarningText.textContent = "Due date & time cannot be earlier than start date & time.";
+            scheduleSummaryPill.classList.remove('border-[#00a0da]/30', 'bg-slate-800/80');
+            scheduleSummaryPill.classList.add('border-rose-500/40', 'bg-rose-950/20');
+            return;
+        }
+
+        scheduleWarning.classList.add('hidden');
+        scheduleSummaryPill.classList.remove('border-rose-500/40', 'bg-rose-950/20');
+        scheduleSummaryPill.classList.add('border-[#00a0da]/30', 'bg-slate-800/80');
+
+        const totalHours = Math.round((diffMs / (3600 * 1000)) * 100) / 100;
+        const workDays = (totalHours / 8).toFixed(1);
+        if (estDaysBadge) {
+            estDaysBadge.textContent = `${workDays} work day${workDays == 1 ? '' : 's'}`;
+        }
+
+        scheduleSummaryText.innerHTML = `<strong>${totalHours} hrs</strong> duration (${formatDisplayDate(start)} → ${formatDisplayDate(due)})`;
+    }
+
+    // 1. When Estimated Hours changes: Auto-calculate Due Date & Time
+    function onHoursChange() {
+        if (isCalculating) return;
+        isCalculating = true;
+
+        try {
+            if (!startDateInput.value) {
+                const now = new Date();
+                now.setSeconds(0, 0);
+                startDateInput.value = toLocalISOString(now);
+            }
+
+            const start = new Date(startDateInput.value);
+            const hours = parseFloat(estHoursInput.value);
+
+            if (!isNaN(start.getTime()) && !isNaN(hours) && hours >= 0) {
+                const dueMs = start.getTime() + Math.round(hours * 3600 * 1000);
+                const due = new Date(dueMs);
+                dueDateInput.value = toLocalISOString(due);
+            }
+            updateSummaryAndUI();
+        } finally {
+            isCalculating = false;
+        }
+    }
+
+    // 2. When Due Date & Time changes: Auto-calculate Estimated Hours
+    function onDueChange() {
+        if (isCalculating) return;
+        isCalculating = true;
+
+        try {
+            if (!startDateInput.value) {
+                const now = new Date();
+                now.setSeconds(0, 0);
+                startDateInput.value = toLocalISOString(now);
+            }
+
+            const start = new Date(startDateInput.value);
+            const due = new Date(dueDateInput.value);
+
+            if (!isNaN(start.getTime()) && !isNaN(due.getTime())) {
+                const diffMs = due.getTime() - start.getTime();
+                if (diffMs >= 0) {
+                    const hours = diffMs / (3600 * 1000);
+                    const roundedHours = Math.round(hours * 100) / 100;
+                    estHoursInput.value = roundedHours;
+                }
+            }
+            updateSummaryAndUI();
+        } finally {
+            isCalculating = false;
+        }
+    }
+
+    // 3. When Start Date & Time changes: Auto-update Due Date & Time
+    function onStartChange() {
+        if (isCalculating) return;
+        isCalculating = true;
+
+        try {
+            const start = new Date(startDateInput.value);
+            const hours = parseFloat(estHoursInput.value);
+
+            if (!isNaN(start.getTime()) && !isNaN(hours) && hours >= 0) {
+                const dueMs = start.getTime() + Math.round(hours * 3600 * 1000);
+                dueDateInput.value = toLocalISOString(new Date(dueMs));
+            } else if (!isNaN(start.getTime()) && dueDateInput.value) {
+                const due = new Date(dueDateInput.value);
+                if (!isNaN(due.getTime())) {
+                    const diffMs = due.getTime() - start.getTime();
+                    if (diffMs >= 0) {
+                        const calcHours = Math.round((diffMs / (3600 * 1000)) * 100) / 100;
+                        estHoursInput.value = calcHours;
+                    }
+                }
+            }
+            updateSummaryAndUI();
+        } finally {
+            isCalculating = false;
+        }
+    }
+
+    // Preset buttons
+    document.querySelectorAll('.btn-preset').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const hrs = this.getAttribute('data-hours');
+            estHoursInput.value = hrs;
+            onHoursChange();
+        });
+    });
+
+    estHoursInput.addEventListener('input', onHoursChange);
+    estHoursInput.addEventListener('change', onHoursChange);
+    dueDateInput.addEventListener('input', onDueChange);
+    dueDateInput.addEventListener('change', onDueChange);
+    startDateInput.addEventListener('input', onStartChange);
+    startDateInput.addEventListener('change', onStartChange);
+
+    // Initial setup on create page: set default start to now, calculate initial due date
+    if (!startDateInput.value) {
+        const now = new Date();
+        now.setSeconds(0, 0);
+        startDateInput.value = toLocalISOString(now);
+    }
+    onHoursChange();
 });
 </script>
 {% endblock %}
