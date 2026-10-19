@@ -1,9 +1,9 @@
 <div class="p-6">
-    <div class="flex justify-between items-center border-b border-white/10 pb-4 mb-4">
+    <div class="flex justify-between items-center border-b border-slate-200 dark:border-white/10 pb-4 mb-4">
         <div>
-            <span class="text-xs font-mono text-[#00a0da] font-bold">{{ employee.employee_id }}</span>
-            <h2 class="text-lg font-bold text-slate-100 mt-0.5">{{ employee.full_name }}</h2>
-            <p class="text-xs text-slate-400">{{ employee.designation }} | {{ employee.department }}</p>
+            <span class="text-xs font-mono text-[#1E5BFF] font-bold">{{ employee.employee_id }}</span>
+            <h2 class="text-lg font-extrabold text-slate-900 dark:text-slate-100 mt-0.5">{{ employee.full_name }}</h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">{{ employee.designation }} | {{ employee.department }}</p>
         </div>
         <span class="status-pill status-success">
             {{ employee.get_status_display }}
@@ -11,52 +11,52 @@
     </div>
 
     <div class="space-y-4 text-xs">
-        <div class="grid grid-cols-2 gap-3 bg-[#090d12] p-3 rounded-lg border border-white/10">
+        <div class="grid grid-cols-2 gap-3 bg-slate-50 dark:bg-[#090d12] p-3.5 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm">
             <div>
-                <span class="text-slate-400">Email Address:</span>
-                <span class="font-semibold text-slate-200 block">{{ employee.email }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Email Address:</span>
+                <span class="font-bold text-slate-900 dark:text-slate-200 block">{{ employee.email }}</span>
             </div>
             <div>
-                <span class="text-slate-400">Phone:</span>
-                <span class="font-semibold text-slate-200 block">{{ employee.phone|default:"N/A" }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Phone:</span>
+                <span class="font-bold text-slate-900 dark:text-slate-200 block">{{ employee.phone|default:"N/A" }}</span>
             </div>
             <div>
-                <span class="text-slate-400">Joining Date:</span>
-                <span class="font-semibold text-slate-200 block">{{ employee.joining_date }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Joining Date:</span>
+                <span class="font-bold text-slate-900 dark:text-slate-200 block font-mono">{{ employee.joining_date }}</span>
             </div>
             <div>
-                <span class="text-slate-400">Monthly CTC:</span>
-                <span class="font-bold text-[#00a0da] block text-sm">₹{{ employee.total_monthly_ctc }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Monthly CTC:</span>
+                <span class="font-extrabold text-[#1E5BFF] block text-sm font-mono">₹{{ employee.total_monthly_ctc }}</span>
             </div>
         </div>
 
-        <div class="bg-[#090d12] p-3 rounded-lg border border-white/10 space-y-2">
-            <h4 class="font-bold text-slate-300 uppercase text-[10px] tracking-wider">System User Account & Permissions</h4>
+        <div class="bg-slate-50 dark:bg-[#090d12] p-3.5 rounded-xl border border-slate-200 dark:border-white/10 space-y-2.5 shadow-sm">
+            <h4 class="font-bold text-slate-700 dark:text-slate-300 uppercase text-[10px] tracking-wider">System User Account & Permissions</h4>
             {% if employee.user %}
             <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400">System Username:</span>
-                <span class="font-mono text-emerald-400 font-bold">{{ employee.user.username }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">System Username:</span>
+                <span class="font-mono text-emerald-700 dark:text-emerald-400 font-bold">{{ employee.user.username }}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400">Assigned System Role:</span>
-                <span class="bg-[#00a0da]/20 text-[#25d366] px-2 py-0.5 rounded font-mono font-bold">{{ membership.get_role_display|default:"Staff" }}</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Assigned System Role:</span>
+                <span class="bg-blue-50 text-[#1E5BFF] border border-blue-200 dark:bg-[#00a0da]/20 dark:text-[#25d366] px-2.5 py-0.5 rounded font-mono font-bold">{{ membership.get_role_display|default:"Staff" }}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-400">Login Status:</span>
-                <span class="text-emerald-400 font-bold">Active Platform Access</span>
+                <span class="text-slate-500 dark:text-slate-400 font-medium">Login Status:</span>
+                <span class="text-emerald-700 dark:text-emerald-400 font-bold">Active Platform Access</span>
             </div>
             {% else %}
-            <div class="text-amber-400 italic">No System Login User linked to this employee.</div>
+            <div class="text-amber-800 dark:text-amber-400 font-medium italic">No System Login User linked to this employee.</div>
             {% endif %}
         </div>
 
-        <div class="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
+        <div class="pt-4 border-t border-slate-200 dark:border-white/10 flex items-center justify-between gap-2">
             <button @click="drawerOpen = false" class="btn-secondary text-xs">Close Drawer</button>
             <div class="flex items-center gap-2">
                 <a href="{% url 'hr:employee_detail' employee.id %}" class="btn-secondary text-xs flex items-center gap-1.5">
                     <i data-lucide="eye" class="w-3.5 h-3.5"></i> View Full Profile
                 </a>
-                <a href="{% url 'hr:employee_edit' employee.id %}" class="btn-primary text-xs flex items-center gap-1.5">
+                <a href="{% url 'hr:employee_edit' employee.id %}" class="btn-primary text-xs flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="edit" class="w-3.5 h-3.5"></i> Edit Profile & Access
                 </a>
             </div>

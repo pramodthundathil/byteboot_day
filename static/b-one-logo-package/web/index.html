@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B ONE by Byteboot - logo usage demo</title>
+<link rel="icon" href="../favicon/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon/favicon.ico" sizes="48x48">
+<link rel="stylesheet" href="brand-tokens.css">
+<style>
+ body{margin:0;font-family:var(--b1-font);color:var(--b1-navy);background:#fff}
+ header{display:flex;align-items:center;justify-content:space-between;padding:14px 5vw;border-bottom:1px solid var(--b1-mist)}
+ header img{height:48px;width:auto;display:block}
+ nav a{margin-left:22px;color:var(--b1-navy);text-decoration:none;font-weight:500}
+ .hero{padding:72px 5vw;background:#071428;color:#fff}
+ .hero img{max-width:420px;width:100%;height:auto}
+ .hero p{max-width:560px;color:#9FB0CC;line-height:1.6}
+ .btn{display:inline-block;margin-top:12px;padding:12px 22px;border-radius:10px;background:var(--b1-gradient);color:#fff;text-decoration:none;font-weight:600}
+ section{padding:48px 5vw;max-width:900px}
+ code{background:#F1F4F9;padding:2px 6px;border-radius:4px}
+ pre{background:#F1F4F9;padding:16px;border-radius:8px;overflow:auto}
+</style></head><body>
+<header>
+ <!-- Light header: colour logo. Switches automatically in dark mode. -->
+ <picture>
+  <source srcset="../svg/b-one-horizontal-reversed.svg" media="(prefers-color-scheme: dark)">
+  <img src="../svg/b-one-horizontal-color.svg" alt="B ONE by Byteboot">
+ </picture>
+ <nav><a href="#">Platform</a><a href="#">Modules</a><a href="#">Pricing</a><a href="#">Contact</a></nav>
+</header>
+<div class="hero">
+ <img src="../svg/b-one-horizontal-tagline-reversed.svg" alt="B ONE by Byteboot - One platform. Complete business control.">
+ <p>Dark section: use the <code>reversed</code> logo on navy or any dark background.</p>
+ <a class="btn" href="#">Request a demo</a>
+</div>
+<section>
+ <h2>How to use</h2>
+ <pre>&lt;img src="svg/b-one-horizontal-color.svg" alt="B ONE by Byteboot" height="48"&gt;</pre>
+ <p>Always set only <b>height</b> (or only width) so the proportions are preserved. See <code>BRAND-GUIDELINES.md</code> for clear space, minimum sizes and colours.</p>
+</section>
+</body></html>

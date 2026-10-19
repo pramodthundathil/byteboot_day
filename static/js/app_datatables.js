@@ -1,5 +1,5 @@
 /**
- * Byteboot DataTables & Row-Click Quick View System
+ * B ONE DataTables & Row-Click Quick View System
  * Rule: Clicking ANY table row automatically triggers Quick View drawer or detail navigation.
  */
 
@@ -43,7 +43,7 @@ class BytebootDataTable {
 
     setupRowClickEvents() {
         this.originalRows.forEach(row => {
-            row.classList.add("cursor-pointer", "hover:bg-[#1e2b3b]", "transition");
+            row.classList.add("cursor-pointer", "transition");
 
             row.addEventListener("click", (e) => {
                 // If user clicked directly on an interactive button/link/input, let it behave normally
@@ -68,14 +68,14 @@ class BytebootDataTable {
 
     renderControls() {
         const wrapper = document.createElement("div");
-        wrapper.className = "datatable-controls-wrap flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 text-xs text-slate-300";
+        wrapper.className = "datatable-controls-wrap flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 text-xs text-slate-600 dark:text-slate-300";
 
         // Left side: Length menu
         const lengthDiv = document.createElement("div");
         lengthDiv.className = "flex items-center gap-2";
         lengthDiv.innerHTML = `
             <span>Show</span>
-            <select class="dt-length-select bg-[#202c33] border border-white/10 text-slate-200 text-xs rounded px-2 py-1 outline-none">
+            <select class="dt-length-select bg-white dark:bg-[#162032] border border-slate-300 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-[#1E5BFF]">
                 <option value="5">5</option>
                 <option value="10" selected>10</option>
                 <option value="25">25</option>
@@ -94,8 +94,8 @@ class BytebootDataTable {
         const searchDiv = document.createElement("div");
         searchDiv.className = "flex items-center gap-2 relative";
         searchDiv.innerHTML = `
-            <span class="text-slate-400">Search:</span>
-            <input type="text" placeholder="Filter table rows..." class="dt-search-input bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-100 outline-none focus:border-[#00a0da] w-64">
+            <span class="text-slate-500 dark:text-slate-400">Search:</span>
+            <input type="text" placeholder="Filter table rows..." class="dt-search-input bg-white dark:bg-[#162032] border border-slate-300 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 outline-none focus:border-[#1E5BFF] focus:ring-1 focus:ring-[#1E5BFF] w-64 shadow-sm">
         `;
         const input = searchDiv.querySelector(".dt-search-input");
         input.addEventListener("input", (e) => {
@@ -111,7 +111,7 @@ class BytebootDataTable {
 
         // Footer info & Pagination controls
         this.footer = document.createElement("div");
-        this.footer.className = "datatable-footer flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4 text-xs text-slate-400 border-t border-white/10 pt-3";
+        this.footer.className = "datatable-footer flex flex-col md:flex-row md:items-center justify-between gap-3 mt-4 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200 dark:border-white/10 pt-3";
         this.table.parentNode.appendChild(this.footer);
     }
 
@@ -119,7 +119,7 @@ class BytebootDataTable {
         const headers = this.table.querySelectorAll("thead th");
         headers.forEach((th, idx) => {
             if (th.dataset.sortable !== "false") {
-                th.classList.add("cursor-pointer", "select-none", "hover:text-[#00a0da]", "transition");
+                th.classList.add("cursor-pointer", "select-none", "hover:text-[#1E5BFF]", "transition");
                 th.setAttribute("title", "Click to sort column");
                 th.addEventListener("click", () => this.sort(idx));
             }
@@ -151,7 +151,7 @@ class BytebootDataTable {
             th.querySelectorAll(".sort-icon").forEach(el => el.remove());
             if (idx === columnIndex) {
                 const icon = document.createElement("span");
-                icon.className = "sort-icon ml-1 text-[#00a0da] font-bold";
+                icon.className = "sort-icon ml-1 text-[#1E5BFF] font-bold";
                 icon.textContent = this.sortDirection === "asc" ? " ▲" : " ▼";
                 th.appendChild(icon);
             }
@@ -188,7 +188,7 @@ class BytebootDataTable {
         this.originalRows.forEach(r => (r.style.display = "none"));
 
         if (total === 0) {
-            this.tbody.innerHTML = `<tr class="empty-row"><td colspan="100" class="text-center text-slate-500 py-6">No matching records found.</td></tr>`;
+            this.tbody.innerHTML = `<tr class="empty-row"><td colspan="100" class="text-center text-slate-400 py-6">No matching records found.</td></tr>`;
         } else {
             const emptyRow = this.tbody.querySelector(".empty-row");
             if (emptyRow) emptyRow.remove();
@@ -204,10 +204,10 @@ class BytebootDataTable {
         const showingStart = total === 0 ? 0 : startIdx + 1;
         this.footer.innerHTML = `
             <div>Showing <strong>${showingStart}</strong> to <strong>${endIdx}</strong> of <strong>${total}</strong> entries</div>
-            <div class="flex items-center gap-1">
-                <button class="dt-prev bg-[#202c33] border border-white/10 hover:bg-[#2a3942] text-slate-200 px-3 py-1 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed" ${this.currentPage === 1 ? "disabled" : ""}>Previous</button>
-                <span class="px-2 font-bold text-[#38bdf8]">Page ${this.currentPage} of ${totalPages}</span>
-                <button class="dt-next bg-[#202c33] border border-white/10 hover:bg-[#2a3942] text-slate-200 px-3 py-1 rounded text-xs disabled:opacity-40 disabled:cursor-not-allowed" ${this.currentPage >= totalPages ? "disabled" : ""}>Next</button>
+            <div class="flex items-center gap-1.5">
+                <button class="dt-prev bg-white dark:bg-[#162032] border border-slate-300 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#1e2d44] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition" ${this.currentPage === 1 ? "disabled" : ""}>Previous</button>
+                <span class="px-2 font-bold text-[#1E5BFF]">Page ${this.currentPage} of ${totalPages}</span>
+                <button class="dt-next bg-white dark:bg-[#162032] border border-slate-300 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-[#1e2d44] text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition" ${this.currentPage >= totalPages ? "disabled" : ""}>Next</button>
             </div>
         `;
 

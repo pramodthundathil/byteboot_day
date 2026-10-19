@@ -17,7 +17,7 @@ from hr.models import Employee, LeaveType, LeaveRequest
 from projects.models import Project, ProjectMember, Task, WorkLog, ProjectMessage
 
 def seed():
-    print("Seeding database with realistic Byteboot Business OS data...")
+    print("Seeding database with realistic B ONE Platform data...")
 
     # 1. Create Users
     admin_user, _ = User.objects.get_or_create(
@@ -120,7 +120,7 @@ def seed():
     if created:
         InvoiceLine.objects.create(
             invoice=inv1,
-            description="Byteboot Business OS Core SaaS Platform License & Deployment",
+            description="B ONE Platform Core SaaS Enterprise License & Deployment",
             hsn_sac_code="998314",
             quantity=Decimal("1.00"),
             rate=Decimal("200000.00")
@@ -184,7 +184,7 @@ def seed():
         company=byteboot_comp,
         code="PRJ-101",
         defaults={
-            "name": "Byteboot Business OS - Multi-Tenant ERP",
+            "name": "B ONE Platform - Multi-Tenant ERP",
             "customer": cust1,
             "description": "Enterprise Business OS for Byteboot Techno Solutions Pvt Ltd with double-entry accounting, CRM, HR, invoicing and team chat.",
             "start_date": timezone.now().date(),
@@ -237,7 +237,7 @@ def seed():
         defaults={"sender": staff_user}
     )
 
-    print("Successfully seeded Byteboot Business OS database!")
+    print("Successfully seeded B ONE Platform database!")
 
 if __name__ == "__main__":
     seed()

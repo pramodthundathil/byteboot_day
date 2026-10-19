@@ -1,5 +1,6 @@
 import json
 import logging
+import datetime
 from django.utils import timezone
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -9,9 +10,30 @@ from asgiref.sync import async_to_sync
 logger = logging.getLogger(__name__)
 
 
+def format_date_label(dt):
+    """
+    Format a datetime into WhatsApp-style date pill:
+    - Today
+    - Yesterday
+    - 19 Oct 2026 (or custom date)
+    """
+    if not dt:
+        return "Today"
+    local_dt = timezone.localtime(dt)
+    today = timezone.localtime(timezone.now()).date()
+    msg_date = local_dt.date()
+    if msg_date == today:
+        return "Today"
+    elif msg_date == today - datetime.timedelta(days=1):
+        return "Yesterday"
+    else:
+        return msg_date.strftime("%d %b %Y")
+
+
 def serialize_project_message(msg):
     """
-    Format a ProjectMessage instance into a clean JSON-serializable dictionary.
+    Format a ProjectMessage instance into a clean JSON-serializable dictionary
+    including WhatsApp date grouping and read status.
     """
     sender_name = "System"
     sender_username = "system"
@@ -31,10 +53,23 @@ def serialize_project_message(msg):
             sender_name = msg.sender.username
 
     local_time = timezone.localtime(msg.created_at) if msg.created_at else timezone.localtime(timezone.now())
+    
+    project = getattr(msg, 'project', None)
+    project_code = project.code if project else ""
+    project_name = project.name if project else ""
+
+    is_read_by_others = False
+    try:
+        if sender_id:
+            is_read_by_others = msg.read_receipts.exclude(user_id=sender_id).exists()
+    except Exception:
+        pass
 
     return {
         "id": msg.id,
         "project_id": msg.project_id,
+        "project_code": project_code,
+        "project_name": project_name,
         "sender_id": sender_id,
         "sender_username": sender_username,
         "sender_name": sender_name,
@@ -44,24 +79,62 @@ def serialize_project_message(msg):
         "related_entity_id": msg.related_entity_id or "",
         "related_entity_label": msg.related_entity_label or "",
         "created_at": local_time.strftime("%H:%M"),
+        "date_iso": local_time.strftime("%Y-%m-%d"),
+        "date_label": format_date_label(local_time),
+        "is_read_by_others": is_read_by_others,
     }
 
 
 def broadcast_project_message(msg):
     """
-    Broadcast a ProjectMessage payload to the project's WebSocket channel layer group.
+    Broadcast a ProjectMessage payload to the project's WebSocket channel layer group
+    AND to targeted user notification channels ONLY for users assigned to this project group.
+    Staff members NOT in this project group will NOT receive notifications.
     """
     channel_layer = get_channel_layer()
     if not channel_layer:
         return
     payload = serialize_project_message(msg)
-    async_to_sync(channel_layer.group_send)(
-        f"project_chat_{msg.project_id}",
-        {
-            "type": "chat_message_broadcast",
-            "message": payload,
-        }
-    )
+    
+    # Broadcast to room (active open chat feed)
+    try:
+        async_to_sync(channel_layer.group_send)(
+            f"project_chat_{msg.project_id}",
+            {
+                "type": "chat_message_broadcast",
+                "message": payload,
+            }
+        )
+    except Exception as e:
+        logger.debug("Project message room broadcast failed: %s", e)
+
+    # Broadcast ONLY to users who belong to this project group
+    try:
+        from projects.models import Project, ProjectMember
+        recipient_user_ids = set(
+            ProjectMember.objects.filter(project_id=msg.project_id).values_list('user_id', flat=True)
+        )
+        mgr_id = Project.objects.filter(id=msg.project_id).values_list('manager_id', flat=True).first()
+        if mgr_id:
+            recipient_user_ids.add(mgr_id)
+
+        # Do not send chime / toast notification to the sender themselves
+        if msg.sender_id:
+            recipient_user_ids.discard(msg.sender_id)
+
+        for uid in recipient_user_ids:
+            try:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_chat_{uid}",
+                    {
+                        "type": "chat_notification_broadcast",
+                        "message": payload,
+                    }
+                )
+            except Exception:
+                pass
+    except Exception as e:
+        logger.debug("Targeted user chat notification broadcast failed: %s", e)
 
 
 class ProjectChatConsumer(AsyncWebsocketConsumer):
@@ -129,6 +202,24 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
         if action == "ping":
             await self.send(text_data=json.dumps({"type": "pong"}))
             return
+        elif action == "mark_read":
+            marked_count = await self.mark_project_messages_read(self.project_id, self.user)
+            await self.send(text_data=json.dumps({
+                "type": "read_receipt_ack",
+                "project_id": self.project_id,
+                "marked_count": marked_count
+            }))
+            # Broadcast read receipt to room so sender sees blue ticks
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    "type": "read_receipt_broadcast",
+                    "project_id": self.project_id,
+                    "reader_id": self.user.id,
+                    "reader_username": self.user.username,
+                }
+            )
+            return
 
         message_text = data.get("message_text", "").strip()
         if not message_text:
@@ -155,7 +246,7 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
             entity_id = ''
             entity_label = ''
 
-        # Create message in DB; post_save signal broadcasts to room
+        # Create message in DB; post_save signal broadcasts to room & company
         await self.save_message(
             project_id=self.project_id,
             sender=self.user,
@@ -170,6 +261,15 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             "type": "chat_message",
             "message": event["message"]
+        }))
+
+    async def read_receipt_broadcast(self, event):
+        # Notify clients that a reader read messages
+        await self.send(text_data=json.dumps({
+            "type": "read_receipt_update",
+            "project_id": event["project_id"],
+            "reader_id": event["reader_id"],
+            "reader_username": event["reader_username"],
         }))
 
     @database_sync_to_async
@@ -214,3 +314,53 @@ class ProjectChatConsumer(AsyncWebsocketConsumer):
             related_entity_id=entity_id,
             related_entity_label=entity_label
         )
+
+    @database_sync_to_async
+    def mark_project_messages_read(self, project_id, user):
+        from projects.models import ProjectMessage, ProjectMessageRead
+        unread = ProjectMessage.objects.filter(
+            project_id=project_id
+        ).exclude(
+            sender=user
+        ).exclude(
+            read_receipts__user=user
+        )
+        new_receipts = [
+            ProjectMessageRead(message=m, user=user)
+            for m in unread
+        ]
+        created = ProjectMessageRead.objects.bulk_create(new_receipts, ignore_conflicts=True)
+        return len(created)
+
+
+class GlobalChatNotificationConsumer(AsyncWebsocketConsumer):
+    """
+    WebSocket consumer for real-time notifications across all pages of the application.
+    Subscribes to user-specific chat notification channel so users ONLY receive notifications
+    for project groups they are assigned to.
+    """
+    async def connect(self):
+        self.user = self.scope.get("user")
+        if not self.user or not self.user.is_authenticated:
+            await self.close(code=4001)
+            return
+
+        self.user_group = f"user_chat_{self.user.id}"
+        await self.channel_layer.group_add(
+            self.user_group,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if hasattr(self, "user_group"):
+            await self.channel_layer.group_discard(
+                self.user_group,
+                self.channel_name
+            )
+
+    async def chat_notification_broadcast(self, event):
+        await self.send(text_data=json.dumps({
+            "type": "chat_notification",
+            "message": event["message"]
+        }))

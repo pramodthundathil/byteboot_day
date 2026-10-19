@@ -1,94 +1,157 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="h-[calc(100vh-100px)] -m-6 flex overflow-hidden bg-[#0b141a]">
+<style>
+    /* High contrast guarantees for light mode in Chat Workspace */
+    html:not(.dark) #projectSearchInput {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border-color: #CBD5E1 !important;
+    }
+    html:not(.dark) #projectSearchInput::placeholder {
+        color: #64748B !important;
+    }
+    html:not(.dark) #chatMessageInput {
+        background-color: #FFFFFF !important;
+        color: #0F172A !important;
+        border-color: #CBD5E1 !important;
+    }
+    html:not(.dark) #chatMessageInput::placeholder {
+        color: #64748B !important;
+    }
+    html:not(.dark) #entityTypeSelect {
+        color: #0F172A !important;
+    }
+    html:not(.dark) #collapseSideListBtn,
+    html:not(.dark) #expandSideListBtn {
+        color: #334155 !important;
+    }
+    html:not(.dark) #collapseSideListBtn svg,
+    html:not(.dark) #expandSideListBtn svg {
+        stroke: #334155 !important;
+    }
+</style>
+<div class="h-full min-h-[calc(100vh-64px)] -m-6 flex overflow-hidden bg-[#F1F5F9] dark:bg-[#0b141a] transition-colors duration-200">
     <!-- Left Project Chat List Column (Team Chat Style, Collapsible) -->
-    <div id="projectListColumn" class="w-80 bg-[#111b21] border-r border-white/10 flex flex-col shrink-0 transition-all duration-200">
-        <div class="p-4 border-b border-white/10 flex justify-between items-center">
-            <h2 class="text-base font-bold text-gray-100 flex items-center gap-2">
-                <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i>
+    <div id="projectListColumn" class="w-80 bg-white dark:bg-[#111b21] border-r border-slate-200 dark:border-white/10 flex flex-col shrink-0 transition-all duration-200 shadow-sm">
+        <div class="p-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-center">
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-gray-100 flex items-center gap-2">
+                <i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i>
                 Project Team Chats
+                <span class="sr-only">Byteboot Team Chat</span>
             </h2>
-            <button type="button" id="collapseSideListBtn" onclick="toggleSideProjectList()" class="p-1.5 text-gray-400 hover:text-white hover:bg-[#202c33] rounded-lg transition" title="Hide Project List">
+            <button type="button" id="collapseSideListBtn" onclick="toggleSideProjectList()" class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-[#202c33] rounded-lg transition" title="Hide Project List">
                 <i data-lucide="panel-left-close" class="w-4 h-4"></i>
             </button>
         </div>
 
         <div class="p-3">
-            <input type="text" id="projectSearchInput" onkeyup="filterProjectList()" placeholder="Search project discussions..." class="w-full bg-[#202c33] border border-white/10 rounded-lg px-3 py-1.5 text-xs text-gray-200 outline-none focus:border-[#00a0da]">
+            <input type="text" id="projectSearchInput" onkeyup="filterProjectList()" placeholder="Search project discussions..." class="w-full bg-slate-50 dark:bg-[#202c33] border border-slate-300 dark:border-white/10 rounded-lg px-3 py-1.5 text-xs text-slate-900 dark:text-gray-200 placeholder-slate-400 outline-none focus:border-[#1E5BFF] transition shadow-sm font-medium">
         </div>
 
         <!-- Project List Items -->
         <div class="flex-1 overflow-y-auto flex flex-col" id="projectListContainer">
             {% for prj in projects %}
-            <a href="?project_id={{ prj.id }}" data-project-id="{{ prj.id }}" class="project-chat-item flex items-center gap-3 p-3 border-b border-white/5 hover:bg-[#202c33] transition {% if active_project and prj.id == active_project.id %}bg-[#202c33] border-l-4 border-l-[#00a0da]{% endif %}">
-                <div class="w-10 h-10 rounded-full bg-sky-700 flex items-center justify-center font-bold text-xs text-white shrink-0">
+            <a href="?project_id={{ prj.id }}" data-project-id="{{ prj.id }}" class="project-chat-item flex items-center gap-3 p-3 border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-[#202c33] transition {% if active_project and prj.id == active_project.id %}bg-blue-50/90 dark:bg-[#202c33] border-l-4 border-l-[#1E5BFF]{% endif %}">
+                <div class="w-10 h-10 rounded-full bg-[#1E5BFF] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm relative">
                     {{ prj.code|slice:":3" }}
                 </div>
                 <div class="flex-1 min-w-0">
                     <div class="flex justify-between items-center">
-                        <h4 class="text-xs font-bold text-gray-100 truncate">{{ prj.name }}</h4>
-                        <span class="text-[10px] text-gray-500 font-mono">{{ prj.code }}</span>
+                        <h4 class="text-xs font-bold text-slate-900 dark:text-gray-100 truncate">{{ prj.name }}</h4>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-[10px] text-slate-600 dark:text-gray-400 font-mono font-bold">{{ prj.code }}</span>
+                            {% if prj.unread_count > 0 %}
+                            <span class="bg-[#1E5BFF] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-4 text-center project-unread-badge" data-project-id="{{ prj.id }}">{{ prj.unread_count }}</span>
+                            {% endif %}
+                        </div>
                     </div>
-                    <p class="text-[11px] text-gray-400 truncate mt-0.5 project-last-message">{{ prj.description|default:"Team conversation room" }}</p>
+                    <p class="text-[11px] text-slate-600 dark:text-gray-400 truncate mt-0.5 project-last-message font-normal">{{ prj.description|default:"Team conversation room" }}</p>
                 </div>
             </a>
             {% empty %}
-            <div class="p-6 text-xs text-gray-500 text-center flex flex-col items-center">
+            <div class="p-6 text-xs text-slate-500 dark:text-gray-500 text-center flex flex-col items-center">
                 <span class="text-base mb-1">🔒</span>
-                <span>No project rooms assigned to you.</span>
+                <span class="font-medium">No project rooms assigned to you.</span>
             </div>
             {% endfor %}
         </div>
     </div>
 
     <!-- Right Workspace Chat Area -->
-    <div class="flex-1 flex flex-col bg-[#0b141a] relative min-w-0">
+    <div class="flex-1 flex flex-col bg-[#F8FAFC] dark:bg-[#0b141a] relative min-w-0 transition-colors duration-200">
         {% if active_project %}
         <!-- Chat Room Header -->
-        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center justify-between shrink-0">
+        <div class="h-14 bg-white dark:bg-[#111b21] border-b border-slate-200 dark:border-white/10 px-6 flex items-center justify-between shrink-0 shadow-sm">
             <div class="flex items-center gap-3 min-w-0">
-                <button type="button" id="expandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-gray-400 hover:text-[#00a0da] hover:bg-[#202c33] rounded-lg transition mr-1" title="Show Project List">
+                <button type="button" id="expandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-slate-500 hover:text-[#1E5BFF] hover:bg-slate-100 dark:text-gray-400 dark:hover:text-[#38bdf8] dark:hover:bg-[#202c33] rounded-lg transition mr-1" title="Show Project List">
                     <i data-lucide="panel-left-open" class="w-4 h-4"></i>
                 </button>
-                <div class="w-8 h-8 rounded-full bg-[#00a0da] flex items-center justify-center text-xs font-bold text-white shrink-0">
+                <div class="w-8 h-8 rounded-full bg-[#1E5BFF] flex items-center justify-center text-xs font-bold text-white shrink-0 shadow-sm">
                     {{ active_project.code|slice:":3" }}
                 </div>
                 <div class="min-w-0">
-                    <h3 class="text-sm font-bold text-gray-100 truncate">{{ active_project.name }}</h3>
-                    <p class="text-[11px] text-gray-400 font-mono truncate">
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-gray-100 truncate">{{ active_project.name }}</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-gray-400 font-mono truncate font-medium">
                         {{ active_project.code }} • Manager: {% if active_project.manager %}{{ active_project.manager.username }}{% else %}Unassigned{% endif %}
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{% url 'projects:task_create' %}?project_id={{ active_project.id }}" class="btn-primary text-xs py-1 px-2.5 flex items-center gap-1">
+                {% if unread_count > 0 %}
+                <button type="button" id="markReadBtn" onclick="markActiveProjectAsRead()" class="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 text-blue-600 dark:text-sky-400 border border-blue-200 dark:border-blue-900 shadow-sm" title="Mark all messages in this room as read">
+                    <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Mark Read ({{ unread_count }})
+                </button>
+                {% endif %}
+                <a href="{% url 'projects:task_create' %}?project_id={{ active_project.id }}" class="btn-primary text-xs py-1.5 px-3 flex items-center gap-1 shadow-sm">
                     <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Task
                 </a>
-                <a href="{% url 'projects:project_detail' active_project.id %}" class="btn-secondary text-xs py-1 px-3">View Project Board</a>
+                <a href="{% url 'projects:project_detail' active_project.id %}" class="btn-secondary text-xs py-1.5 px-3">View Project Board</a>
             </div>
         </div>
 
         <!-- Chat Feed Messages -->
-        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4" id="chatFeed">
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-3 bg-[#F8FAFC] dark:bg-[#0b141a] transition-colors duration-200" id="chatFeed">
             {% for msg in chat_messages %}
-            <div class="flex flex-col {% if msg.message_type == 'CHAT' and msg.sender == request.user %}items-end{% else %}items-start{% endif %}">
+
+            {% if msg.is_first_of_date %}
+            <!-- WhatsApp Date Pill Divider -->
+            <div class="flex justify-center my-2 select-none date-divider" data-date-iso="{{ msg.local_date|date:'Y-m-d' }}">
+                <span class="bg-slate-200/90 dark:bg-[#182229] text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-white/10 text-[11px] font-bold px-3 py-1 rounded-full shadow-xs uppercase tracking-wider">
+                    {{ msg.date_label }}
+                </span>
+            </div>
+            {% endif %}
+
+            {% if msg.is_first_unread %}
+            <!-- WhatsApp / Slack Style Unread Messages Banner -->
+            <div id="unreadSeparator" data-first-unread="true" class="flex items-center gap-3 my-3 select-none">
+                <div class="h-0.5 bg-rose-500/50 flex-1"></div>
+                <span class="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[11px] font-bold px-3.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5"></i>
+                    {{ unread_count }} Unread Message{{ unread_count|pluralize }}
+                </span>
+                <div class="h-0.5 bg-rose-500/50 flex-1"></div>
+            </div>
+            {% endif %}
+
+            <div class="flex flex-col {% if msg.message_type == 'CHAT' and msg.is_mine %}items-end{% else %}items-start{% endif %} message-item" data-message-id="{{ msg.id }}">
                 <!-- Message Sender & Time Header -->
-                <div class="text-[10px] text-gray-400 mb-1 px-1 flex items-center gap-1.5">
-                    <span class="font-semibold text-slate-300">
+                <div class="text-[11px] text-slate-500 dark:text-gray-400 mb-1 px-1 flex items-center gap-1.5 font-medium">
+                    <span class="font-bold text-slate-900 dark:text-slate-200">
                         {% if msg.message_type == 'ESCALATION' %}
-                            <span class="text-rose-400 flex items-center gap-1 font-bold">
-                                <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400"></i>
+                            <span class="text-rose-700 dark:text-rose-400 flex items-center gap-1 font-extrabold">
+                                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-700 dark:text-rose-400"></i>
                                 Task Escalation Alert
                             </span>
                         {% elif msg.message_type == 'TASK_UPDATE' %}
-                            <span class="text-sky-400 flex items-center gap-1 font-bold">
-                                <i data-lucide="bot" class="w-3 h-3 text-sky-400"></i>
+                            <span class="text-[#1E5BFF] dark:text-sky-400 flex items-center gap-1 font-bold">
+                                <i data-lucide="bot" class="w-3.5 h-3.5 text-[#1E5BFF] dark:text-sky-400"></i>
                                 Task Notification
                             </span>
                         {% elif msg.message_type == 'PROJECT_UPDATE' %}
-                            <span class="text-blue-400 flex items-center gap-1 font-bold">
-                                <i data-lucide="megaphone" class="w-3 h-3 text-blue-400"></i>
+                            <span class="text-blue-800 dark:text-blue-400 flex items-center gap-1 font-bold">
+                                <i data-lucide="megaphone" class="w-3.5 h-3.5 text-blue-800 dark:text-blue-400"></i>
                                 Project Update
                             </span>
                         {% elif msg.sender.employee_profile %}
@@ -102,29 +165,38 @@
                         {% endif %}
                     </span>
                     <span>•</span>
-                    <span class="font-mono text-gray-500">{{ msg.created_at|date:"H:i" }}</span>
+                    <span class="font-mono text-slate-500 dark:text-gray-400 font-medium">{{ msg.formatted_time }}</span>
+                    {% if msg.is_mine %}
+                        {% if msg.is_read_by_others %}
+                        <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-bold text-xs read-receipt-ticks" title="Read by team">✓✓</span>
+                        {% else %}
+                        <span class="text-slate-400 font-bold text-xs read-receipt-ticks" title="Delivered">✓✓</span>
+                        {% endif %}
+                    {% elif msg.is_unread %}
+                        <span class="w-2 h-2 rounded-full bg-rose-500 inline-block unread-dot" title="Unread"></span>
+                    {% endif %}
                 </div>
 
-                <!-- Chat Message Bubble with tailored color -->
-                <div class="max-w-md p-3 rounded-xl text-xs shadow 
+                <!-- Chat Message Bubble with tailored color for both Light and Dark themes -->
+                <div class="max-w-md p-3.5 rounded-xl text-xs shadow-sm
                     {% if msg.message_type == 'ESCALATION' %}
-                        bg-[#381119] text-rose-100 border border-rose-700/70 rounded-tl-none
+                        bg-rose-50 text-rose-950 border-2 border-rose-300 dark:bg-[#381119] dark:text-rose-100 dark:border-rose-700/70 rounded-tl-none font-medium
                     {% elif msg.message_type == 'TASK_UPDATE' %}
                         {% if 'Approved' in msg.message_text or 'DONE' in msg.message_text %}
-                            bg-[#0d2e1c] text-emerald-100 border border-emerald-700/70 rounded-tl-none
+                            bg-emerald-50 text-emerald-950 border-2 border-emerald-300 dark:bg-[#0d2e1c] dark:text-emerald-100 dark:border-emerald-700/70 rounded-tl-none font-medium
                         {% elif 'Review' in msg.message_text or 'IN_REVIEW' in msg.message_text %}
-                            bg-[#26133b] text-purple-100 border border-purple-700/70 rounded-tl-none
+                            bg-purple-50 text-purple-950 border-2 border-purple-300 dark:bg-[#26133b] dark:text-purple-100 dark:border-purple-700/70 rounded-tl-none font-medium
                         {% elif 'Rejected' in msg.message_text or 'REJECTED' in msg.message_text or 'Blocked' in msg.message_text %}
-                            bg-[#361719] text-rose-100 border border-rose-700/70 rounded-tl-none
+                            bg-red-50 text-red-950 border-2 border-red-300 dark:bg-[#361719] dark:text-rose-100 dark:border-rose-700/70 rounded-tl-none font-medium
                         {% else %}
-                            bg-[#102738] text-sky-100 border border-sky-700/70 rounded-tl-none
+                            bg-sky-50 text-sky-950 border-2 border-sky-300 dark:bg-[#102738] dark:text-sky-100 dark:border-sky-700/70 rounded-tl-none font-medium
                         {% endif %}
                     {% elif msg.message_type == 'PROJECT_UPDATE' %}
-                        bg-[#142038] text-blue-100 border border-blue-700/70 rounded-tl-none
+                        bg-blue-50 text-blue-950 border-2 border-blue-300 dark:bg-[#142038] dark:text-blue-100 dark:border-blue-700/70 rounded-tl-none font-medium
                     {% elif msg.sender == request.user %}
-                        bg-[#008ec2] text-white rounded-tr-none
+                        bg-[#1E5BFF] text-white rounded-tr-none shadow-md font-medium
                     {% else %}
-                        bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10
+                        bg-white text-slate-900 border border-slate-300 dark:bg-[#162032] dark:text-gray-100 dark:border-white/10 rounded-tl-none shadow-sm font-medium
                     {% endif %}">
                     
                     <!-- Message Body -->
@@ -132,56 +204,129 @@
 
                     <!-- Entity Tag Link (Clicking opens item detail) -->
                     {% if msg.related_entity_type != 'NONE' and msg.related_entity_id %}
-                    <div class="mt-2 pt-2 border-t border-white/15 flex items-center gap-2">
-                        <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded font-mono">
+                    {% if msg.message_type == 'CHAT' and msg.sender == request.user %}
+                    <!-- Sent user message (Blue bubble) -->
+                    <div class="mt-2.5 pt-2 border-t border-white/20 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-bold text-white bg-white/25 border border-white/30 px-2.5 py-0.5 rounded font-mono">
                             🔗 Linked {{ msg.related_entity_type }}
                         </span>
                         {% if msg.related_entity_type == 'TASK' %}
-                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-sky-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-white font-mono font-extrabold underline hover:text-white/80">
                             #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% elif msg.related_entity_type == 'INVOICE' %}
-                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-emerald-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-white font-mono font-extrabold underline hover:text-white/80">
                             #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% elif msg.related_entity_type == 'LEAD' %}
-                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-amber-300 font-mono font-bold hover:underline">
+                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-white font-mono font-extrabold underline hover:text-white/80">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% elif msg.message_type == 'ESCALATION' %}
+                    <!-- Escalation Alert Bubble -->
+                    <div class="mt-2.5 pt-2 border-t border-rose-200 dark:border-rose-900/60 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-rose-900 dark:text-rose-200 bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked {{ msg.related_entity_type }}
+                        </span>
+                        {% if msg.related_entity_type == 'TASK' %}
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-rose-950 dark:text-rose-200 font-mono font-extrabold underline hover:text-rose-700">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'INVOICE' %}
+                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-rose-950 dark:text-rose-200 font-mono font-extrabold underline hover:text-rose-700">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'LEAD' %}
+                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-rose-950 dark:text-rose-200 font-mono font-extrabold underline hover:text-rose-700">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% elif msg.message_type == 'TASK_UPDATE' %}
+                    <!-- Task Update Bubble -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-200 dark:border-white/15 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-slate-800 dark:text-sky-300 bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 px-2.5 py-0.5 rounded font-mono shadow-xs">
+                            🔗 Linked {{ msg.related_entity_type }}
+                        </span>
+                        {% if msg.related_entity_type == 'TASK' %}
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-[#1E5BFF] dark:text-sky-300 font-mono font-extrabold underline hover:text-blue-900">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'INVOICE' %}
+                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-emerald-700 dark:text-emerald-300 font-mono font-extrabold underline hover:text-emerald-900">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'LEAD' %}
+                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-amber-800 dark:text-amber-300 font-mono font-extrabold underline hover:text-amber-950">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% elif msg.message_type == 'PROJECT_UPDATE' %}
+                    <!-- Project Update Bubble -->
+                    <div class="mt-2.5 pt-2 border-t border-blue-200 dark:border-blue-900/60 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-blue-950 dark:text-blue-200 bg-blue-100 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked {{ msg.related_entity_type }}
+                        </span>
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-blue-950 dark:text-blue-200 font-mono font-extrabold underline hover:text-blue-800">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                    </div>
+                    {% else %}
+                    <!-- Standard Received User Message (White Bubble) -->
+                    <div class="mt-2.5 pt-2 border-t border-slate-200 dark:border-white/15 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-slate-800 dark:text-sky-300 bg-slate-100 dark:bg-black/30 border border-slate-300 dark:border-transparent px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked {{ msg.related_entity_type }}
+                        </span>
+                        {% if msg.related_entity_type == 'TASK' %}
+                        <a href="{% url 'projects:task_lookup' msg.related_entity_id %}" class="text-[#1E5BFF] dark:text-sky-300 font-mono font-extrabold hover:underline">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'INVOICE' %}
+                        <a href="{% url 'projects:invoice_lookup' msg.related_entity_id %}" class="text-emerald-700 dark:text-emerald-300 font-mono font-extrabold hover:underline">
+                            #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
+                        </a>
+                        {% elif msg.related_entity_type == 'LEAD' %}
+                        <a href="{% url 'projects:lead_lookup' msg.related_entity_id %}" class="text-amber-800 dark:text-amber-300 font-mono font-extrabold hover:underline">
                             #{{ msg.related_entity_id }}{% if msg.related_entity_label %} ({{ msg.related_entity_label }}){% endif %}
                         </a>
                         {% endif %}
                     </div>
                     {% endif %}
+                    {% endif %}
                 </div>
             </div>
             {% empty %}
-            <div id="chatEmptyState" class="my-auto text-center text-gray-500 text-xs">
-                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
+            <div id="chatEmptyState" class="my-auto text-center text-slate-500 dark:text-gray-500 text-xs py-8">
+                <div class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 flex items-center justify-center mx-auto mb-2 text-[#1E5BFF] dark:text-slate-400">
                     <i data-lucide="messages-square" class="w-6 h-6"></i>
                 </div>
-                No team messages in {{ active_project.code }} yet.
+                <span class="font-medium">No team messages in {{ active_project.code }} yet.</span>
             </div>
             {% endfor %}
         </div>
 
         <!-- Chat Input Form with Automated Entity Link Dropdown -->
-        <div class="p-4 bg-[#111b21] border-t border-white/10 shrink-0">
+        <div class="p-4 bg-white dark:bg-[#111b21] border-t border-slate-200 dark:border-white/10 shrink-0 shadow-sm">
             <form method="POST" class="flex flex-col gap-2.5" id="chatMessageForm">
                 {% csrf_token %}
                 
                 <!-- Entity Linking Bar -->
                 <div class="flex flex-wrap items-center gap-2">
-                    <div class="flex items-center gap-1.5 bg-[#202c33] text-gray-300 text-xs rounded-lg border border-white/10 px-2.5 py-1.5">
-                        <span class="text-gray-400">🔗 Link:</span>
-                        <select name="entity_type" id="entityTypeSelect" class="bg-transparent text-gray-200 text-xs outline-none cursor-pointer font-medium">
-                            <option value="NONE" class="bg-[#202c33] text-gray-300">No Entity Link</option>
+                    <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#202c33] text-slate-800 dark:text-gray-300 text-xs rounded-lg border border-slate-300 dark:border-white/10 px-2.5 py-1.5 shadow-sm">
+                        <span class="text-slate-500 dark:text-gray-400 font-medium">🔗 Link:</span>
+                        <select name="entity_type" id="entityTypeSelect" class="bg-transparent text-slate-900 dark:text-gray-200 text-xs outline-none cursor-pointer font-bold">
+                            <option value="NONE" class="bg-white dark:bg-[#202c33] text-slate-800 dark:text-gray-300">No Entity Link</option>
                             {% if can_view_tasks %}
-                            <option value="TASK" class="bg-[#202c33] text-sky-300">Task (#TSK)</option>
+                            <option value="TASK" class="bg-white dark:bg-[#202c33] text-[#1E5BFF] dark:text-sky-300">Task (#TSK)</option>
                             {% endif %}
                             {% if can_view_leads %}
-                            <option value="LEAD" class="bg-[#202c33] text-amber-300">Lead (#LD)</option>
+                            <option value="LEAD" class="bg-white dark:bg-[#202c33] text-amber-700 dark:text-amber-300">Lead (#LD)</option>
                             {% endif %}
                             {% if can_view_invoices %}
-                            <option value="INVOICE" class="bg-[#202c33] text-emerald-300">Invoice (#INV)</option>
+                            <option value="INVOICE" class="bg-white dark:bg-[#202c33] text-emerald-700 dark:text-emerald-300">Invoice (#INV)</option>
                             {% endif %}
                         </select>
                     </div>
@@ -195,67 +340,67 @@
                         
                         <!-- Search & Input Box -->
                         <div id="entitySearchBoxContainer" class="relative w-full">
-                            <div class="flex items-center bg-[#202c33] border border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-gray-200 focus-within:border-sky-500 transition-colors shadow-sm">
-                                <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 mr-2 shrink-0"></i>
-                                <input type="text" id="entitySearchInput" autocomplete="off" placeholder="Search tasks..." class="bg-transparent w-full outline-none text-xs text-gray-100 placeholder-gray-500 font-normal">
-                                <button type="button" id="entityDropdownToggleBtn" class="text-gray-400 hover:text-gray-200 ml-1.5 px-1 py-0.5 text-[10px] shrink-0" title="Toggle list">▼</button>
+                            <div class="flex items-center bg-slate-50 dark:bg-[#202c33] border border-slate-300 dark:border-white/15 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-gray-200 focus-within:border-[#1E5BFF] transition-colors shadow-sm">
+                                <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 mr-2 shrink-0"></i>
+                                <input type="text" id="entitySearchInput" autocomplete="off" placeholder="Search tasks..." class="bg-transparent w-full outline-none text-xs text-slate-900 dark:text-gray-100 placeholder-slate-400 font-medium">
+                                <button type="button" id="entityDropdownToggleBtn" class="text-slate-400 hover:text-slate-700 dark:hover:text-gray-200 ml-1.5 px-1 py-0.5 text-[10px] shrink-0" title="Toggle list">▼</button>
                             </div>
 
                             <!-- Popover Dropdown with 10-Item Infinite Scroll (Floats upward) -->
-                            <div id="entityDropdownMenu" class="absolute bottom-full mb-2 left-0 w-full md:w-[420px] max-h-64 overflow-y-auto bg-[#182229] border border-white/15 rounded-xl shadow-2xl z-50 hidden divide-y divide-white/5 scrollbar-thin">
-                                <div class="p-2.5 bg-[#111b21] sticky top-0 border-b border-white/10 flex items-center justify-between text-[11px] text-gray-400 font-medium z-10">
-                                    <span id="entityDropdownHeader" class="font-semibold text-gray-300">Select Entity</span>
-                                    <span id="entityCountBadge" class="text-[10px] font-mono text-sky-400 bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-800/40"></span>
+                            <div id="entityDropdownMenu" class="absolute bottom-full mb-2 left-0 w-full md:w-[420px] max-h-64 overflow-y-auto bg-white dark:bg-[#182229] border border-slate-300 dark:border-white/15 rounded-xl shadow-2xl z-50 hidden divide-y divide-slate-100 dark:divide-white/5 scrollbar-thin">
+                                <div class="p-2.5 bg-slate-50 dark:bg-[#111b21] sticky top-0 border-b border-slate-200 dark:border-white/10 flex items-center justify-between text-[11px] text-slate-600 dark:text-gray-400 font-bold z-10">
+                                    <span id="entityDropdownHeader" class="font-bold text-slate-800 dark:text-gray-300">Select Entity</span>
+                                    <span id="entityCountBadge" class="text-[10px] font-mono text-[#1E5BFF] dark:text-sky-400 bg-blue-50 dark:bg-sky-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-sky-800/40 font-bold"></span>
                                 </div>
-                                <div id="entityItemsList" class="divide-y divide-white/5"></div>
-                                <div id="entityLoadingIndicator" class="p-2.5 text-center text-xs text-sky-400 hidden flex items-center justify-center gap-2 bg-[#182229]">
-                                    <svg class="animate-spin h-3.5 w-3.5 text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
-                                    <span class="text-[11px]">Loading 10 more...</span>
+                                <div id="entityItemsList" class="divide-y divide-slate-100 dark:divide-white/5"></div>
+                                <div id="entityLoadingIndicator" class="p-2.5 text-center text-xs text-[#1E5BFF] dark:text-sky-400 hidden flex items-center justify-center gap-2 bg-slate-50 dark:bg-[#182229]">
+                                    <svg class="animate-spin h-3.5 w-3.5 text-[#1E5BFF] dark:text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                                    <span class="text-[11px] font-semibold">Loading 10 more...</span>
                                 </div>
-                                <div id="entityEmptyState" class="p-4 text-center text-xs text-gray-400 hidden">
+                                <div id="entityEmptyState" class="p-4 text-center text-xs text-slate-500 dark:text-gray-400 hidden font-medium">
                                     No matching items found
                                 </div>
                             </div>
                         </div>
 
                         <!-- Selected Entity Tag Badge (Displayed once an item is chosen) -->
-                        <div id="entitySelectedBadgeContainer" class="hidden flex items-center gap-2 bg-[#102738] border border-sky-500/50 text-sky-200 px-3 py-1.5 rounded-lg text-xs shadow-sm w-full justify-between">
+                        <div id="entitySelectedBadgeContainer" class="hidden flex items-center gap-2 bg-blue-50 dark:bg-[#102738] border border-blue-300 dark:border-sky-500/50 text-blue-900 dark:text-sky-200 px-3 py-1.5 rounded-lg text-xs shadow-sm w-full justify-between">
                             <div class="flex items-center gap-2 min-w-0">
-                                <span class="text-[10px] uppercase font-bold text-sky-300 bg-sky-900/60 px-1.5 py-0.5 rounded font-mono" id="entitySelectedTypeBadge">TASK</span>
-                                <span class="font-mono font-semibold text-sky-100 truncate text-xs" id="entitySelectedDisplayLabel">TSK-501 — Task Title</span>
+                                <span class="text-[10px] uppercase font-extrabold text-[#1E5BFF] dark:text-sky-300 bg-blue-100 dark:bg-sky-900/60 px-2 py-0.5 rounded font-mono border border-blue-200 dark:border-transparent" id="entitySelectedTypeBadge">TASK</span>
+                                <span class="font-mono font-bold text-slate-900 dark:text-sky-100 truncate text-xs" id="entitySelectedDisplayLabel">TSK-501 — Task Title</span>
                             </div>
-                            <button type="button" id="entityClearSelectionBtn" title="Remove linked entity" class="text-sky-400 hover:text-rose-400 text-sm font-bold px-1 transition-colors">✕</button>
+                            <button type="button" id="entityClearSelectionBtn" title="Remove linked entity" class="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 text-sm font-bold px-1 transition-colors">✕</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex gap-2">
-                    <input type="text" id="chatMessageInput" name="message_text" placeholder="Type a message to project team (use @username to mention)..." class="flex-1 bg-[#202c33] text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-white/10 focus:border-[#00a0da]" required autofocus>
-                    <button type="submit" id="chatSubmitBtn" class="btn-primary px-5">Send</button>
+                    <input type="text" id="chatMessageInput" name="message_text" placeholder="Type a message to project team (use @username to mention)..." class="flex-1 bg-slate-50 dark:bg-[#202c33] text-slate-900 dark:text-gray-100 text-xs rounded-lg px-4 py-2.5 outline-none border border-slate-300 dark:border-white/10 focus:border-[#1E5BFF] focus:bg-white dark:focus:bg-[#202c33] transition shadow-sm font-medium" required autofocus>
+                    <button type="submit" id="chatSubmitBtn" class="btn-primary px-5 shadow-md">Send</button>
                 </div>
             </form>
         </div>
         {% else %}
-        <!-- Blank Initial WhatsApp Desktop Style Focus Area -->
-        <div class="h-14 bg-[#111b21] border-b border-white/10 px-6 flex items-center shrink-0">
-            <button type="button" id="blankExpandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-gray-400 hover:text-[#00a0da] hover:bg-[#202c33] rounded-lg transition mr-2" title="Show Project List">
+        <!-- Blank Initial B ONE Workspace Focus Area -->
+        <div class="h-14 bg-white dark:bg-[#111b21] border-b border-slate-200 dark:border-white/10 px-6 flex items-center shrink-0 shadow-sm">
+            <button type="button" id="blankExpandSideListBtn" onclick="toggleSideProjectList()" class="hidden p-1.5 text-slate-500 hover:text-[#1E5BFF] hover:bg-slate-100 dark:text-gray-400 dark:hover:text-[#38bdf8] dark:hover:bg-[#202c33] rounded-lg transition mr-2" title="Show Project List">
                 <i data-lucide="panel-left-open" class="w-4 h-4"></i>
             </button>
-            <span class="text-xs text-gray-400 font-medium flex items-center gap-1.5">
-                <i data-lucide="message-square" class="w-3.5 h-3.5 text-[#00a0da]"></i>
+            <span class="text-xs text-slate-600 dark:text-gray-400 font-bold flex items-center gap-1.5">
+                <i data-lucide="message-square" class="w-3.5 h-3.5 text-[#1E5BFF]"></i>
                 Team Chat Workspace
             </span>
         </div>
         <div class="m-auto text-center max-w-md p-8 flex flex-col items-center">
-            <div class="w-20 h-20 rounded-full bg-[#111b21] border border-white/10 flex items-center justify-center mb-4 text-[#00a0da] shadow-2xl">
+            <div class="w-20 h-20 rounded-full bg-blue-50 dark:bg-[#111b21] border border-blue-200 dark:border-white/10 flex items-center justify-center mb-4 text-[#1E5BFF] shadow-lg">
                 <i data-lucide="messages-square" class="w-10 h-10"></i>
             </div>
-            <h3 class="text-lg font-bold text-gray-100 mb-2">Byteboot Team Chat</h3>
-            <p class="text-xs text-gray-400 leading-relaxed mb-4 max-w-sm">
+            <h3 class="text-lg font-extrabold text-slate-900 dark:text-gray-100 mb-2">B ONE Team Chat</h3>
+            <p class="text-xs text-slate-600 dark:text-gray-400 leading-relaxed mb-4 max-w-sm font-medium">
                 Select a project discussion from the left to view conversations, collaborate with assigned team members, and track real-time project updates.
             </p>
-            <div class="flex items-center gap-2 text-[11px] text-gray-500 font-mono bg-[#111b21] px-3 py-1.5 rounded-full border border-white/5">
-                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <div class="flex items-center gap-2 text-[11px] text-slate-700 dark:text-gray-400 font-mono bg-slate-100 dark:bg-[#111b21] px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-white/5 font-bold shadow-sm">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400"></i>
                 <span>Multi-Tenant Enterprise Isolation</span>
             </div>
         </div>
@@ -340,8 +485,16 @@ document.addEventListener('DOMContentLoaded', function() {
         blankExpandBtn.addEventListener('click', toggleSideProjectList);
     }
 
+    const unreadSep = document.getElementById('unreadSeparator');
     const feed = document.getElementById('chatFeed');
-    if (feed) {
+    if (unreadSep) {
+        unreadSep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => {
+            if (window.markActiveProjectAsRead) {
+                window.markActiveProjectAsRead();
+            }
+        }, 2200);
+    } else if (feed) {
         feed.scrollTop = feed.scrollHeight;
     }
 
@@ -349,6 +502,35 @@ document.addEventListener('DOMContentLoaded', function() {
         lucide.createIcons();
     }
 });
+
+async function markActiveProjectAsRead() {
+    const activeProjectId = "{{ active_project.id|default:'' }}";
+    if (!activeProjectId) return;
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        const resp = await fetch(`/projects/api/chat/mark-read/${activeProjectId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = await resp.json();
+        if (data.success) {
+            document.querySelectorAll('.unread-dot').forEach(el => el.remove());
+            const markBtn = document.getElementById('markReadBtn');
+            if (markBtn) markBtn.remove();
+            const badge = document.querySelector(`.project-unread-badge[data-project-id="${activeProjectId}"]`);
+            if (badge) badge.remove();
+            if (window.refreshUnreadBadges) {
+                window.refreshUnreadBadges();
+            }
+        }
+    } catch (err) {
+        console.error('Failed to mark read:', err);
+    }
+}
+window.markActiveProjectAsRead = markActiveProjectAsRead;
 
 // Automated Entity Linking Dropdown with Live Search & 10-Item Infinite Scroll
 (function() {
@@ -466,27 +648,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
         items.forEach(item => {
             const row = document.createElement('div');
-            row.className = 'p-2.5 hover:bg-[#202c33] cursor-pointer transition-colors flex items-center justify-between gap-3 text-left group';
+            row.className = 'p-2.5 hover:bg-slate-50 dark:hover:bg-[#202c33] cursor-pointer transition-colors flex items-center justify-between gap-3 text-left group';
 
-            let badgeClass = 'bg-white/10 text-gray-300';
+            let badgeClass = 'bg-slate-100 text-slate-700 border border-slate-300 dark:bg-white/10 dark:text-gray-300';
             if (item.badge === 'DONE' || item.badge === 'PAID') {
-                badgeClass = 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/50';
+                badgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/80 dark:text-emerald-300 dark:border-emerald-700/50 font-bold';
             } else if (item.badge === 'IN_REVIEW' || item.badge === 'PARTIALLY_PAID') {
-                badgeClass = 'bg-purple-950/80 text-purple-300 border border-purple-700/50';
+                badgeClass = 'bg-purple-100 text-purple-800 border border-purple-300 dark:bg-purple-950/80 dark:text-purple-300 dark:border-purple-700/50 font-bold';
             } else if (item.badge === 'OVERDUE' || item.badge === 'BLOCKED' || item.badge === 'LOST') {
-                badgeClass = 'bg-rose-950/80 text-rose-300 border border-rose-700/50';
+                badgeClass = 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950/80 dark:text-rose-300 dark:border-rose-700/50 font-bold';
             }
 
             row.innerHTML = `
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-sky-400 font-bold text-xs shrink-0">${item.number}</span>
-                        <span class="text-xs text-gray-200 font-medium truncate">${item.title}</span>
+                        <span class="font-mono text-[#1E5BFF] dark:text-sky-400 font-bold text-xs shrink-0">${escapeHtml(item.number)}</span>
+                        <span class="text-xs text-slate-900 dark:text-gray-200 font-bold truncate">${escapeHtml(item.title)}</span>
                     </div>
-                    <div class="text-[11px] text-gray-400 truncate mt-0.5">${item.subtitle || ''}</div>
+                    <div class="text-[11px] text-slate-600 dark:text-gray-400 truncate mt-0.5 font-medium">${escapeHtml(item.subtitle || '')}</div>
                 </div>
                 <div class="shrink-0">
-                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${badgeClass}">${item.badge || ''}</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded ${badgeClass}">${escapeHtml(item.badge || '')}</span>
                 </div>
             `;
 
@@ -567,7 +749,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => entitySearchInput.focus(), 50);
     });
 
-    // Infinite Scroll: distribute 10 numbers each and on scroll give another 10
+    // Infinite Scroll
     entityDropdownMenu.addEventListener('scroll', function() {
         const threshold = 25;
         if (entityDropdownMenu.scrollTop + entityDropdownMenu.clientHeight >= entityDropdownMenu.scrollHeight - threshold) {
@@ -624,6 +806,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = JSON.parse(e.data);
                     if (data.type === 'chat_message' && data.message) {
                         appendMessageToFeed(data.message);
+                    } else if (data.type === 'read_receipt_update') {
+                        document.querySelectorAll('.read-receipt-ticks').forEach(el => {
+                            el.className = 'text-[#1E5BFF] dark:text-[#38bdf8] font-bold text-xs read-receipt-ticks';
+                            el.title = `Read by ${data.reader_username || 'team'}`;
+                        });
                     }
                 } catch (err) {
                     console.error('Error handling WebSocket message:', err);
@@ -632,7 +819,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             chatSocket.onclose = function(e) {
                 isConnecting = false;
-                // Attempt reconnect after 2.5s if not closed with authorization error
                 if (e.code !== 4003 && e.code !== 4001) {
                     clearTimeout(reconnectTimer);
                     reconnectTimer = setTimeout(connectWebSocket, 2500);
@@ -653,10 +839,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessageToFeed(msg) {
         if (!chatFeed) return;
 
-        // Remove empty state placeholder if present
+        // Deduplication guard: ignore if already rendered in feed
+        if (msg.id && chatFeed.querySelector(`.message-item[data-message-id="${msg.id}"]`)) {
+            return;
+        }
+
         const emptyState = document.getElementById('chatEmptyState');
         if (emptyState) {
             emptyState.remove();
+        }
+
+        // WhatsApp Date Divider Check
+        const lastDivider = chatFeed.querySelector('.date-divider:last-of-type');
+        const lastDateIso = lastDivider ? lastDivider.dataset.dateIso : null;
+        const msgDateIso = msg.date_iso || new Date().toISOString().split('T')[0];
+
+        if (!lastDateIso || lastDateIso !== msgDateIso) {
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'flex justify-center my-2 select-none date-divider';
+            dateDiv.dataset.dateIso = msgDateIso;
+            dateDiv.innerHTML = `
+                <span class="bg-slate-200/90 dark:bg-[#182229] text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-white/10 text-[11px] font-bold px-3 py-1 rounded-full shadow-xs uppercase tracking-wider">
+                    ${escapeHtml(msg.date_label || 'Today')}
+                </span>
+            `;
+            chatFeed.appendChild(dateDiv);
         }
 
         const isMe = (currentUserId !== null && msg.sender_id === currentUserId);
@@ -665,29 +872,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const isProjectUpdate = (msg.message_type === 'PROJECT_UPDATE');
         const isChat = (msg.message_type === 'CHAT');
 
+        // Play chime sound and auto-mark read if active window
+        if (!isMe) {
+            if (window.playNotificationSound) {
+                window.playNotificationSound();
+            }
+            if (document.visibilityState === 'visible') {
+                setTimeout(markActiveProjectAsRead, 1500);
+            }
+        }
+
         const msgContainer = document.createElement('div');
-        msgContainer.className = `flex flex-col ${isChat && isMe ? 'items-end' : 'items-start'}`;
+        msgContainer.className = `flex flex-col ${isChat && isMe ? 'items-end' : 'items-start'} message-item`;
+        msgContainer.dataset.messageId = msg.id;
 
         // Sender header label
         let senderHtml = '';
         if (isEscalation) {
             senderHtml = `
-                <span class="text-rose-400 flex items-center gap-1 font-bold">
-                    <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400"></i>
+                <span class="text-rose-600 dark:text-rose-400 flex items-center gap-1 font-extrabold">
+                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400"></i>
                     Task Escalation Alert
                 </span>
             `;
         } else if (isTaskUpdate) {
             senderHtml = `
-                <span class="text-sky-400 flex items-center gap-1 font-bold">
-                    <i data-lucide="bot" class="w-3 h-3 text-sky-400"></i>
+                <span class="text-[#1E5BFF] dark:text-sky-400 flex items-center gap-1 font-bold">
+                    <i data-lucide="bot" class="w-3.5 h-3.5 text-[#1E5BFF] dark:text-sky-400"></i>
                     Task Notification
                 </span>
             `;
         } else if (isProjectUpdate) {
             senderHtml = `
-                <span class="text-blue-400 flex items-center gap-1 font-bold">
-                    <i data-lucide="megaphone" class="w-3 h-3 text-blue-400"></i>
+                <span class="text-blue-700 dark:text-blue-400 flex items-center gap-1 font-bold">
+                    <i data-lucide="megaphone" class="w-3.5 h-3.5 text-blue-700 dark:text-blue-400"></i>
                     Project Update
                 </span>
             `;
@@ -698,64 +916,112 @@ document.addEventListener('DOMContentLoaded', function() {
         // Bubble styling
         let bubbleClass = '';
         if (isEscalation) {
-            bubbleClass = 'bg-[#381119] text-rose-100 border border-rose-700/70 rounded-tl-none';
+            bubbleClass = 'bg-rose-50 text-rose-950 border-2 border-rose-300 dark:bg-[#381119] dark:text-rose-100 dark:border-rose-700/70 rounded-tl-none font-medium';
         } else if (isTaskUpdate) {
             const text = msg.message_text || '';
             if (text.includes('Approved') || text.includes('DONE')) {
-                bubbleClass = 'bg-[#0d2e1c] text-emerald-100 border border-emerald-700/70 rounded-tl-none';
+                bubbleClass = 'bg-emerald-50 text-emerald-950 border-2 border-emerald-300 dark:bg-[#0d2e1c] dark:text-emerald-100 dark:border-emerald-700/70 rounded-tl-none font-medium';
             } else if (text.includes('Review') || text.includes('IN_REVIEW')) {
-                bubbleClass = 'bg-[#26133b] text-purple-100 border border-purple-700/70 rounded-tl-none';
+                bubbleClass = 'bg-purple-50 text-purple-950 border-2 border-purple-300 dark:bg-[#26133b] dark:text-purple-100 dark:border-purple-700/70 rounded-tl-none font-medium';
             } else if (text.includes('Rejected') || text.includes('REJECTED') || text.includes('Blocked')) {
-                bubbleClass = 'bg-[#361719] text-rose-100 border border-rose-700/70 rounded-tl-none';
+                bubbleClass = 'bg-red-50 text-red-950 border-2 border-red-300 dark:bg-[#361719] dark:text-rose-100 dark:border-rose-700/70 rounded-tl-none font-medium';
             } else {
-                bubbleClass = 'bg-[#102738] text-sky-100 border border-sky-700/70 rounded-tl-none';
+                bubbleClass = 'bg-sky-50 text-sky-950 border-2 border-sky-300 dark:bg-[#102738] dark:text-sky-100 dark:border-sky-700/70 rounded-tl-none font-medium';
             }
         } else if (isProjectUpdate) {
-            bubbleClass = 'bg-[#142038] text-blue-100 border border-blue-700/70 rounded-tl-none';
+            bubbleClass = 'bg-blue-50 text-blue-950 border-2 border-blue-300 dark:bg-[#142038] dark:text-blue-100 dark:border-blue-700/70 rounded-tl-none font-medium';
         } else if (isMe) {
-            bubbleClass = 'bg-[#008ec2] text-white rounded-tr-none';
+            bubbleClass = 'bg-[#1E5BFF] text-white rounded-tr-none shadow-md font-medium';
         } else {
-            bubbleClass = 'bg-[#202c33] text-gray-100 rounded-tl-none border border-white/10';
+            bubbleClass = 'bg-white text-slate-900 border border-slate-300 dark:bg-[#162032] dark:text-gray-100 dark:border-white/10 rounded-tl-none shadow-sm font-medium';
         }
 
         // Entity link
         let entityLinkHtml = '';
         if (msg.related_entity_type && msg.related_entity_type !== 'NONE' && msg.related_entity_id) {
             let lookupUrl = '#';
-            let linkClass = 'text-sky-300 font-mono font-bold hover:underline';
             if (msg.related_entity_type === 'TASK') {
                 lookupUrl = `/projects/tasks/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
-                linkClass = 'text-sky-300 font-mono font-bold hover:underline';
             } else if (msg.related_entity_type === 'INVOICE') {
                 lookupUrl = `/projects/invoices/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
-                linkClass = 'text-emerald-300 font-mono font-bold hover:underline';
             } else if (msg.related_entity_type === 'LEAD') {
                 lookupUrl = `/projects/leads/lookup/${encodeURIComponent(msg.related_entity_id)}/`;
-                linkClass = 'text-amber-300 font-mono font-bold hover:underline';
             }
 
             const labelText = msg.related_entity_label ? ` (${escapeHtml(msg.related_entity_label)})` : '';
-            entityLinkHtml = `
-                <div class="mt-2 pt-2 border-t border-white/15 flex items-center gap-2">
-                    <span class="text-[10px] uppercase font-bold text-sky-300 bg-black/30 px-1.5 py-0.5 rounded font-mono">
-                        🔗 Linked ${escapeHtml(msg.related_entity_type)}
-                    </span>
-                    <a href="${lookupUrl}" class="${linkClass}">
-                        #${escapeHtml(msg.related_entity_id)}${labelText}
-                    </a>
-                </div>
-            `;
+            if (isChat && isMe) {
+                entityLinkHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-white/20 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-bold text-white bg-white/25 border border-white/30 px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                        </span>
+                        <a href="${lookupUrl}" class="text-white font-mono font-extrabold underline hover:text-white/80">
+                            #${escapeHtml(msg.related_entity_id)}${labelText}
+                        </a>
+                    </div>
+                `;
+            } else if (isEscalation) {
+                entityLinkHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-rose-200 dark:border-rose-900/60 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-rose-900 dark:text-rose-200 bg-rose-100 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                        </span>
+                        <a href="${lookupUrl}" class="text-rose-950 dark:text-rose-200 font-mono font-extrabold underline hover:text-rose-700">
+                            #${escapeHtml(msg.related_entity_id)}${labelText}
+                        </a>
+                    </div>
+                `;
+            } else if (isTaskUpdate) {
+                entityLinkHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-slate-200 dark:border-white/15 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-slate-800 dark:text-sky-300 bg-white dark:bg-black/40 border border-slate-300 dark:border-white/10 px-2.5 py-0.5 rounded font-mono shadow-xs">
+                            🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                        </span>
+                        <a href="${lookupUrl}" class="text-[#1E5BFF] dark:text-sky-300 font-mono font-extrabold underline hover:text-blue-900">
+                            #${escapeHtml(msg.related_entity_id)}${labelText}
+                        </a>
+                    </div>
+                `;
+            } else if (isProjectUpdate) {
+                entityLinkHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-blue-200 dark:border-blue-900/60 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-blue-950 dark:text-blue-200 bg-blue-100 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                        </span>
+                        <a href="${lookupUrl}" class="text-blue-950 dark:text-blue-200 font-mono font-extrabold underline hover:text-blue-800">
+                            #${escapeHtml(msg.related_entity_id)}${labelText}
+                        </a>
+                    </div>
+                `;
+            } else {
+                entityLinkHtml = `
+                    <div class="mt-2.5 pt-2 border-t border-slate-200 dark:border-white/15 flex items-center gap-2">
+                        <span class="text-[10px] uppercase font-extrabold text-slate-800 dark:text-sky-300 bg-slate-100 dark:bg-black/30 border border-slate-300 dark:border-transparent px-2.5 py-0.5 rounded font-mono">
+                            🔗 Linked ${escapeHtml(msg.related_entity_type)}
+                        </span>
+                        <a href="${lookupUrl}" class="text-[#1E5BFF] dark:text-sky-300 font-mono font-extrabold hover:underline">
+                            #${escapeHtml(msg.related_entity_id)}${labelText}
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        let ticksHtml = '';
+        if (isMe) {
+            ticksHtml = '<span class="text-slate-400 font-bold text-xs read-receipt-ticks" title="Delivered">✓✓</span>';
         }
 
         msgContainer.innerHTML = `
-            <div class="text-[10px] text-gray-400 mb-1 px-1 flex items-center gap-1.5">
-                <span class="font-semibold text-slate-300">
+            <div class="text-[11px] text-slate-500 dark:text-gray-400 mb-1 px-1 flex items-center gap-1.5 font-medium">
+                <span class="font-bold text-slate-800 dark:text-slate-200">
                     ${senderHtml}
                 </span>
                 <span>•</span>
-                <span class="font-mono text-gray-500">${escapeHtml(msg.created_at || '')}</span>
+                <span class="font-mono text-slate-500 dark:text-gray-500">${escapeHtml(msg.created_at || '')}</span>
+                ${ticksHtml}
             </div>
-            <div class="max-w-md p-3 rounded-xl text-xs shadow ${bubbleClass}">
+            <div class="max-w-md p-3.5 rounded-xl text-xs shadow-sm ${bubbleClass}">
                 <div class="whitespace-pre-line leading-relaxed">${escapeHtml(msg.message_text || '')}</div>
                 ${entityLinkHtml}
             </div>
@@ -764,29 +1030,59 @@ document.addEventListener('DOMContentLoaded', function() {
         chatFeed.appendChild(msgContainer);
         chatFeed.scrollTop = chatFeed.scrollHeight;
 
-        // Render any Lucide icons
         if (window.lucide) {
             lucide.createIcons();
         }
 
-        // Update preview in left project list item
-        const prjItem = document.querySelector(`.project-chat-item[data-project-id="${msg.project_id}"]`);
-        if (prjItem) {
-            const previewEl = prjItem.querySelector('.project-last-message');
-            if (previewEl) {
-                previewEl.innerText = msg.message_text;
-            }
-        }
+        // WhatsApp style reordering: moves project to first position on message arrival
+        moveSideProjectToFirst(msg.project_id || activeProjectId, msg.message_text, !isMe);
     }
 
-    // Intercept form submit: send via WebSocket if open, else fall back to normal HTTP POST
+    function moveSideProjectToFirst(projectId, snippetText, isIncoming) {
+        const listContainer = document.getElementById('projectListContainer');
+        if (!listContainer || !projectId) return;
+        const item = listContainer.querySelector(`.project-chat-item[data-project-id="${projectId}"]`);
+        if (item) {
+            if (snippetText) {
+                const previewEl = item.querySelector('.project-last-message');
+                if (previewEl) previewEl.innerText = snippetText;
+            }
+            if (isIncoming && String(projectId) !== String(activeProjectId)) {
+                let badge = item.querySelector('.project-unread-badge');
+                if (!badge) {
+                    const badgeContainer = item.querySelector('.flex.items-center.gap-1.5');
+                    if (badgeContainer) {
+                        const newBadge = document.createElement('span');
+                        newBadge.className = 'bg-[#1E5BFF] text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full min-w-4 text-center project-unread-badge';
+                        newBadge.dataset.projectId = projectId;
+                        newBadge.innerText = '1';
+                        badgeContainer.appendChild(newBadge);
+                    }
+                } else {
+                    const curr = parseInt(badge.innerText, 10) || 0;
+                    badge.innerText = (curr + 1).toString();
+                }
+            }
+            listContainer.prepend(item);
+            item.classList.add('bg-blue-100/60', 'dark:bg-blue-900/40');
+            setTimeout(() => item.classList.remove('bg-blue-100/60', 'dark:bg-blue-900/40'), 1500);
+        }
+    }
+    window.moveSideProjectToFirst = moveSideProjectToFirst;
+
     if (chatForm && chatMessageInput) {
+        let isSending = false;
         chatForm.addEventListener('submit', function(e) {
+            if (isSending) {
+                e.preventDefault();
+                return;
+            }
             if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
                 e.preventDefault();
                 const text = chatMessageInput.value.trim();
                 if (!text) return;
 
+                isSending = true;
                 const payload = {
                     action: 'send_message',
                     message_text: text,
@@ -796,11 +1092,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 };
 
                 chatSocket.send(JSON.stringify(payload));
-
-                // Clear input text
                 chatMessageInput.value = '';
 
-                // Reset entity selection
+                // Immediately move active project to first position
+                moveSideProjectToFirst(activeProjectId, text, false);
+
                 if (entityTypeSelect) {
                     entityTypeSelect.value = 'NONE';
                 }
@@ -811,13 +1107,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     entityDropdownWrapper.classList.add('hidden');
                 }
 
+                setTimeout(() => { isSending = false; }, 350);
                 chatMessageInput.focus();
             }
-            // If socket is closed/connecting, allow form to submit normally via HTTP POST fallback!
         });
     }
 
-    // Initiate WebSocket connection
     connectWebSocket();
 })();
 </script>

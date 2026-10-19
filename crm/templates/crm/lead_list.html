@@ -108,39 +108,39 @@
     </div>
     {% else %}
     <!-- Status & Pipeline Quick Filter Pills -->
-    <div class="card p-3 mb-4 flex flex-wrap gap-2 items-center justify-between">
+    <div class="card p-3 mb-4 flex flex-wrap gap-2 items-center justify-between shadow-sm">
         <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-xs font-bold text-slate-400 mr-1">Pipeline:</span>
-            <a href="{% url 'crm:lead_list' %}" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if not status_filter and not fup_filter %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Pipeline:</span>
+            <a href="{% url 'crm:lead_list' %}" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if not status_filter and not fup_filter %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 All Active ({{ active_leads_count }})
             </a>
-            <a href="?status=NEW" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'NEW' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=NEW" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'NEW' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 New ({{ new_count }})
             </a>
-            <a href="?status=CONTACTED" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'CONTACTED' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=CONTACTED" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'CONTACTED' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 Contacted ({{ contacted_count }})
             </a>
-            <a href="?status=FOLLOW_UP" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'FOLLOW_UP' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=FOLLOW_UP" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'FOLLOW_UP' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 Follow-up Req. ({{ followup_req_count }})
             </a>
-            <a href="?status=QUALIFIED" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'QUALIFIED' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=QUALIFIED" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'QUALIFIED' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 Qualified ({{ qualified_count }})
             </a>
-            <a href="?status=PROPOSAL_SENT" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'PROPOSAL_SENT' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=PROPOSAL_SENT" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'PROPOSAL_SENT' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 Proposal ({{ proposal_sent_count }})
             </a>
-            <a href="?status=NEGOTIATION" class="px-3 py-1 rounded-full text-xs font-semibold border transition {% if status_filter == 'NEGOTIATION' %}bg-[#00a0da] text-white border-[#00a0da]{% else %}bg-[#101720] text-slate-300 border-white/10 hover:border-white/20{% endif %}">
+            <a href="?status=NEGOTIATION" class="px-3 py-1 rounded-full text-xs font-bold border transition shadow-sm {% if status_filter == 'NEGOTIATION' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 text-slate-700 border-slate-200 hover:border-slate-300 dark:bg-[#101720] dark:text-slate-300 dark:border-white/10{% endif %}">
                 Negotiation ({{ negotiation_count }})
             </a>
         </div>
 
         <!-- Follow-up Timing Shortcut Filters -->
         <div class="flex items-center gap-1.5 text-xs">
-            <span class="text-slate-400 font-semibold mr-1">Reminders:</span>
-            <a href="?fup=overdue" class="px-2 py-0.5 rounded text-[11px] font-bold border transition {% if fup_filter == 'overdue' %}bg-red-950 text-red-300 border-red-800{% else %}bg-[#101720] text-red-400 border-white/10 hover:border-red-500/30{% endif %}">
+            <span class="text-slate-500 dark:text-slate-400 font-bold mr-1">Reminders:</span>
+            <a href="?fup=overdue" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border transition shadow-sm {% if fup_filter == 'overdue' %}bg-rose-100 text-rose-900 border-rose-300 dark:bg-red-950 dark:text-red-300 dark:border-red-800{% else %}bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100 dark:bg-[#101720] dark:text-red-400 dark:border-white/10{% endif %}">
                 🚨 Overdue
             </a>
-            <a href="?fup=today" class="px-2 py-0.5 rounded text-[11px] font-bold border transition {% if fup_filter == 'today' %}bg-amber-950 text-amber-300 border-amber-800{% else %}bg-[#101720] text-amber-400 border-white/10 hover:border-amber-500/30{% endif %}">
+            <a href="?fup=today" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold border transition shadow-sm {% if fup_filter == 'today' %}bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800{% else %}bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100 dark:bg-[#101720] dark:text-amber-400 dark:border-white/10{% endif %}">
                 📅 Today
             </a>
         </div>
@@ -148,7 +148,7 @@
     {% endif %}
 
     <!-- Search, Sort & Staff Filters Bar -->
-    <div class="card p-3 mb-4">
+    <div class="card p-3 mb-4 shadow-sm">
         <form method="GET" class="flex flex-col md:flex-row gap-3 items-center justify-between">
             {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
             {% if fup_filter %}<input type="hidden" name="fup" value="{{ fup_filter }}">{% endif %}
@@ -156,7 +156,7 @@
             <div class="flex flex-wrap gap-2 items-center w-full md:w-auto">
                 {% if is_admin %}
                 <div>
-                    <select name="staff" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                    <select name="staff" onchange="this.form.submit()" class="bg-white dark:bg-[#101720] text-xs text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#1E5BFF] shadow-sm font-medium">
                         <option value="">All Assigned Staff</option>
                         <option value="unassigned" {% if staff_filter == 'unassigned' %}selected{% endif %}>[Unassigned Leads]</option>
                         {% for u in assignable_users %}
@@ -169,7 +169,7 @@
                 {% endif %}
 
                 <div>
-                    <select name="priority" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                    <select name="priority" onchange="this.form.submit()" class="bg-white dark:bg-[#101720] text-xs text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#1E5BFF] shadow-sm font-medium">
                         <option value="">All Priorities</option>
                         <option value="URGENT" {% if priority_filter == 'URGENT' %}selected{% endif %}>Urgent</option>
                         <option value="HIGH" {% if priority_filter == 'HIGH' %}selected{% endif %}>High</option>
@@ -179,7 +179,7 @@
                 </div>
 
                 <div>
-                    <select name="sort" onchange="this.form.submit()" class="bg-[#101720] text-xs text-slate-200 border border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#00a0da]">
+                    <select name="sort" onchange="this.form.submit()" class="bg-white dark:bg-[#101720] text-xs text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-white/10 rounded-lg px-2.5 py-1.5 outline-none focus:border-[#1E5BFF] shadow-sm font-medium">
                         <option value="followup_earliest" {% if sort_order == 'followup_earliest' or sort_order == 'followup_due' or sort_order == 'followup_overdue' or sort_order == 'next_followup_date' %}selected{% endif %}>Sort: Follow-up Date (Earliest / Due First)</option>
                         <option value="followup_latest" {% if sort_order == 'followup_latest' or sort_order == '-next_followup_date' %}selected{% endif %}>Sort: Follow-up Date (Latest First)</option>
                         <option value="-created_at" {% if sort_order == '-created_at' %}selected{% endif %}>Sort: Newest Lead First</option>
@@ -190,8 +190,8 @@
             </div>
 
             <div class="relative w-full md:w-64">
-                <input type="text" name="q" value="{{ query }}" placeholder="Search company, contact, phone..." class="w-full bg-[#101720] border border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]">
-                <button type="submit" class="absolute right-2 top-2 text-slate-400 hover:text-white">
+                <input type="text" name="q" value="{{ query }}" placeholder="Search company, contact, phone..." class="w-full bg-white dark:bg-[#101720] border border-slate-300 dark:border-white/10 rounded-lg pl-3 pr-8 py-1.5 text-xs text-slate-800 dark:text-slate-200 outline-none focus:border-[#1E5BFF] shadow-sm font-medium">
+                <button type="submit" class="absolute right-2 top-2 text-slate-400 hover:text-[#1E5BFF]">
                     <i data-lucide="search" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
@@ -269,9 +269,9 @@
             <thead>
                 <tr>
                     <th style="width: 38px;">
-                        <input type="checkbox" x-model="selectAll" @change="toggleAll($event.target.checked)" class="rounded bg-slate-900 border-slate-700 text-[#00a0da] focus:ring-0">
+                        <input type="checkbox" x-model="selectAll" @change="toggleAll($event.target.checked)" class="rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-[#1E5BFF] focus:ring-0">
                     </th>
-                    <th style="width: 48px;" class="text-center font-mono text-slate-400">#</th>
+                    <th style="width: 48px;" class="text-center font-mono text-slate-500 dark:text-slate-400 font-bold">#</th>
                     <th>Company / Client</th>
                     <th>Contact Person</th>
                     <th>Outreach & Contact</th>
@@ -283,44 +283,44 @@
             </thead>
             <tbody>
                 {% for lead in leads %}
-                <tr class="hover:bg-slate-800/40 transition">
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                     <!-- Checkbox -->
                     <td>
-                        <input type="checkbox" value="{{ lead.id }}" x-model="selectedLeads" class="lead-checkbox rounded bg-slate-900 border-slate-700 text-[#00a0da] focus:ring-0">
+                        <input type="checkbox" value="{{ lead.id }}" x-model="selectedLeads" class="lead-checkbox rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-[#1E5BFF] focus:ring-0">
                     </td>
 
                     <!-- Serial Number -->
-                    <td class="text-center text-xs font-mono text-slate-400 font-semibold">
+                    <td class="text-center text-xs font-mono text-slate-500 dark:text-slate-400 font-bold">
                         {{ leads.start_index|add:forloop.counter0 }}
                     </td>
 
                     <!-- Company Name -->
                     <td>
-                        <button type="button" hx-get="{% url 'crm:lead_ajax_detail' lead.id %}" hx-target="#drawer-content" @click="drawerOpen = true" class="font-bold text-slate-100 hover:text-[#00a0da] text-left transition">
+                        <button type="button" hx-get="{% url 'crm:lead_ajax_detail' lead.id %}" hx-target="#drawer-content" @click="drawerOpen = true" class="font-extrabold text-slate-900 hover:text-[#1E5BFF] dark:text-slate-100 dark:hover:text-[#38bdf8] text-left transition">
                             {{ lead.company_name }}
                         </button>
-                        <div class="text-[11px] text-slate-400">{{ lead.service_interested|truncatechars:30 }}</div>
+                        <div class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">{{ lead.service_interested|truncatechars:30 }}</div>
                     </td>
 
                     <!-- Contact Person -->
                     <td>
-                        <div class="text-xs font-semibold text-slate-200">{{ lead.contact_person }}</div>
-                        <div class="text-[10px] text-slate-400">{{ lead.source }}</div>
+                        <div class="text-xs font-bold text-slate-900 dark:text-slate-200">{{ lead.contact_person }}</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{{ lead.source }}</div>
                     </td>
 
                     <!-- Outreach Phone & WA -->
                     <td>
                         <div class="flex items-center gap-1.5">
-                            <a href="tel:{{ lead.phone }}" class="inline-flex items-center gap-1 text-xs font-mono text-slate-300 hover:text-[#00a0da]" title="Call">
-                                <i data-lucide="phone" class="w-3 h-3 text-emerald-400"></i>
+                            <a href="tel:{{ lead.phone }}" class="inline-flex items-center gap-1 text-xs font-mono font-bold text-slate-800 hover:text-[#1E5BFF] dark:text-slate-300 dark:hover:text-[#38bdf8]" title="Call">
+                                <i data-lucide="phone" class="w-3 h-3 text-emerald-600 dark:text-emerald-400"></i>
                                 {{ lead.phone }}
                             </a>
-                            <a href="https://wa.me/{{ lead.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="text-emerald-400 hover:text-emerald-300" title="WhatsApp">
+                            <a href="https://wa.me/{{ lead.phone|cut:'+'|cut:' '|cut:'-' }}" target="_blank" class="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300" title="WhatsApp">
                                 <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
                             </a>
                         </div>
                         {% if lead.email %}
-                        <div class="text-slate-400 text-[11px] truncate max-w-[140px]">{{ lead.email }}</div>
+                        <div class="text-slate-500 dark:text-slate-400 text-[11px] truncate max-w-[140px] font-mono">{{ lead.email }}</div>
                         {% endif %}
                     </td>
 
@@ -328,22 +328,22 @@
                     <td>
                         {% if lead.assigned_to %}
                         <div class="flex items-center gap-1.5">
-                            <div class="w-5 h-5 rounded-full bg-[#1e2b3b] border border-white/10 flex items-center justify-center text-[9px] font-bold text-[#00a0da]">
+                            <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-[#1e2b3b] border border-blue-200 dark:border-white/10 flex items-center justify-center text-[10px] font-bold text-[#1E5BFF] shadow-sm">
                                 {{ lead.assigned_to.first_name|first|default:lead.assigned_to.username|first|upper }}
                             </div>
-                            <span class="text-xs text-slate-200">
+                            <span class="text-xs text-slate-900 dark:text-slate-200 font-semibold">
                                 {{ lead.assigned_to.get_full_name|default:lead.assigned_to.username }}
                             </span>
                         </div>
                         {% else %}
-                        <span class="text-xs text-amber-400/80 italic font-mono">Unassigned</span>
+                        <span class="text-xs text-amber-700 dark:text-amber-400/80 font-bold font-mono">Unassigned</span>
                         {% endif %}
                     </td>
 
                     <!-- Next Follow-up timing pill -->
                     <td>
                         {% with badge=lead.followup_due_badge %}
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded font-semibold border {{ badge.class }}">
+                        <span class="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-bold border shadow-sm {{ badge.class }}">
                             {{ badge.label }}
                         </span>
                         {% endwith %}

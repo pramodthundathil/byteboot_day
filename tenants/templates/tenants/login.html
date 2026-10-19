@@ -1,51 +1,156 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Byteboot Business OS</title>
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/static/js/img/company_logo_icon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Login — B ONE</title>
+
+    <!-- FOUC prevention script: Default theme is LIGHT -->
+    <script>
+        (function() {
+            try {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    if (!storedTheme) {
+                        localStorage.setItem('theme', 'light');
+                    }
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+    </script>
+
+    <!-- B ONE Favicons -->
+    <link rel="icon" href="/static/b-one-logo-package/favicon/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/static/b-one-logo-package/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/b-one-logo-package/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/b-one-logo-package/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/static/b-one-logo-package/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/static/b-one-logo-package/favicon/site.webmanifest">
+    <meta name="theme-color" content="#1E5BFF">
+
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#EEF4FF',
+                            100: '#DDE8FE',
+                            500: '#1E5BFF',
+                            600: '#1548D1',
+                            700: '#0A2A7A',
+                            cyan: '#22D3EE',
+                            navy: '#0B1F3A',
+                            slate: '#5B6B85',
+                            mist: '#D5DCE8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
-        * { font-family: 'Inter', -apple-system, sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+        * { font-family: 'Poppins', 'Inter', -apple-system, sans-serif; }
+
+        :root {
+            --app-bg: #F4F6FB;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --text-primary: #0B1F3A;
+            --text-secondary: #5B6B85;
+            --input-bg: #FFFFFF;
+            --input-border: #CBD5E1;
+            --input-text: #0B1F3A;
+        }
+
+        html.dark {
+            --app-bg: #090E17;
+            --card-bg: #0F1726;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --input-bg: #090E17;
+            --input-border: rgba(255, 255, 255, 0.12);
+            --input-text: #F8FAFC;
+        }
+
+        body {
+            background-color: var(--app-bg);
+            color: var(--text-primary);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .btn-brand-gradient {
+            background: linear-gradient(135deg, #1E5BFF 0%, #0A2A7A 100%);
+            box-shadow: 0 4px 14px rgba(30, 91, 255, 0.3);
+            transition: all 0.2s ease;
+        }
+        .btn-brand-gradient:hover {
+            background: linear-gradient(135deg, #1548D1 0%, #08215E 100%);
+            box-shadow: 0 6px 18px rgba(30, 91, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-brand-gradient:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
-<body class="bg-[#090d12] text-slate-100 flex items-center justify-center h-screen m-0 relative overflow-hidden">
+<body class="flex items-center justify-center min-h-screen m-0 relative overflow-hidden p-4">
+
+    <!-- Top Right Theme Switcher -->
+    <div class="absolute top-5 right-5 z-20 flex items-center gap-2">
+        <button onclick="toggleTheme()" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 bg-white dark:text-slate-300 dark:bg-[#162032] dark:hover:bg-[#1e2d44] dark:hover:text-white transition shadow-sm border border-slate-200 dark:border-white/10" title="Toggle Light / Dark mode" aria-label="Toggle theme">
+            <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-[#1E5BFF]"></i>
+            <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+        </button>
+    </div>
+
+    <!-- Background Ambient Glow -->
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-[#1E5BFF]/10 dark:bg-[#1E5BFF]/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-[#22D3EE]/10 dark:bg-[#22D3EE]/10 rounded-full blur-3xl pointer-events-none"></div>
 
     <!-- Floating Toast Notifications -->
     {% if messages %}
-    <div class="fixed top-5 right-5 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none">
+    <div class="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-3 w-full max-w-sm pointer-events-none px-4">
         {% for message in messages %}
         <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
              x-transition:enter="transition ease-out duration-300 transform"
-             x-transition:enter-start="translate-x-full opacity-0"
-             x-transition:enter-end="translate-x-0 opacity-100"
+             x-transition:enter-start="-translate-y-4 opacity-0"
+             x-transition:enter-end="translate-y-0 opacity-100"
              x-transition:leave="transition ease-in duration-200 transform"
-             x-transition:leave-start="translate-x-0 opacity-100"
-             x-transition:leave-end="translate-x-full opacity-0"
-             class="pointer-events-auto p-4 rounded-xl border shadow-2xl backdrop-blur-md flex items-start gap-3 bg-[#101720]/95
+             x-transition:leave-start="translate-y-0 opacity-100"
+             x-transition:leave-end="-translate-y-4 opacity-0"
+             class="pointer-events-auto p-4 rounded-xl border shadow-xl backdrop-blur-md flex items-start gap-3 bg-white/95 dark:bg-[#101720]/95
              {% if message.tags == 'error' or message.tags == 'danger' %}
-                border-red-500/60 shadow-red-950/40
+                border-red-500/50 text-red-600 dark:text-red-400
              {% elif message.tags == 'warning' %}
-                border-amber-500/60 shadow-amber-950/40
+                border-amber-500/50 text-amber-600 dark:text-amber-400
              {% elif message.tags == 'info' %}
-                border-blue-500/60 shadow-blue-950/40
+                border-blue-500/50 text-blue-600 dark:text-blue-400
              {% else %}
-                border-[#00a0da]/60 shadow-sky-950/40
+                border-[#1E5BFF]/50 text-[#1E5BFF] dark:text-[#38bdf8]
              {% endif %}">
             
             <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs
                  {% if message.tags == 'error' or message.tags == 'danger' %}
-                    bg-red-500/20 text-red-400 border border-red-500/30
+                    bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30
                  {% elif message.tags == 'warning' %}
-                    bg-amber-500/20 text-amber-400 border border-amber-500/30
+                    bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30
                  {% elif message.tags == 'info' %}
-                    bg-blue-500/20 text-blue-400 border border-blue-500/30
+                    bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30
                  {% else %}
-                    bg-[#00a0da]/20 text-[#38bdf8] border border-[#00a0da]/30
+                    bg-[#1E5BFF]/15 text-[#1E5BFF] dark:text-[#38bdf8] border border-[#1E5BFF]/30
                  {% endif %}">
                 {% if message.tags == 'error' or message.tags == 'danger' %}
                     <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -59,30 +164,10 @@
             </div>
 
             <div class="flex-1 min-w-0">
-                <div class="font-bold text-xs uppercase tracking-wider mb-0.5
-                     {% if message.tags == 'error' or message.tags == 'danger' %}
-                        text-red-400
-                     {% elif message.tags == 'warning' %}
-                        text-amber-400
-                     {% elif message.tags == 'info' %}
-                        text-blue-400
-                     {% else %}
-                        text-[#38bdf8]
-                     {% endif %}">
-                    {% if message.tags == 'error' or message.tags == 'danger' %}
-                        Error Notification
-                    {% elif message.tags == 'warning' %}
-                        Warning Notice
-                    {% elif message.tags == 'info' %}
-                        Information
-                    {% else %}
-                        Success Notification
-                    {% endif %}
-                </div>
-                <p class="text-xs text-slate-200 leading-relaxed font-medium">{{ message }}</p>
+                <p class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">{{ message }}</p>
             </div>
 
-            <button @click="show = false" class="text-slate-400 hover:text-white transition text-xs p-1">
+            <button @click="show = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition text-xs p-1">
                 ✕
             </button>
         </div>
@@ -91,33 +176,64 @@
     {% endif %}
 
     <!-- Login Card -->
-    <div class="w-full max-w-sm bg-[#101720] border border-white/10 rounded-2xl p-8 shadow-2xl">
+    <div class="w-full max-w-sm bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl p-8 shadow-xl relative z-10 transition-colors duration-200">
         <div class="flex flex-col items-center mb-6">
-            <div class="w-16 h-16 rounded-2xl bg-[#00a0da]/10 border border-[#00a0da]/25 flex items-center justify-center mb-3 shadow-lg shadow-[#00a0da]/20 p-2.5">
-                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-full h-full object-contain">
+            <!-- B ONE Brand Logo -->
+            <div class="mb-4 flex items-center justify-center">
+                <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE by Byteboot" class="h-10 object-contain dark:hidden">
+                <img src="/static/b-one-logo-package/svg/b-one-horizontal-reversed.svg" alt="B ONE by Byteboot" class="h-10 object-contain hidden dark:block">
             </div>
-            <h1 class="text-xl font-extrabold text-slate-100">Byteboot OS</h1>
-            <p class="text-xs text-slate-400 mt-1 text-center">Multi-Tenant Business Management ERP</p>
+            <h1 class="text-lg font-bold text-slate-900 dark:text-slate-100 text-center">Welcome Back</h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 text-center font-medium">One platform. Complete business control.</p>
         </div>
 
         <form method="POST" class="space-y-4">
             {% csrf_token %}
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Username</label>
-                <input type="text" name="username" required placeholder="admin" autofocus class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a0da] focus:ring-1 focus:ring-[#00a0da]">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Username</label>
+                <div class="relative">
+                    <input type="text" name="username" required placeholder="admin" autofocus class="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--input-text)] rounded-lg px-3.5 py-2.5 text-xs outline-none focus:border-[#1E5BFF] focus:ring-2 focus:ring-[#1E5BFF]/20 transition shadow-sm">
+                </div>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Password</label>
-                <input type="password" name="password" required placeholder="••••••••" class="w-full bg-[#090d12] border border-white/10 rounded-lg px-3.5 py-2 text-xs text-slate-100 outline-none focus:border-[#00a0da] focus:ring-1 focus:ring-[#00a0da]">
+                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5">Password</label>
+                <div class="relative">
+                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-[var(--input-bg)] border border-[var(--input-border)] text-[var(--input-text)] rounded-lg px-3.5 py-2.5 text-xs outline-none focus:border-[#1E5BFF] focus:ring-2 focus:ring-[#1E5BFF]/20 transition shadow-sm">
+                </div>
             </div>
-            <button type="submit" class="w-full bg-[#00a0da] hover:bg-[#008ec2] text-white font-bold text-xs py-3 rounded-lg shadow-lg shadow-[#00a0da]/20 transition transform active:scale-[0.99] mt-2">
-                Sign In to Workspace
+            <button type="submit" class="w-full btn-brand-gradient text-white font-bold text-xs py-3 rounded-lg transition mt-2 flex items-center justify-center gap-2">
+                <span>Sign In to Workspace</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
         </form>
+
+        <div class="mt-6 pt-4 border-t border-[var(--border-color)] text-center">
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">
+                CRM · Accounting · HR · Projects · Collaboration
+            </span>
+        </div>
     </div>
 
     <script>
-        lucide.createIcons();
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
     </script>
 </body>
 </html>

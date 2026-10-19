@@ -22,20 +22,20 @@
         .header {
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px solid #00a0da;
+            border-bottom: 2px solid #1E5BFF;
             padding-bottom: 20px;
             margin-bottom: 24px;
         }
         .company-name {
             font-size: 20px;
             font-weight: 800;
-            color: #00a0da;
+            color: #1E5BFF;
         }
         .inv-title {
             font-size: 24px;
             font-weight: 800;
             text-align: right;
-            color: #111827;
+            color: #0B1F3A;
         }
         .inv-details {
             display: flex;
@@ -69,8 +69,8 @@
         .grand-total {
             font-weight: 800;
             font-size: 16px;
-            color: #00a0da;
-            border-top: 2px solid #111827 !important;
+            color: #1E5BFF;
+            border-top: 2px solid #0B1F3A !important;
         }
         @media print {
             body { padding: 0; }
@@ -81,7 +81,7 @@
 </head>
 <body>
     <div class="no-print" style="max-width: 800px; margin: 0 auto 16px auto; text-align: right;">
-        <button onclick="window.print()" style="background: #00a0da; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+        <button onclick="window.print()" style="background: linear-gradient(135deg, #1E5BFF 0%, #0A2A7A 100%); color: white; border: none; padding: 9px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(30, 91, 255, 0.25);">
             🖨️ Print / Save as PDF
         </button>
     </div>
@@ -89,7 +89,7 @@
     <div class="invoice-box">
         <div class="header">
             <div style="display: flex; gap: 14px; align-items: flex-start;">
-                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" style="height: 52px; width: 52px; object-fit: contain;">
+                <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE Logo" style="height: 48px; object-fit: contain;">
                 <div>
                     <div class="company-name">{{ company.name }}</div>
                     <div>{{ company.address }}, {{ company.city }}, {{ company.state }}</div>

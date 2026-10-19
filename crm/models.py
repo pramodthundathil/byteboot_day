@@ -81,9 +81,9 @@ class Lead(models.Model):
         """
         from django.utils import timezone
         if self.status in ('WON', 'LOST'):
-            return {'label': 'Closed', 'class': 'bg-slate-800 text-slate-400 border-slate-700', 'type': 'COMPLETED'}
+            return {'label': 'Closed', 'class': 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700 font-medium', 'type': 'COMPLETED'}
         if not self.next_followup_date:
-            return {'label': 'No Follow-up Scheduled', 'class': 'bg-slate-800/80 text-slate-400 border-white/10', 'type': 'UNSCHEDULED'}
+            return {'label': 'No Follow-up Scheduled', 'class': 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/80 dark:text-slate-400 dark:border-white/10 font-medium', 'type': 'UNSCHEDULED'}
         
         now = timezone.localtime(timezone.now())
         fup = timezone.localtime(self.next_followup_date)
@@ -92,15 +92,15 @@ class Lead(models.Model):
         if delta_days < 0:
             abs_days = abs(delta_days)
             label = f"Overdue by {abs_days} day{'s' if abs_days > 1 else ''}"
-            return {'label': label, 'class': 'bg-red-950/80 text-red-300 border-red-800 animate-pulse', 'type': 'OVERDUE'}
+            return {'label': label, 'class': 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-red-950/80 dark:text-red-300 dark:border-red-800 font-bold', 'type': 'OVERDUE'}
         elif delta_days == 0:
             time_str = fup.strftime("%I:%M %p")
-            return {'label': f"Today at {time_str}", 'class': 'bg-amber-950/80 text-amber-300 border-amber-700', 'type': 'TODAY'}
+            return {'label': f"Today at {time_str}", 'class': 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 font-bold', 'type': 'TODAY'}
         elif delta_days == 1:
             time_str = fup.strftime("%I:%M %p")
-            return {'label': f"Tomorrow ({time_str})", 'class': 'bg-sky-950/80 text-sky-300 border-sky-800', 'type': 'UPCOMING'}
+            return {'label': f"Tomorrow ({time_str})", 'class': 'bg-sky-50 text-sky-900 border-sky-300 dark:bg-sky-950/80 dark:text-sky-300 dark:border-sky-800 font-bold', 'type': 'UPCOMING'}
         else:
-            return {'label': f"In {delta_days} days ({fup.strftime('%d %b')})", 'class': 'bg-blue-950/80 text-blue-300 border-blue-800', 'type': 'UPCOMING'}
+            return {'label': f"In {delta_days} days ({fup.strftime('%d %b')})", 'class': 'bg-blue-50 text-blue-900 border-blue-300 dark:bg-blue-950/80 dark:text-blue-300 dark:border-blue-800 font-bold', 'type': 'UPCOMING'}
 
 
 class LeadFollowup(models.Model):

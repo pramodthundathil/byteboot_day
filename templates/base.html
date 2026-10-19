@@ -1,12 +1,48 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Byteboot Business OS — Multi-Tenant ERP{% endblock %}</title>
+    <meta name="color-scheme" content="light dark">
+    <title>{% block title %}B ONE — Business Management Platform{% endblock %}</title>
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="/static/js/img/company_logo_icon.png">
+    <!-- Immediate FOUC prevention script: Default theme is LIGHT -->
+    <script>
+        (function() {
+            try {
+                // If user previously visited and had 'theme' = 'dark' from the old Byteboot dark version,
+                // purge it so B ONE defaults to pristine Light Mode.
+                // We use 'b1_theme' as the authoritative setting.
+                let storedTheme = localStorage.getItem('b1_theme');
+                if (!storedTheme) {
+                    localStorage.removeItem('theme'); // purge obsolete dark flag
+                    storedTheme = 'light';
+                    localStorage.setItem('b1_theme', 'light');
+                }
+                if (storedTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+    </script>
+
+    <!-- B ONE Favicons & App Icons from static/b-one-logo-package -->
+    <link rel="icon" href="/static/b-one-logo-package/favicon/favicon.ico" sizes="48x48">
+    <link rel="icon" href="/static/b-one-logo-package/favicon/favicon.svg" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/b-one-logo-package/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/b-one-logo-package/favicon/favicon-16x16.png">
+    <link rel="apple-touch-icon" href="/static/b-one-logo-package/favicon/apple-touch-icon.png">
+    <link rel="manifest" href="/static/b-one-logo-package/favicon/site.webmanifest">
+    <meta name="theme-color" content="#1E5BFF">
+
+    <!-- Social sharing meta tags -->
+    <meta property="og:title" content="B ONE by Byteboot">
+    <meta property="og:description" content="One platform. Complete business control.">
+    <meta property="og:image" content="/static/b-one-logo-package/social/og-image-1200x630.png">
 
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,15 +53,33 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#e6f6fc',
-                            500: '#00a0da',
-                            600: '#008ec2',
-                            700: '#006f96',
+                            50: '#EEF4FF',
+                            100: '#DDE8FE',
+                            200: '#C2D6FE',
+                            300: '#94BAFD',
+                            400: '#5F95FC',
+                            500: '#1E5BFF', /* B ONE Brand Blue */
+                            600: '#1548D1',
+                            700: '#0A2A7A', /* B ONE Deep Blue */
+                            800: '#0B1F3A', /* B ONE Navy */
+                            cyan: '#22D3EE', /* B ONE Cyan flag accent */
+                            navy: '#0B1F3A',
+                            slate: '#5B6B85',
+                            mist: '#D5DCE8',
                         },
-                        darkbg: '#090d12',
-                        darkpanel: '#101720',
-                        darkcard: '#16202c',
-                        darkhover: '#1e2b3b',
+                        b1: {
+                            navy: '#0B1F3A',
+                            blue: '#1E5BFF',
+                            deep: '#0A2A7A',
+                            cyan: '#22D3EE',
+                            slate: '#5B6B85',
+                            mist: '#D5DCE8',
+                            white: '#FFFFFF',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                        heading: ['Poppins', 'sans-serif'],
                     }
                 }
             }
@@ -41,64 +95,122 @@
     <script src="/static/js/app_datatables.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* B ONE Brand Tokens & Theme Definitions */
+        :root {
+            /* Brand Identity Tokens */
+            --b1-navy:      #0B1F3A;  /* text, dark backgrounds */
+            --b1-blue:      #1E5BFF;  /* primary brand blue */
+            --b1-blue-deep: #0A2A7A;  /* gradient end, hover/pressed */
+            --b1-cyan:      #22D3EE;  /* accent (the "1" flag) */
+            --b1-slate:     #5B6B85;  /* secondary text */
+            --b1-mist:      #D5DCE8;  /* borders, rules */
+            --b1-white:     #FFFFFF;
+            --b1-gradient:  linear-gradient(135deg, #1E5BFF 0%, #0A2A7A 100%);
+            --b1-font:      'Poppins', 'Inter', system-ui, -apple-system, sans-serif;
+
+            /* Light Mode Variables (DEFAULT) */
+            --app-bg: #F4F6FB;
+            --surface-bg: #FFFFFF;
+            --surface-secondary: #F8FAFC;
+            --surface-hover: #EEF4FF;
+            --surface-active: #E0ECFF;
+            --border-color: #E2E8F0;
+            --border-subtle: #EEF2F6;
+
+            --text-primary: #0B1F3A;
+            --text-secondary: #475569;
+            --text-muted: #64748B;
+            --text-light: #94A3B8;
+
+            --card-bg: #FFFFFF;
+            --card-border: #E2E8F0;
+            --card-shadow: 0 1px 3px 0 rgba(11, 31, 58, 0.05), 0 4px 16px -2px rgba(11, 31, 58, 0.04);
+
+            --input-bg: #FFFFFF;
+            --input-border: #CBD5E1;
+            --input-text: #0B1F3A;
+            --input-focus: #1E5BFF;
+
+            --table-bg: #FFFFFF;
+            --table-header-bg: #F8FAFC;
+            --table-header-text: #5B6B85;
+            --table-border: #E2E8F0;
+            --table-row-text: #0B1F3A;
+            --table-row-hover: #F8FAFC;
+
+            --rail-bg: #FFFFFF;
+            --rail-border: #E2E8F0;
+            --sidebar-bg: #FFFFFF;
+            --sidebar-border: #E2E8F0;
+            --topbar-bg: #FFFFFF;
+            --topbar-border: #E2E8F0;
+        }
+
+        html.dark {
+            /* Dark Mode Variables */
+            --app-bg: #090E17;
+            --surface-bg: #0F1726;
+            --surface-secondary: #162032;
+            --surface-hover: #1E2D44;
+            --surface-active: #253856;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --border-subtle: rgba(255, 255, 255, 0.05);
+
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #94A3B8;
+            --text-light: #64748B;
+
+            --card-bg: #0F1726;
+            --card-border: rgba(255, 255, 255, 0.08);
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+
+            --input-bg: #090E17;
+            --input-border: rgba(255, 255, 255, 0.12);
+            --input-text: #F8FAFC;
+            --input-focus: #1E5BFF;
+
+            --table-bg: #0F1726;
+            --table-header-bg: #162032;
+            --table-header-text: #94A3B8;
+            --table-border: rgba(255, 255, 255, 0.08);
+            --table-row-text: #F1F5F9;
+            --table-row-hover: #1E2D44;
+
+            --rail-bg: #0F1726;
+            --rail-border: rgba(255, 255, 255, 0.1);
+            --sidebar-bg: #0F1726;
+            --sidebar-border: rgba(255, 255, 255, 0.1);
+            --topbar-bg: #0F1726;
+            --topbar-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * { font-family: 'Poppins', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         [x-cloak] { display: none !important; }
 
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.4); border-radius: 3px; }
+        html.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); }
 
-        /* DataTables & Responsive Table styling */
-        .table-wrap {
-            width: 100%;
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: #101720;
-        }
-        table.app-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: left;
-        }
-        table.app-table th {
-            background-color: #16202c;
-            color: #94a3b8;
-            font-weight: 600;
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        table.app-table td {
-            padding: 12px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #f1f5f9;
-        }
-        table.app-table tr:hover td {
-            background-color: #1e2b3b;
+        /* Card Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--card-shadow);
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .status-success { background: rgba(0, 160, 218, 0.15); color: #38bdf8; border: 1px solid rgba(0, 160, 218, 0.3); }
-        .status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .status-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .status-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-
+        /* Buttons */
         .btn-primary {
-            background-color: #00a0da;
-            color: #ffffff;
+            background: linear-gradient(135deg, #1E5BFF 0%, #0A2A7A 100%);
+            color: #FFFFFF !important;
             border: none;
             padding: 8px 16px;
             border-radius: 8px;
@@ -110,17 +222,21 @@
             gap: 6px;
             text-decoration: none;
             transition: all 0.15s ease;
-            box-shadow: 0 4px 12px rgba(0, 160, 218, 0.25);
+            box-shadow: 0 4px 14px rgba(30, 91, 255, 0.25);
         }
         .btn-primary:hover {
-            background-color: #008ec2;
+            background: linear-gradient(135deg, #1548D1 0%, #08215E 100%);
             transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(30, 91, 255, 0.35);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
         }
 
         .btn-secondary {
-            background-color: #16202c;
-            color: #f1f5f9;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--surface-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
             padding: 8px 16px;
             border-radius: 8px;
             font-size: 13px;
@@ -131,46 +247,677 @@
             gap: 6px;
             text-decoration: none;
             transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(11, 31, 58, 0.04);
         }
         .btn-secondary:hover {
-            background-color: #1e2b3b;
+            background-color: var(--surface-hover);
+            border-color: #CBD5E1;
+            color: var(--b1-blue);
+        }
+        html.dark .btn-secondary:hover {
             border-color: rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
         }
 
-        .card {
-            background-color: #101720;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-
+        /* Form Controls */
         .form-control {
             width: 100%;
-            background-color: #090d12;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 8px;
             padding: 9px 14px;
-            color: #f1f5f9;
+            color: var(--input-text);
             font-size: 13px;
             outline: none;
-            transition: border 0.15s ease;
+            transition: border 0.15s ease, box-shadow 0.15s ease;
         }
         .form-control:focus {
-            border-color: #00a0da;
-            box-shadow: 0 0 0 2px rgba(0, 160, 218, 0.25);
+            border-color: #1E5BFF;
+            box-shadow: 0 0 0 3px rgba(30, 91, 255, 0.18);
         }
         .form-label {
             display: block;
             font-size: 12px;
             font-weight: 600;
-            color: #94a3b8;
+            color: var(--text-secondary);
             margin-bottom: 6px;
         }
+
+        /* Tables & Responsive Table styling */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--table-border);
+            background: var(--table-bg);
+            padding: 18px 22px; /* Generous breathing room between container border and table across all tables */
+            transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 4px rgba(11, 31, 58, 0.04);
+            margin-bottom: 20px;
+        }
+        table.app-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 13px;
+            text-align: left;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+            margin: 4px 0;
+        }
+        table.app-table th {
+            background-color: var(--table-header-bg);
+            color: var(--table-header-text);
+            font-weight: 700;
+            padding: 14px 20px;
+            border-bottom: 1.5px solid var(--table-border);
+        }
+        table.app-table td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--table-row-text);
+        }
+        table.app-table tr:last-child td {
+            border-bottom: none;
+        }
+        table.app-table tr:hover td {
+            background-color: var(--table-row-hover);
+        }
+
+        /* Status Pills */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        /* Light mode status pills */
+        .status-success { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+        .status-warning { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+        .status-danger  { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+        .status-info    { background: #EFF6FF; color: #1E5BFF; border: 1px solid #BFDBFE; }
+
+        /* Dark mode status pills */
+        html.dark .status-success { background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        html.dark .status-warning { background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        html.dark .status-danger  { background: rgba(239, 68, 68, 0.15); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        html.dark .status-info    { background: rgba(30, 91, 255, 0.15); color: #60A5FA; border: 1px solid rgba(30, 91, 255, 0.3); }
+
+        /* Universal Light Mode Adaptation for legacy dark utilities */
+        html:not(.dark) .bg-\[\#090d12\],
+        html:not(.dark) .bg-\[\#080c10\],
+        html:not(.dark) .bg-\[\#0a0f16\],
+        html:not(.dark) .bg-\[\#0b141a\] {
+            background-color: var(--app-bg) !important;
+        }
+
+        html:not(.dark) .bg-\[\#101720\],
+        html:not(.dark) .bg-\[\#111b21\],
+        html:not(.dark) .bg-\[\#111827\],
+        html:not(.dark) .bg-\[\#16202c\],
+        html:not(.dark) .bg-\[\#172230\],
+        html:not(.dark) .bg-\[\#182229\],
+        html:not(.dark) .bg-\[\#1c2838\] {
+            background-color: var(--surface-bg) !important;
+        }
+
+        html:not(.dark) .bg-\[\#1e2b3b\],
+        html:not(.dark) .bg-\[\#202c33\],
+        html:not(.dark) .bg-\[\#2a3942\] {
+            background-color: var(--surface-secondary) !important;
+        }
+
+        html:not(.dark) .hover\:bg-\[\#1e2b3b\]:hover,
+        html:not(.dark) .hover\:bg-\[\#2a3942\]:hover,
+        html:not(.dark) .hover\:bg-\[\#202c33\]:hover {
+            background-color: var(--surface-hover) !important;
+        }
+
+        html:not(.dark) .border-white\/10,
+        html:not(.dark) .border-white\/5,
+        html:not(.dark) .border-white\/15,
+        html:not(.dark) .border-white\/20 {
+            border-color: var(--border-color) !important;
+        }
+
+        /* High-contrast Letter & Typography Visibility for Light Screen */
+        html:not(.dark) h1,
+        html:not(.dark) h2,
+        html:not(.dark) h3,
+        html:not(.dark) h4,
+        html:not(.dark) h5,
+        html:not(.dark) h6 {
+            color: #0B1F3A !important;
+        }
+
+        html:not(.dark) .text-slate-100,
+        html:not(.dark) .text-slate-200,
+        html:not(.dark) .text-gray-100,
+        html:not(.dark) .text-gray-200 {
+            color: #0B1F3A !important;
+        }
+
+        html:not(.dark) .text-slate-300,
+        html:not(.dark) .text-gray-300 {
+            color: #1E293B !important;
+        }
+
+        html:not(.dark) .text-slate-400,
+        html:not(.dark) .text-gray-400 {
+            color: #334155 !important; /* Deep Slate-700 instead of faint gray */
+        }
+
+        html:not(.dark) .text-slate-500,
+        html:not(.dark) .text-gray-500 {
+            color: #475569 !important; /* Deep Slate-600 */
+        }
+
+        html:not(.dark) .form-label {
+            color: #0B1F3A !important;
+            font-weight: 700 !important;
+        }
+
+        html:not(.dark) .form-control {
+            background-color: #FFFFFF !important;
+            border-color: #CBD5E1 !important;
+            color: #0F172A !important;
+            font-weight: 500 !important;
+        }
+
+        html:not(.dark) table.app-table th {
+            background-color: #F8FAFC !important;
+            color: #0B1F3A !important;
+            font-weight: 700 !important;
+            border-bottom: 2px solid #E2E8F0 !important;
+        }
+
+        html:not(.dark) table.app-table td {
+            color: #0F172A !important;
+            font-weight: 500 !important;
+            border-bottom: 1px solid #F1F5F9 !important;
+        }
+
+        /* High-Visibility, Bold Badges and Status Pills in Light Screen */
+        html:not(.dark) .status-pill {
+            font-weight: 800 !important;
+            letter-spacing: 0.5px;
+            border-width: 1.5px !important;
+            padding: 3px 12px !important;
+        }
+
+        html:not(.dark) .status-success {
+            background-color: #ECFDF5 !important;
+            color: #065F46 !important; /* Deep Emerald 800 */
+            border-color: #10B981 !important; /* Solid Emerald 500 */
+            box-shadow: 0 1px 2px rgba(16, 185, 129, 0.12);
+        }
+
+        html:not(.dark) .status-warning {
+            background-color: #FFFBEB !important;
+            color: #92400E !important; /* Deep Amber 800 */
+            border-color: #F59E0B !important; /* Solid Amber 500 */
+            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.12);
+        }
+
+        html:not(.dark) .status-danger {
+            background-color: #FEF2F2 !important;
+            color: #991B1B !important; /* Deep Red 800 */
+            border-color: #EF4444 !important; /* Solid Red 500 */
+            box-shadow: 0 1px 2px rgba(239, 68, 68, 0.12);
+        }
+
+        html:not(.dark) .status-info {
+            background-color: #EFF6FF !important;
+            color: #1E40AF !important; /* Deep Blue 800 */
+            border-color: #3B82F6 !important; /* Solid Blue 500 */
+            box-shadow: 0 1px 2px rgba(59, 130, 246, 0.12);
+        }
+
+        /* Universal high-visibility styling for all category badges in Light Screen */
+        html:not(.dark) [class*="bg-amber-500/"],
+        html:not(.dark) [class*="bg-amber-400/"] {
+            background-color: #FEF3C7 !important;
+            color: #92400E !important;
+            border: 1.5px solid #F59E0B !important;
+            font-weight: 800 !important;
+        }
+
+        html:not(.dark) [class*="bg-emerald-500/"],
+        html:not(.dark) [class*="bg-emerald-400/"] {
+            background-color: #D1FAE5 !important;
+            color: #065F46 !important;
+            border: 1.5px solid #10B981 !important;
+            font-weight: 800 !important;
+        }
+
+        html:not(.dark) [class*="bg-red-500/"],
+        html:not(.dark) [class*="bg-rose-500/"] {
+            background-color: #FEE2E2 !important;
+            color: #991B1B !important;
+            border: 1.5px solid #EF4444 !important;
+            font-weight: 800 !important;
+        }
+
+        html:not(.dark) [class*="bg-blue-500/"],
+        html:not(.dark) [class*="bg-sky-500/"],
+        html:not(.dark) [class*="bg-[#00a0da]/"],
+        html:not(.dark) [class*="bg-[#1E5BFF]/"] {
+            background-color: #DBEAFE !important;
+            color: #1E40AF !important;
+            border: 1.5px solid #3B82F6 !important;
+            font-weight: 800 !important;
+        }
+
+        html:not(.dark) [class*="bg-purple-500/"] {
+            background-color: #F3E8FF !important;
+            color: #6B21A8 !important;
+            border: 1.5px solid #A855F7 !important;
+            font-weight: 800 !important;
+        }
+
+        /* High contrast light mode mapping for dark badge backgrounds */
+        html:not(.dark) [class*="bg-red-950"],
+        html:not(.dark) [class*="bg-rose-950"],
+        html:not(.dark) [class*="bg-red-900"] {
+            background-color: #FEF2F2 !important;
+            color: #991B1B !important;
+            border-color: #F87171 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-amber-950"],
+        html:not(.dark) [class*="bg-amber-900"] {
+            background-color: #FFFBEB !important;
+            color: #92400E !important;
+            border-color: #FBBF24 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-orange-950"],
+        html:not(.dark) [class*="bg-orange-900"] {
+            background-color: #FFF7ED !important;
+            color: #9A3412 !important;
+            border-color: #FB923C !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-sky-950"],
+        html:not(.dark) [class*="bg-sky-900"] {
+            background-color: #F0F9FF !important;
+            color: #0369A1 !important;
+            border-color: #38BDF8 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-blue-950"],
+        html:not(.dark) [class*="bg-blue-900"] {
+            background-color: #EFF6FF !important;
+            color: #1E40AF !important;
+            border-color: #60A5FA !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-purple-950"],
+        html:not(.dark) [class*="bg-purple-900"] {
+            background-color: #FAF5FF !important;
+            color: #6B21A8 !important;
+            border-color: #C084FC !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-emerald-950"],
+        html:not(.dark) [class*="bg-emerald-900"] {
+            background-color: #ECFDF5 !important;
+            color: #065F46 !important;
+            border-color: #34D399 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-pink-950"] {
+            background-color: #FDF2F8 !important;
+            color: #9D174D !important;
+            border-color: #F472B6 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="bg-slate-800"],
+        html:not(.dark) [class*="bg-gray-800"] {
+            background-color: #F1F5F9 !important;
+            color: #1E293B !important;
+            border-color: #CBD5E1 !important;
+            font-weight: 600 !important;
+        }
+        html:not(.dark) [class*="bg-slate-900"],
+        html:not(.dark) [class*="bg-gray-900"] {
+            background-color: #F8FAFC !important;
+            color: #0F172A !important;
+            border-color: #E2E8F0 !important;
+        }
+        html:not(.dark) [class*="text-red-300"],
+        html:not(.dark) [class*="text-rose-300"] {
+            color: #991B1B !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-amber-300"] {
+            color: #92400E !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-sky-300"] {
+            color: #0369A1 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-blue-300"] {
+            color: #1E40AF !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-purple-300"] {
+            color: #6B21A8 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-emerald-300"] {
+            color: #065F46 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-orange-300"] {
+            color: #9A3412 !important;
+            font-weight: 700 !important;
+        }
+        html:not(.dark) [class*="text-pink-300"] {
+            color: #9D174D !important;
+            font-weight: 700 !important;
+        }
+
+        /* Metric Numbers & Indicators in Light Screen */
+        html:not(.dark) .text-\[\#25d366\],
+        html:not(.dark) .text-emerald-400 {
+            color: #059669 !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-blue-400 {
+            color: #1D4ED8 !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-cyan-400 {
+            color: #0284C7 !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-purple-400 {
+            color: #7C3AED !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-amber-400,
+        html:not(.dark) .text-amber-300 {
+            color: #B45309 !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-red-400,
+        html:not(.dark) .text-rose-400 {
+            color: #DC2626 !important;
+            font-weight: 800;
+        }
+        html:not(.dark) .text-sky-400 {
+            color: #0284C7 !important;
+            font-weight: 800;
+        }
+
+        /* Accent Brand Colors mapping */
+        .text-\[\#00a0da\] {
+            color: #1E5BFF !important;
+        }
+        .bg-\[\#00a0da\] {
+            background-color: #1E5BFF !important;
+        }
+        .bg-\[\#00a0da\]\/10,
+        .bg-\[\#00a0da\]\/15,
+        .bg-\[\#00a0da\]\/20 {
+            background-color: rgba(30, 91, 255, 0.12) !important;
+        }
+        .text-\[\#38bdf8\] {
+            color: #1E5BFF !important;
+        }
+        html.dark .text-\[\#38bdf8\] {
+            color: #38BDF8 !important;
+        }
+        /* Floating Chat Modal High Visibility Overrides for Light & Dark Screens */
+        #floatingChatModal {
+            background-color: #FFFFFF !important;
+            border-color: #CBD5E1 !important;
+        }
+        html.dark #floatingChatModal {
+            background-color: #111B21 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        #floatingChatModal .floating-chat-header,
+        .floating-chat-header {
+            background: linear-gradient(135deg, #0B1320 0%, #172437 100%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+            color: #FFFFFF !important;
+        }
+
+        #floatingChatModal .floating-chat-header *,
+        .floating-chat-header * {
+            color-scheme: dark !important;
+        }
+
+        #floatingChatModal .floating-chat-header h3,
+        .floating-chat-header h3 {
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
+        }
+
+        #floatingChatModal .floating-chat-header p,
+        .floating-chat-header p {
+            color: #94A3B8 !important;
+        }
+
+        /* All header action buttons: Back, Sound, Bell, Maximize, Close */
+        #floatingChatModal .floating-chat-header button,
+        #floatingChatModal .floating-chat-header a,
+        .floating-chat-header button,
+        .floating-chat-header a {
+            color: #FFFFFF !important;
+        }
+
+        #floatingChatModal .floating-chat-header button svg,
+        #floatingChatModal .floating-chat-header button i,
+        #floatingChatModal .floating-chat-header a svg,
+        #floatingChatModal .floating-chat-header a i,
+        .floating-chat-header button svg,
+        .floating-chat-header button i,
+        .floating-chat-header a svg,
+        .floating-chat-header a i {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+            stroke-width: 2.2 !important;
+        }
+
+        #floatingChatModal .floating-chat-header button:hover,
+        #floatingChatModal .floating-chat-header a:hover,
+        .floating-chat-header button:hover,
+        .floating-chat-header a:hover {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: #FFFFFF !important;
+        }
+
+        #floatingChatModal .floating-chat-header button:hover svg,
+        #floatingChatModal .floating-chat-header a:hover svg,
+        .floating-chat-header button:hover svg,
+        .floating-chat-header a:hover svg {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+        }
+
+        #floatingChatModal .floating-chat-header select,
+        .floating-chat-header select {
+            background-color: #1E293B !important;
+            color: #FFFFFF !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+
+        #floatingChatModal .floating-chat-header select option,
+        .floating-chat-header select option {
+            background-color: #0F172A !important;
+            color: #FFFFFF !important;
+        }
+
+        /* Floating Rooms All Projects Section Visibility */
+        #floatingRoomsListContainer {
+            background-color: #F8FAFC !important;
+        }
+        html.dark #floatingRoomsListContainer {
+            background-color: #111B21 !important;
+        }
+
+        #floatingProjectSearchInput {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1.5px solid #CBD5E1 !important;
+        }
+        html.dark #floatingProjectSearchInput {
+            background-color: #0B141A !important;
+            color: #F1F5F9 !important;
+            border-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        /* Floating Thread Subheader (Back button & Room Info) */
+        #floatingThreadSubheader {
+            background-color: #FFFFFF !important;
+            border-bottom: 1px solid #E2E8F0 !important;
+        }
+        html.dark #floatingThreadSubheader {
+            background-color: #111B21 !important;
+            border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        #floatingThreadSubheader button svg,
+        #floatingThreadSubheader button i {
+            stroke: currentColor !important;
+        }
+
+        #floatingProjectSearchInput::placeholder {
+            color: #64748B !important;
+        }
+        html.dark #floatingProjectSearchInput::placeholder {
+            color: #94A3B8 !important;
+        }
+
+        #floatingEntityTypeSelect {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1.5px solid #CBD5E1 !important;
+        }
+        html.dark #floatingEntityTypeSelect {
+            background-color: #202C33 !important;
+            color: #F1F5F9 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        #floatingChatInput {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1.5px solid #CBD5E1 !important;
+        }
+        #floatingChatInput::placeholder {
+            color: #64748B !important;
+        }
+        html.dark #floatingChatInput {
+            background-color: #202C33 !important;
+            color: #F1F5F9 !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+        html.dark #floatingChatInput::placeholder {
+            color: #94A3B8 !important;
+        }
+
+        #floatingSendBtn svg,
+        #floatingSendBtn i {
+            color: #FFFFFF !important;
+            stroke: #FFFFFF !important;
+            stroke-width: 2.2 !important;
+        }
     </style>
+
+    <script>
+        function navLayout() {
+            return {
+                sidebarPinned: (localStorage.getItem('b1_sidebar_pinned') === 'true'),
+                sidebarOpen: false, // Default hidden across all panels for space-saving & test compatibility
+                activeHoverMenu: null,
+                hoverMenuTop: 70,
+                hoverTimeout: null,
+                mobileMenuOpen: false,
+                commandOpen: false,
+                drawerOpen: false,
+
+                init() {
+                    // Sync sidebarOpen with stored pin state
+                    this.sidebarOpen = this.sidebarPinned;
+                    this.$watch('sidebarOpen', (val) => {
+                        this.sidebarPinned = val;
+                        localStorage.setItem('b1_sidebar_pinned', val ? 'true' : 'false');
+                    });
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                togglePin() {
+                    this.sidebarPinned = !this.sidebarPinned;
+                    this.sidebarOpen = this.sidebarPinned;
+                    localStorage.setItem('b1_sidebar_pinned', this.sidebarPinned ? 'true' : 'false');
+                    if (this.sidebarPinned) {
+                        this.activeHoverMenu = null;
+                    }
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                onIconHover(menuKey, event) {
+                    if (this.sidebarPinned) return;
+                    clearTimeout(this.hoverTimeout);
+                    this.activeHoverMenu = menuKey;
+                    if (event && event.currentTarget) {
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        const popupHeight = 420;
+                        const windowHeight = window.innerHeight;
+                        let targetTop = rect.top - 8;
+                        const maxTop = windowHeight - popupHeight - 16;
+                        if (targetTop > maxTop) {
+                            targetTop = Math.max(16, maxTop);
+                        }
+                        if (targetTop < 16) {
+                            targetTop = 16;
+                        }
+                        this.hoverMenuTop = targetTop;
+                    }
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                onIconLeave() {
+                    if (this.sidebarPinned) return;
+                    this.hoverTimeout = setTimeout(() => {
+                        this.activeHoverMenu = null;
+                    }, 200);
+                },
+
+                onMenuEnter() {
+                    if (this.sidebarPinned) return;
+                    clearTimeout(this.hoverTimeout);
+                },
+
+                onMenuLeave() {
+                    if (this.sidebarPinned) return;
+                    this.hoverTimeout = setTimeout(() => {
+                        this.activeHoverMenu = null;
+                    }, 200);
+                }
+            };
+        }
+    </script>
 </head>
-<body x-data="{ sidebarOpen: {% if active_tab == 'chat' %}false{% else %}true{% endif %}, mobileMenuOpen: false, commandOpen: false, drawerOpen: false }" class="bg-[#090d12] text-slate-100 h-screen overflow-hidden flex">
+<body x-data="navLayout()" class="bg-[var(--app-bg)] text-[var(--text-primary)] h-screen overflow-hidden flex transition-colors duration-200">
 
     <!-- Floating Toast Notifications Container -->
     {% if messages %}
@@ -183,27 +930,27 @@
              x-transition:leave="transition ease-in duration-200 transform"
              x-transition:leave-start="translate-x-0 opacity-100"
              x-transition:leave-end="translate-x-full opacity-0"
-             class="pointer-events-auto p-4 rounded-xl border shadow-2xl backdrop-blur-md flex items-start gap-3 bg-[#101720]/95
+             class="pointer-events-auto p-4 rounded-xl border shadow-xl backdrop-blur-md flex items-start gap-3 bg-white/95 dark:bg-[#101720]/95
              {% if message.tags == 'error' or message.tags == 'danger' %}
-                border-red-500/60 shadow-red-950/40
+                border-red-500/50 shadow-red-500/10
              {% elif message.tags == 'warning' %}
-                border-amber-500/60 shadow-amber-950/40
+                border-amber-500/50 shadow-amber-500/10
              {% elif message.tags == 'info' %}
-                border-blue-500/60 shadow-blue-950/40
+                border-blue-500/50 shadow-blue-500/10
              {% else %}
-                border-[#00a0da]/60 shadow-sky-950/40
+                border-[#1E5BFF]/50 shadow-[#1E5BFF]/10
              {% endif %}">
             
             <!-- Icon Indicator based on tag -->
             <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-xs
                  {% if message.tags == 'error' or message.tags == 'danger' %}
-                    bg-red-500/20 text-red-400 border border-red-500/30
+                    bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30
                  {% elif message.tags == 'warning' %}
-                    bg-amber-500/20 text-amber-400 border border-amber-500/30
+                    bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30
                  {% elif message.tags == 'info' %}
-                    bg-blue-500/20 text-blue-400 border border-blue-500/30
+                    bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30
                  {% else %}
-                    bg-[#00a0da]/20 text-[#38bdf8] border border-[#00a0da]/30
+                    bg-[#1E5BFF]/15 text-[#1E5BFF] dark:text-[#38bdf8] border border-[#1E5BFF]/30
                  {% endif %}">
                 {% if message.tags == 'error' or message.tags == 'danger' %}
                     <i data-lucide="alert-circle" class="w-4 h-4"></i>
@@ -219,13 +966,13 @@
             <div class="flex-1 min-w-0">
                 <div class="font-bold text-xs uppercase tracking-wider mb-0.5
                      {% if message.tags == 'error' or message.tags == 'danger' %}
-                        text-red-400
+                        text-red-600 dark:text-red-400
                      {% elif message.tags == 'warning' %}
-                        text-amber-400
+                        text-amber-600 dark:text-amber-400
                      {% elif message.tags == 'info' %}
-                        text-blue-400
+                        text-blue-600 dark:text-blue-400
                      {% else %}
-                        text-[#38bdf8]
+                        text-[#1E5BFF] dark:text-[#38bdf8]
                      {% endif %}">
                     {% if message.tags == 'error' or message.tags == 'danger' %}
                         Error Notification
@@ -237,11 +984,11 @@
                         Success Notification
                     {% endif %}
                 </div>
-                <p class="text-xs text-slate-200 leading-relaxed font-medium">{{ message }}</p>
+                <p class="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">{{ message }}</p>
             </div>
 
             <!-- Manual Dismiss Button -->
-            <button @click="show = false" class="text-slate-400 hover:text-white transition text-xs p-1">
+            <button @click="show = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white transition text-xs p-1">
                 ✕
             </button>
         </div>
@@ -250,84 +997,480 @@
     {% endif %}
 
     <!-- Far Left Icon Rail -->
-    <div class="hidden sm:flex w-16 bg-[#101720] border-r border-white/10 flex-col justify-between items-center py-3 z-30 flex-shrink-0">
+    <div class="hidden sm:flex w-16 bg-[var(--rail-bg)] border-r border-[var(--rail-border)] flex-col justify-between items-center py-3 z-30 flex-shrink-0 transition-colors duration-200">
         <div class="flex flex-col items-center gap-2.5 w-full">
             <!-- Brand Logo at Top of Navigation Rail -->
-            <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 hover:bg-[#1e2b3b] transition group" title="Byteboot Business OS">
-                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-8 h-8 object-contain filter group-hover:brightness-110 transition">
+            <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 hover:bg-slate-100 dark:hover:bg-[#1e2d44] transition group" title="B ONE — One platform. Complete business control.">
+                <img src="/static/b-one-logo-package/svg/b-one-mark-color.svg" alt="B ONE" class="w-8 h-8 object-contain dark:hidden group-hover:scale-105 transition">
+                <img src="/static/b-one-logo-package/svg/b-one-mark-reversed.svg" alt="B ONE" class="w-8 h-8 object-contain hidden dark:block group-hover:scale-105 transition">
             </a>
 
-            <!-- Hamburger Button below Logo -->
-            <button @click="sidebarOpen = !sidebarOpen" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-300 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition" title="Toggle Navigation Sidebar">
+            <!-- Hamburger Button below Logo (Toggles Pinned Sidebar) -->
+            <button @click="togglePin()"
+                    class="w-11 h-11 rounded-xl flex items-center justify-center transition relative"
+                    :class="sidebarPinned ? 'bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : 'text-slate-500 hover:text-[#1E5BFF] hover:bg-slate-100 dark:text-slate-400 dark:hover:text-[#38bdf8] dark:hover:bg-[#1e2d44]'"
+                    :title="sidebarPinned ? 'Unpin Navigation Sidebar (Auto-collapse to hover mode)' : 'Pin Navigation Sidebar Open Permanently'">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
 
             <!-- Icon Nav Launcher Buttons -->
             <div class="flex flex-col gap-2 w-full items-center">
-                <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'dashboard' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Dashboard Overview">
+                <!-- Dashboard Overview -->
+                <a href="{% url 'dashboard:index' %}"
+                   @mouseenter="onIconHover('dashboard', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'dashboard' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Dashboard Overview">
                     <i data-lucide="grid" class="w-5 h-5"></i>
                 </a>
+
                 {% if user_perms.crm %}
-                <a href="{% url 'crm:lead_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'crm' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="CRM & Pipeline">
+                <!-- CRM & Pipeline -->
+                <a href="{% url 'crm:lead_list' %}"
+                   @mouseenter="onIconHover('crm', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'crm' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'crm' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="CRM & Pipeline">
                     <i data-lucide="users" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
+
                 {% if user_perms.invoicing %}
-                <a href="{% url 'invoicing:invoice_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'invoicing' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Sales & Invoices">
+                <!-- Sales & Invoices -->
+                <a href="{% url 'invoicing:invoice_list' %}"
+                   @mouseenter="onIconHover('invoicing', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'invoicing' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'invoicing' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Sales & Invoices">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
+
                 {% if user_perms.accounting %}
-                <a href="{% url 'accounting:journal_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'accounting' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="General Ledger">
+                <!-- General Ledger -->
+                <a href="{% url 'accounting:journal_list' %}"
+                   @mouseenter="onIconHover('accounting', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'accounting' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'accounting' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="General Ledger">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
                 </a>
                 {% endif %}
-                <a href="{% url 'hr:leave_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'hr' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Leave Applications & HR">
+
+                <!-- Leaves & HR -->
+                <a href="{% url 'hr:leave_list' %}"
+                   @mouseenter="onIconHover('hr', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'hr' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'hr' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Leave Applications & HR">
                     <i data-lucide="calendar" class="w-5 h-5"></i>
                 </a>
+
                 {% if user_perms.projects %}
-                <a href="{% url 'projects:project_list' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'projects' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Projects & Tasks">
+                <!-- Projects & Tasks -->
+                <a href="{% url 'projects:project_list' %}"
+                   @mouseenter="onIconHover('projects', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'projects' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Projects & Tasks">
                     <i data-lucide="layout" class="w-5 h-5"></i>
                 </a>
-                <a href="{% url 'projects:conversations' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'chat' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Team Chat">
+
+                <!-- Team Chat -->
+                <a href="{% url 'projects:conversations' %}"
+                   @mouseenter="onIconHover('chat', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'chat' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Team Chat">
                     <i data-lucide="message-square" class="w-5 h-5"></i>
-                    <span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00a0da]"></span>
+                    <span id="railChatBadge" class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#0f172a] {% if unread_chat_count == 0 %}hidden{% endif %}"></span>
                 </a>
                 {% endif %}
-                <a href="{% url 'dashboard:reports' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#00a0da] hover:bg-[#1e2b3b] transition relative {% if active_tab == 'reports' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}" title="Financial Reports">
+
+                <!-- Financial Reports -->
+                <a href="{% url 'dashboard:reports' %}"
+                   @mouseenter="onIconHover('reports', $event)"
+                   @mouseleave="onIconLeave()"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'reports' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
+                   :class="activeHoverMenu === 'reports' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   title="Financial Reports">
                     <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                 </a>
             </div>
         </div>
 
+        <!-- Bottom Icons: Settings & User Profile -->
         <div class="flex flex-col items-center gap-3">
-            <a href="{% url 'tenants:company_settings' %}" class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-[#1e2b3b] transition" title="Settings">
+            <a href="{% url 'tenants:company_settings' %}"
+               @mouseenter="onIconHover('settings', $event)"
+               @mouseleave="onIconLeave()"
+               class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e2d44] transition"
+               :class="activeHoverMenu === 'settings' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+               title="Settings">
                 <i data-lucide="settings" class="w-5 h-5"></i>
             </a>
-            <div class="w-9 h-9 rounded-full bg-sky-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#00a0da]">
+            <button @mouseenter="onIconHover('user', $event)"
+                    @mouseleave="onIconLeave()"
+                    class="w-9 h-9 rounded-full bg-[#1E5BFF] flex items-center justify-center text-white font-bold text-xs ring-2 ring-blue-300 dark:ring-blue-600 hover:scale-105 transition cursor-pointer"
+                    :class="activeHoverMenu === 'user' ? 'ring-4 ring-blue-400' : ''"
+                    title="User Profile: {{ request.user.username }}">
                 {{ request.user.username|slice:":2"|upper }}
-            </div>
+            </button>
         </div>
     </div>
 
-    <!-- Secondary Navigation Drawer (Collapsible & Responsive) -->
-    <div x-show="sidebarOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" class="hidden md:flex w-64 bg-[#101720] border-r border-white/10 flex-col flex-shrink-0 z-20">
-        <div class="p-4 border-b border-white/10 flex items-center justify-between">
-            <a href="{% url 'dashboard:index' %}" class="flex items-center gap-2.5 group">
-                <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-7 h-7 object-contain group-hover:scale-105 transition">
-                <div class="flex flex-col">
-                    <h2 class="text-sm font-bold text-slate-100 group-hover:text-[#00a0da] transition leading-tight">Byteboot OS</h2>
-                    <span class="text-[10px] text-slate-400 font-mono">Business OS</span>
+    <!-- ========================================================================= -->
+    <!-- Hover Pop-up Sub-Sidebar (Flyout Menu when Sidebar is Auto-Hidden/Collapsed) -->
+    <!-- ========================================================================= -->
+    <div x-cloak
+         x-show="!sidebarPinned && activeHoverMenu !== null"
+         x-transition:enter="transition ease-out duration-150 transform"
+         x-transition:enter-start="opacity-0 -translate-x-2 scale-95"
+         x-transition:enter-end="opacity-100 translate-x-0 scale-100"
+         x-transition:leave="transition ease-in duration-100 transform"
+         x-transition:leave-start="opacity-100 translate-x-0 scale-100"
+         x-transition:leave-end="opacity-0 -translate-x-2 scale-95"
+         @mouseenter="onMenuEnter()"
+         @mouseleave="onMenuLeave()"
+         :style="'top: ' + hoverMenuTop + 'px;'"
+         class="hidden sm:block fixed left-[70px] z-50 w-72 bg-white dark:bg-[#0f1726] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl shadow-slate-900/20 dark:shadow-black/70 p-3.5 transition-all duration-150 pointer-events-auto before:content-[''] before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-4"
+         style="display: none;">
+
+        <!-- Flyout Header (Icon, Title, Category and Pin Option) -->
+        <div class="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-white/10">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
+                    <template x-if="activeHoverMenu === 'dashboard'"><i data-lucide="grid" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'crm'"><i data-lucide="users" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'invoicing'"><i data-lucide="receipt" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'accounting'"><i data-lucide="book-open" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'hr'"><i data-lucide="calendar" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'projects'"><i data-lucide="layout" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'chat'"><i data-lucide="message-square" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'reports'"><i data-lucide="bar-chart-2" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'settings'"><i data-lucide="settings" class="w-4 h-4"></i></template>
+                    <template x-if="activeHoverMenu === 'user'"><i data-lucide="user-check" class="w-4 h-4"></i></template>
                 </div>
+                <div class="min-w-0">
+                    <div class="text-xs font-bold text-slate-900 dark:text-white truncate">
+                        <span x-show="activeHoverMenu === 'dashboard'">Dashboard</span>
+                        <span x-show="activeHoverMenu === 'crm'">CRM & Pipeline</span>
+                        <span x-show="activeHoverMenu === 'invoicing'">Sales & Invoices</span>
+                        <span x-show="activeHoverMenu === 'accounting'">General Ledger</span>
+                        <span x-show="activeHoverMenu === 'hr'">Leaves & HR</span>
+                        <span x-show="activeHoverMenu === 'projects'">Projects & Tasks</span>
+                        <span x-show="activeHoverMenu === 'chat'">Team Chat</span>
+                        <span x-show="activeHoverMenu === 'reports'">Financial Reports</span>
+                        <span x-show="activeHoverMenu === 'settings'">System Settings</span>
+                        <span x-show="activeHoverMenu === 'user'">{{ request.user.username }}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
+                        <span x-show="activeHoverMenu === 'dashboard'">Overview & Insights</span>
+                        <span x-show="activeHoverMenu === 'crm'">Leads & Customers</span>
+                        <span x-show="activeHoverMenu === 'invoicing'">Invoices & Payments</span>
+                        <span x-show="activeHoverMenu === 'accounting'">Accounts & Journals</span>
+                        <span x-show="activeHoverMenu === 'hr'">Time Off & Staff</span>
+                        <span x-show="activeHoverMenu === 'projects'">Projects & Tracker</span>
+                        <span x-show="activeHoverMenu === 'chat'">Discussions & Channels</span>
+                        <span x-show="activeHoverMenu === 'reports'">Revenue & Performance</span>
+                        <span x-show="activeHoverMenu === 'settings'">Configuration & Company</span>
+                        <span x-show="activeHoverMenu === 'user'">{{ current_membership.get_role_display|default:"Active User" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Option for Permanently Visible Sidebar -->
+            <button @click="togglePin()"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#1E5BFF] hover:bg-blue-50 dark:text-slate-300 dark:hover:text-[#38bdf8] dark:hover:bg-[#1e2d44] border border-slate-200 dark:border-white/10 transition shadow-sm"
+                    title="Pin sidebar open permanently">
+                <i data-lucide="pin" class="w-3.5 h-3.5 text-[#1E5BFF] dark:text-[#38bdf8]"></i>
+                <span>Pin</span>
+            </button>
+        </div>
+
+        <!-- Pop-up Navigation Items Container (Scrollable if height exceeds) -->
+        <div class="max-h-[380px] overflow-y-auto space-y-1 pr-0.5">
+
+            <!-- 1. DASHBOARD ITEMS -->
+            <template x-if="activeHoverMenu === 'dashboard'">
+                <div class="space-y-1">
+                    <a href="{% url 'dashboard:index' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'dashboard' and not active_sub %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="grid" class="w-4 h-4 text-[#1E5BFF]"></i> Dashboard Overview</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Home</span>
+                    </a>
+                    <a href="{% url 'dashboard:reports' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i> Financial Reports</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Analytics</span>
+                    </a>
+                    {% if user_perms.crm %}
+                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
+                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
+                    </a>
+                    {% endif %}
+                    {% if user_perms.projects %}
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Tracker</span>
+                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tasks</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </template>
+
+            <!-- 2. CRM & PIPELINE ITEMS -->
+            {% if user_perms.crm %}
+            <template x-if="activeHoverMenu === 'crm'">
+                <div class="space-y-1">
+                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
+                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
+                    </a>
+                    <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'call_history' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i> Call & Contact History</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
+                    </a>
+                    <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'leads' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#1E5BFF]"></i> Sales Leads</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
+                    </a>
+                    <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-emerald-50 text-emerald-600 dark:bg-[#1e2d44] dark:text-emerald-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-500"></i> Won Leads</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
+                    </a>
+                    <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-red-50 text-red-600 dark:bg-[#1e2d44] dark:text-red-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-500"></i> Lost Leads</span>
+                        <span class="bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
+                    </a>
+                    <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-500"></i> Bulk Upload Leads
+                    </a>
+                    {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
+                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-500"></i> Staff Analytics</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'customers' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <i data-lucide="building" class="w-4 h-4 text-slate-500"></i> Customers Directory
+                    </a>
+                </div>
+            </template>
+            {% endif %}
+
+            <!-- 3. INVOICING & BILLING ITEMS -->
+            {% if user_perms.invoicing %}
+            <template x-if="activeHoverMenu === 'invoicing'">
+                <div class="space-y-1">
+                    <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'invoices' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="receipt" class="w-4 h-4 text-[#1E5BFF]"></i> Tax Invoices</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Invoices</span>
+                    </a>
+                    <a href="{% url 'invoicing:invoice_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> Create New Invoice</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
+                    </a>
+                    <a href="{% url 'invoicing:payment_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'payments' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="credit-card" class="w-4 h-4 text-indigo-500"></i> Customer Payments</span>
+                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Payments</span>
+                    </a>
+                    <a href="{% url 'invoicing:payment_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="badge-check" class="w-4 h-4 text-amber-500"></i> Record Payment</span>
+                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Record</span>
+                    </a>
+                </div>
+            </template>
+            {% endif %}
+
+            <!-- 4. ACCOUNTING & GENERAL LEDGER ITEMS -->
+            {% if user_perms.accounting %}
+            <template x-if="activeHoverMenu === 'accounting'">
+                <div class="space-y-1">
+                    <a href="{% url 'accounting:journal_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'journals' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-[#1E5BFF]"></i> General Ledger</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Journals</span>
+                    </a>
+                    <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'accounts' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="list-tree" class="w-4 h-4 text-indigo-500"></i> Chart of Accounts</span>
+                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">COA</span>
+                    </a>
+                </div>
+            </template>
+            {% endif %}
+
+            <!-- 5. LEAVES & HR ITEMS -->
+            <template x-if="activeHoverMenu === 'hr'">
+                <div class="space-y-1">
+                    <a href="{% url 'hr:leave_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'leaves' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i> Leave Applications</span>
+                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Leaves</span>
+                    </a>
+                    <a href="{% url 'hr:leave_request' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="calendar-plus" class="w-4 h-4 text-emerald-500"></i> Apply for Leave</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Apply</span>
+                    </a>
+                    {% if user_perms.hr %}
+                    <a href="{% url 'hr:employee_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'employees' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-indigo-500"></i> HR Employees</span>
+                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Staff</span>
+                    </a>
+                    {% endif %}
+                    {% if user_perms.roles %}
+                    <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'roles' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#1E5BFF]"></i> Roles & Permissions</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </template>
+
+            <!-- 6. PROJECTS & TASKS ITEMS -->
+            {% if user_perms.projects %}
+            <template x-if="activeHoverMenu === 'projects'">
+                <div class="space-y-1">
+                    <a href="{% url 'projects:project_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="folder" class="w-4 h-4 text-[#1E5BFF]"></i> Projects</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">All</span>
+                    </a>
+                    <a href="{% url 'projects:project_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="folder-plus" class="w-4 h-4 text-emerald-500"></i> Create Project</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
+                    </a>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'tasks' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Tracker</span>
+                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tasks</span>
+                    </a>
+                    <a href="{% url 'projects:task_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="plus-square" class="w-4 h-4 text-emerald-500"></i> Create Task</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
+                    </a>
+                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
+                        <span id="hoverSidebarChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
+                    </a>
+                </div>
+            </template>
+
+            <!-- 7. TEAM CHAT ITEMS -->
+            <template x-if="activeHoverMenu === 'chat'">
+                <div class="space-y-1">
+                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="messages-square" class="w-4 h-4 text-[#1E5BFF]"></i> Open Team Chat</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Live</span>
+                    </a>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Discussions</span>
+                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tracker</span>
+                    </a>
+                </div>
+            </template>
+            {% endif %}
+
+            <!-- 8. FINANCIAL REPORTS ITEMS -->
+            <template x-if="activeHoverMenu === 'reports'">
+                <div class="space-y-1">
+                    <a href="{% url 'dashboard:reports' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'reports' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i> Financial Reports</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Reports</span>
+                    </a>
+                    {% if user_perms.crm %}
+                    {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
+                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="trending-up" class="w-4 h-4 text-[#1E5BFF]"></i> Staff Sales Analytics</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Staff</span>
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </template>
+
+            <!-- 9. SETTINGS ITEMS -->
+            <template x-if="activeHoverMenu === 'settings'">
+                <div class="space-y-1">
+                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="building" class="w-4 h-4 text-[#1E5BFF]"></i> Company Settings</span>
+                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Settings</span>
+                    </a>
+                    {% if user_perms.roles %}
+                    <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i> Roles & Permissions</span>
+                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Access</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
+                        <span class="flex items-center gap-2.5"><i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i> Switch Company</span>
+                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tenants</span>
+                    </a>
+                    <a href="{% url 'tenants:logout' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
+                        <span class="flex items-center gap-2.5"><i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Sign Out</span>
+                        <span class="bg-rose-500/15 text-rose-600 text-[10px] font-bold px-1.5 py-0.5 rounded">Exit</span>
+                    </a>
+                </div>
+            </template>
+
+            <!-- 10. USER PROFILE ITEMS -->
+            <template x-if="activeHoverMenu === 'user'">
+                <div class="space-y-1">
+                    <div class="p-2 mb-1 rounded-xl bg-slate-50 dark:bg-[#162032] border border-slate-100 dark:border-white/5">
+                        <div class="text-xs font-bold text-slate-900 dark:text-white">{{ request.user.get_full_name|default:request.user.username }}</div>
+                        <div class="text-[10px] text-slate-500 dark:text-slate-400">{{ request.user.email|default:"Active User" }}</div>
+                        <div class="mt-1 flex items-center gap-1.5">
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8]">{{ current_membership.get_role_display|default:"Staff" }}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ current_company.code|default:"DEFAULT" }}</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white transition">
+                        <i data-lucide="settings" class="w-4 h-4 text-[#1E5BFF]"></i> Company Settings
+                    </a>
+                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white transition">
+                        <i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i> Switch Company
+                    </a>
+                    <a href="{% url 'tenants:logout' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                        <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Sign Out
+                    </a>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- Secondary Navigation Drawer (Collapsible & Permanently Pinnable) -->
+    <!-- ========================================================================= -->
+    <div x-cloak
+         x-show="sidebarPinned"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="-translate-x-full opacity-0"
+         x-transition:enter-end="translate-x-0 opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="translate-x-0 opacity-100"
+         x-transition:leave-end="-translate-x-full opacity-0"
+         class="hidden md:flex w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] flex-col flex-shrink-0 z-20 transition-colors duration-200">
+        
+        <!-- Pinned Sidebar Header with Unpin Action -->
+        <div class="p-3 border-b border-[var(--border-color)] flex items-center justify-between">
+            <a href="{% url 'dashboard:index' %}" class="flex items-center gap-2 group">
+                <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE by Byteboot" class="h-7 object-contain dark:hidden group-hover:opacity-90 transition">
+                <img src="/static/b-one-logo-package/svg/b-one-horizontal-reversed.svg" alt="B ONE by Byteboot" class="h-7 object-contain hidden dark:block group-hover:opacity-90 transition">
             </a>
-            <button @click="commandOpen = true" class="text-[11px] bg-[#1e2b3b] text-slate-300 px-2 py-0.5 rounded font-mono hover:bg-[#2a3942]">⌘K</button>
+            <div class="flex items-center gap-1.5">
+                <button @click="commandOpen = true" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-[#1e2d44] dark:hover:bg-[#253856] dark:text-slate-300 px-2 py-0.5 rounded font-mono border border-[var(--border-color)] transition" title="Command Palette">⌘K</button>
+                <button @click="togglePin()" class="p-1 rounded-md text-slate-400 hover:text-[#1E5BFF] hover:bg-blue-50 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8] transition" title="Unpin sidebar (Auto-hide on hover)">
+                    <i data-lucide="pin-off" class="w-4 h-4 text-[#1E5BFF] dark:text-[#38bdf8]"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Search Box -->
         <div class="p-3">
             <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" placeholder="Global search..." class="w-full bg-[#090d12] border border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 outline-none focus:border-[#00a0da]" @keydown.meta.k.window="commandOpen = true" @keydown.ctrl.k.window="commandOpen = true">
+                <input type="text" placeholder="Global search..." class="w-full bg-[var(--surface-secondary)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-primary)] placeholder-slate-400 outline-none focus:border-[#1E5BFF] focus:ring-1 focus:ring-[#1E5BFF] transition" @keydown.meta.k.window="commandOpen = true" @keydown.ctrl.k.window="commandOpen = true">
             </div>
         </div>
 
@@ -335,88 +1478,88 @@
         <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1">
             {% block sub_nav %}
             {% if user_perms.crm %}
-            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-2 mb-1">CRM & Sales</div>
-            <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'followup_dashboard' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-400"></i> Follow-up Reminders</span>
-                <span class="bg-amber-500/20 text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
+            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-2 mb-1">CRM & Sales</div>
+            <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
+                <span class="bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
             </a>
-            <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'call_history' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-400"></i> Call & Contact History</span>
-                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
+            <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'call_history' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i> Call & Contact History</span>
+                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
             </a>
-            <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leads' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#00a0da]"></i> Sales Leads</span>
-                <span class="bg-[#00a0da]/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
+            <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'leads' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#1E5BFF]"></i> Sales Leads</span>
+                <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
             </a>
-            <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'won_leads' %}bg-[#1e2b3b] text-emerald-400 font-semibold{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-400"></i> Won Leads</span>
-                <span class="bg-emerald-500/20 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
+            <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-emerald-50 text-emerald-600 dark:bg-[#1e2d44] dark:text-emerald-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-500"></i> Won Leads</span>
+                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
             </a>
-            <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'lost_leads' %}bg-[#1e2b3b] text-red-400 font-semibold{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-400"></i> Lost Leads</span>
-                <span class="bg-red-500/20 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
+            <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-red-50 text-red-600 dark:bg-[#1e2d44] dark:text-red-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-500"></i> Lost Leads</span>
+                <span class="bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
             </a>
-            <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'bulk_upload' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="upload-cloud" class="w-4 h-4"></i> Bulk Upload Leads
             </a>
             {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
-            <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'staff_analytics' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-400"></i> Staff Analytics</span>
-                <span class="bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+            <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-500"></i> Staff Analytics</span>
+                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
             </a>
             {% endif %}
-            <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'customers' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'customers' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="building" class="w-4 h-4"></i> Customers
             </a>
             {% endif %}
 
             {% if user_perms.invoicing or user_perms.accounting %}
-            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Invoicing & Ledger</div>
+            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Invoicing & Ledger</div>
             {% if user_perms.invoicing %}
-            <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'invoices' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'invoices' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="receipt" class="w-4 h-4"></i> Tax Invoices
             </a>
-            <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'payments' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'payments' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="credit-card" class="w-4 h-4"></i> Customer Payments
             </a>
             {% endif %}
             {% if user_perms.accounting %}
-            <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'journals' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'journals' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="book-open" class="w-4 h-4"></i> General Ledger
             </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'accounts' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'accounts' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="list-tree" class="w-4 h-4"></i> Chart of Accounts
             </a>
             {% endif %}
             {% endif %}
 
-            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Leaves & HR</div>
-            <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'leaves' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Leaves & HR</div>
+            <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'leaves' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="calendar" class="w-4 h-4"></i> Leave Applications
             </a>
             {% if user_perms.hr %}
-            <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'employees' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'employees' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="users" class="w-4 h-4"></i> HR Employees
             </a>
             {% endif %}
             {% if user_perms.roles %}
-            <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'roles' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#00a0da]"></i> Roles & Permissions</span>
-                <span class="bg-sky-500/20 text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+            <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'roles' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#1E5BFF]"></i> Roles & Permissions</span>
+                <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
             </a>
             {% endif %}
 
             {% if user_perms.projects %}
-            <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mt-4 mb-1">Projects & Team</div>
-            <a href="{% url 'projects:project_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'projects' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Projects & Team</div>
+            <a href="{% url 'projects:project_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="folder" class="w-4 h-4"></i> Projects
             </a>
-            <a href="{% url 'projects:task_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'tasks' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
+            <a href="{% url 'projects:task_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'tasks' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
                 <i data-lucide="check-square" class="w-4 h-4"></i> Task Tracker
             </a>
-            <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-[#1e2b3b] hover:text-white transition {% if active_sub == 'chat' %}bg-[#1e2b3b] text-[#00a0da]{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4"></i> Team Chat</span>
-                <span class="w-2 h-2 rounded-full bg-[#00a0da]"></span>
+            <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
+                <span id="sidebarChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
             </a>
             {% endif %}
             {% endblock %}
@@ -425,59 +1568,61 @@
 
     <!-- Mobile Slide-out Menu Overlay -->
     <div x-show="mobileMenuOpen" class="md:hidden fixed inset-0 z-50 flex" style="display: none;">
-        <div class="fixed inset-0 bg-black/70 backdrop-blur-sm" @click="mobileMenuOpen = false"></div>
-        <div class="relative w-72 bg-[#101720] border-r border-white/10 flex flex-col h-full z-10 p-4">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-white/10">
+        <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="mobileMenuOpen = false"></div>
+        <div class="relative w-72 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] flex flex-col h-full z-10 p-4">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
                 <div class="flex items-center gap-2.5">
-                    <img src="/static/js/img/company_logo_icon.png" alt="Byteboot Logo" class="w-7 h-7 object-contain">
-                    <h2 class="text-sm font-bold text-slate-100">Byteboot OS</h2>
+                    <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE" class="h-7 object-contain dark:hidden">
+                    <img src="/static/b-one-logo-package/svg/b-one-horizontal-reversed.svg" alt="B ONE" class="h-7 object-contain hidden dark:block">
                 </div>
-                <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-white">✕</button>
+                <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-2 text-xs">
-                <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="grid" class="w-4 h-4 text-[#00a0da]"></i> Dashboard
+            <div class="flex-1 overflow-y-auto space-y-1.5 text-xs">
+                <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="grid" class="w-4 h-4 text-[#1E5BFF]"></i> Dashboard
                 </a>
-                <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="users" class="w-4 h-4 text-[#00a0da]"></i> CRM & Leads
+                <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="users" class="w-4 h-4 text-[#1E5BFF]"></i> CRM & Leads
                 </a>
-                <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="receipt" class="w-4 h-4 text-[#00a0da]"></i> Tax Invoices
+                <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="receipt" class="w-4 h-4 text-[#1E5BFF]"></i> Tax Invoices
                 </a>
-                <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="book-open" class="w-4 h-4 text-[#00a0da]"></i> General Ledger
+                <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="book-open" class="w-4 h-4 text-[#1E5BFF]"></i> General Ledger
                 </a>
-                <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="user-check" class="w-4 h-4 text-[#00a0da]"></i> HR Employees
+                <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="user-check" class="w-4 h-4 text-[#1E5BFF]"></i> HR Employees
                 </a>
-                <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="layout" class="w-4 h-4 text-[#00a0da]"></i> Projects & Tasks
+                <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <i data-lucide="layout" class="w-4 h-4 text-[#1E5BFF]"></i> Projects & Tasks
                 </a>
-                <a href="{% url 'projects:conversations' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[#16202c] text-slate-200">
-                    <i data-lucide="message-square" class="w-4 h-4 text-[#00a0da]"></i> Team Chat
+                <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                    <span class="flex items-center gap-3"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
+                    <span id="mobileChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
                 </a>
             </div>
         </div>
     </div>
 
     <!-- Main Central Content Workspace -->
-    <div class="flex-1 flex flex-col bg-[#090d12] overflow-hidden min-w-0">
+    <div class="flex-1 flex flex-col bg-[var(--app-bg)] overflow-hidden min-w-0 transition-colors duration-200">
         <!-- Top Bar Header -->
-        <div class="h-14 bg-[#101720] border-b border-white/10 px-4 md:px-6 flex items-center justify-between flex-shrink-0">
+        <div class="h-14 bg-[var(--topbar-bg)] border-b border-[var(--topbar-border)] px-4 md:px-6 flex items-center justify-between flex-shrink-0 transition-colors duration-200">
             <div class="flex items-center gap-3">
                 <!-- Hamburger Button -->
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-slate-300 hover:text-white rounded-lg bg-[#16202c] border border-white/10" title="Toggle Navigation Menu">
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-slate-500 hover:text-slate-800 dark:text-slate-300 dark:hover:text-white rounded-lg bg-slate-100 dark:bg-[#162032] border border-[var(--border-color)]" title="Toggle Navigation Menu">
                     <i data-lucide="menu" class="w-5 h-5"></i>
                 </button>
-                <button @click="sidebarOpen = !sidebarOpen" class="hidden md:flex p-1.5 text-slate-300 hover:text-[#00a0da] hover:bg-[#16202c] rounded-lg transition border border-white/10" title="Toggle Drawer Sidebar">
+                <button @click="togglePin()" class="hidden md:flex p-1.5 text-slate-500 hover:text-[#1E5BFF] hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-[#162032] rounded-lg transition border border-[var(--border-color)]" :title="sidebarPinned ? 'Unpin Navigation Sidebar (Auto-collapse)' : 'Pin Navigation Sidebar Open Permanently'">
                     <i data-lucide="menu" class="w-4 h-4"></i>
                 </button>
 
                 <div class="flex items-center gap-2">
-                    <img src="/static/js/img/company_logo_icon.png" alt="Company Logo" class="w-6 h-6 object-contain">
-                    <span class="font-bold text-xs sm:text-sm text-slate-100 truncate max-w-[150px] sm:max-w-none">{{ current_company.name|default:"Byteboot Techno Solutions" }}</span>
+                    <img src="/static/b-one-logo-package/svg/b-one-mark-color.svg" alt="Company Logo" class="w-5 h-5 object-contain dark:hidden">
+                    <img src="/static/b-one-logo-package/svg/b-one-mark-reversed.svg" alt="Company Logo" class="w-5 h-5 object-contain hidden dark:block">
+                    <span class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate max-w-[150px] sm:max-w-none">{{ current_company.name|default:"Byteboot Techno Solutions" }}</span>
                 </div>
-                <span class="text-xs bg-[#00a0da]/15 text-[#38bdf8] border border-[#00a0da]/30 px-2 py-0.5 rounded font-mono font-bold hidden sm:inline-block">
+                <span class="text-xs bg-blue-50 text-[#1E5BFF] border border-blue-200 dark:bg-blue-950/40 dark:text-sky-300 dark:border-blue-800/40 px-2 py-0.5 rounded font-mono font-bold hidden sm:inline-block">
                     {{ current_company.code|default:"BYTEBOOT" }}
                 </span>
             </div>
@@ -486,7 +1631,7 @@
                 {% if user_companies|length > 1 %}
                 <form action="{% url 'tenants:switch_company' %}" method="POST" class="flex items-center gap-2">
                     {% csrf_token %}
-                    <select name="company_id" onchange="this.form.submit()" class="bg-[#090d12] border border-white/10 text-slate-200 text-xs rounded px-2 py-1 outline-none">
+                    <select name="company_id" onchange="this.form.submit()" class="bg-white dark:bg-[#090d12] border border-slate-300 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs rounded-lg px-2.5 py-1 outline-none">
                         {% for comp in user_companies %}
                         <option value="{{ comp.id }}" {% if comp.id == current_company.id %}selected{% endif %}>
                             {{ comp.name }}
@@ -496,13 +1641,19 @@
                 </form>
                 {% endif %}
 
-                <span class="text-slate-400 hidden sm:inline-block">Role: <strong class="text-slate-200">{{ current_membership.get_role_display|default:"Admin" }}</strong></span>
-                <a href="{% url 'tenants:logout' %}" class="text-red-400 hover:underline">Logout</a>
+                <!-- Theme Toggle Button (Light / Dark) -->
+                <button onclick="toggleTheme()" class="theme-toggle-btn w-8 h-8 rounded-lg flex items-center justify-center text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:bg-[#162032] dark:hover:bg-[#1e2d44] dark:hover:text-white transition border border-[var(--border-color)]" title="Toggle Light / Dark mode" aria-label="Toggle theme">
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-[#1E5BFF]"></i>
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+                </button>
+
+                <span class="text-slate-500 dark:text-slate-400 hidden sm:inline-block">Role: <strong class="text-slate-800 dark:text-slate-200">{{ current_membership.get_role_display|default:"Admin" }}</strong></span>
+                <a href="{% url 'tenants:logout' %}" class="text-red-500 hover:text-red-600 dark:text-red-400 hover:underline font-medium">Logout</a>
             </div>
         </div>
 
         <!-- Main Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[var(--app-bg)] transition-colors duration-200">
             {% block content %}{% endblock %}
         </div>
     </div>
@@ -510,10 +1661,10 @@
     <!-- AJAX Slide-Over Drawer -->
     <div x-show="drawerOpen" class="fixed inset-0 z-50 overflow-hidden flex justify-end" style="display: none;" @keydown.escape.window="drawerOpen = false">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="drawerOpen = false"></div>
-        <div class="relative w-full max-w-xl bg-[#101720] border-l border-white/10 shadow-2xl flex flex-col h-full z-10" id="drawer-content">
-            <div class="p-4 border-b border-white/10 flex justify-between items-center">
-                <h3 class="text-sm font-bold text-gray-200">Loading Details...</h3>
-                <button @click="drawerOpen = false" class="text-gray-400 hover:text-white p-1">
+        <div class="relative w-full max-w-xl bg-[var(--surface-bg)] text-[var(--text-primary)] border-l border-[var(--border-color)] shadow-2xl flex flex-col h-full z-10" id="drawer-content">
+            <div class="p-4 border-b border-[var(--border-color)] flex justify-between items-center">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-gray-200">Loading Details...</h3>
+                <button @click="drawerOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -521,38 +1672,974 @@
     </div>
 
     <!-- Global Command Palette Modal (Cmd+K) -->
-    <div x-show="commandOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="display: none;" @keydown.escape.window="commandOpen = false">
-        <div class="w-full max-w-lg bg-[#101720] border border-white/10 rounded-2xl p-6 shadow-2xl" @click.outside="commandOpen = false">
-            <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
-                <span class="text-sm font-bold text-slate-100 flex items-center gap-2"><i data-lucide="command" class="w-4 h-4 text-[#00a0da]"></i> Quick Actions & Navigation</span>
-                <button @click="commandOpen = false" class="text-slate-400 hover:text-white p-1">
+    <div x-show="commandOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" style="display: none;" @keydown.escape.window="commandOpen = false">
+        <div class="w-full max-w-lg bg-[var(--surface-bg)] text-[var(--text-primary)] border border-[var(--border-color)] rounded-2xl p-6 shadow-2xl" @click.outside="commandOpen = false">
+            <div class="flex items-center justify-between mb-4 border-b border-[var(--border-color)] pb-3">
+                <span class="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2"><i data-lucide="command" class="w-4 h-4 text-[#1E5BFF]"></i> Quick Actions & Navigation</span>
+                <button @click="commandOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
             <input type="text" class="form-control mb-4" placeholder="Search customers, leads, invoices, tasks..." autofocus>
             <div class="flex flex-col gap-2 text-xs">
-                <a href="{% url 'crm:lead_create' %}" class="p-2.5 rounded-lg bg-[#16202c] text-slate-200 hover:bg-[#1e2b3b] flex justify-between items-center transition">
-                    <span class="flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-[#00a0da]"></i> Create New Sales Lead</span>
+                <a href="{% url 'crm:lead_create' %}" class="p-2.5 rounded-lg bg-[var(--surface-secondary)] text-slate-800 dark:text-slate-200 hover:bg-[var(--surface-hover)] border border-[var(--border-color)] flex justify-between items-center transition">
+                    <span class="flex items-center gap-2"><i data-lucide="plus-circle" class="w-4 h-4 text-[#1E5BFF]"></i> Create New Sales Lead</span>
                     <span class="text-slate-400 font-mono">CRM</span>
                 </a>
-                <a href="{% url 'invoicing:invoice_create' %}" class="p-2.5 rounded-lg bg-[#16202c] text-slate-200 hover:bg-[#1e2b3b] flex justify-between items-center transition">
-                    <span class="flex items-center gap-2"><i data-lucide="file-plus" class="w-4 h-4 text-blue-400"></i> Create Tax Invoice</span>
+                <a href="{% url 'invoicing:invoice_create' %}" class="p-2.5 rounded-lg bg-[var(--surface-secondary)] text-slate-800 dark:text-slate-200 hover:bg-[var(--surface-hover)] border border-[var(--border-color)] flex justify-between items-center transition">
+                    <span class="flex items-center gap-2"><i data-lucide="file-plus" class="w-4 h-4 text-blue-500"></i> Create Tax Invoice</span>
                     <span class="text-slate-400 font-mono">Invoicing</span>
                 </a>
-                <a href="{% url 'accounting:journal_create' %}" class="p-2.5 rounded-lg bg-[#16202c] text-slate-200 hover:bg-[#1e2b3b] flex justify-between items-center transition">
-                    <span class="flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4 text-purple-400"></i> Post Manual Journal</span>
+                <a href="{% url 'accounting:journal_create' %}" class="p-2.5 rounded-lg bg-[var(--surface-secondary)] text-slate-800 dark:text-slate-200 hover:bg-[var(--surface-hover)] border border-[var(--border-color)] flex justify-between items-center transition">
+                    <span class="flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4 text-purple-500"></i> Post Manual Journal</span>
                     <span class="text-slate-400 font-mono">Ledger</span>
                 </a>
             </div>
         </div>
     </div>
 
+    <!-- Real-Time Incoming Message Toast Notification Container -->
+    <div id="chatIncomingToastContainer" class="fixed top-20 right-5 z-50 flex flex-col gap-2.5 max-w-sm pointer-events-none"></div>
+
+    <!-- Floating Team Chat Launcher Action Button (FAB) & Widget Panel -->
+    {% if user_perms.projects and active_tab != 'chat' %}
+    <div class="fixed bottom-6 right-6 z-40 flex items-center gap-2">
+        <button type="button" id="floatingChatLauncherBtn" onclick="toggleFloatingChat()" class="relative w-14 h-14 rounded-full bg-gradient-to-tr from-[#1E5BFF] to-[#3B82F6] hover:from-[#1748cc] hover:to-[#2563eb] text-white shadow-2xl hover:shadow-blue-500/40 flex items-center justify-center transition-all duration-300 transform hover:scale-105 active:scale-95 cursor-pointer group" title="Team Chat — Instant Discussions">
+            <!-- Ping animation on unread -->
+            <span id="floatingChatPulse" class="absolute -inset-1 rounded-full bg-blue-500/40 animate-ping pointer-events-none {% if unread_chat_count == 0 %}hidden{% endif %}"></span>
+            
+            <i data-lucide="message-square" class="w-6 h-6 transition-transform group-hover:rotate-6"></i>
+            
+            <!-- Floating Unread Badge Counter -->
+            <span id="floatingChatBadge" class="absolute -top-1 -right-1 bg-rose-500 text-white font-extrabold text-[11px] px-1.5 py-0.5 min-w-5 h-5 rounded-full flex items-center justify-center border-2 border-white dark:border-[#090d12] shadow-md {% if unread_chat_count == 0 %}hidden{% endif %}">
+                {% if unread_chat_count > 99 %}99+{% else %}{{ unread_chat_count }}{% endif %}
+            </span>
+        </button>
+    </div>
+
+    <!-- Floating Team Chat Modal / Widget Panel -->
+    <div id="floatingChatModal" class="fixed bottom-24 right-6 z-50 w-[420px] max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-7.5rem)] rounded-2xl bg-white dark:bg-[#111b21] border border-slate-200 dark:border-white/10 shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform scale-95 opacity-0 pointer-events-none">
+        
+        <!-- Header with Guaranteed High-Contrast Colors -->
+        <div class="h-14 floating-chat-header border-b border-slate-700/60 px-4 flex items-center justify-between shrink-0 shadow-sm">
+            <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                <!-- Back Button to All Projects (Shown inside a room) -->
+                <button type="button" id="floatingBackToRoomsBtn" onclick="showFloatingRoomsList()" class="p-1.5 -ml-1 rounded-lg transition hidden" title="Back to All Projects">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
+                <div class="w-8 h-8 rounded-full bg-[#1E5BFF] flex items-center justify-center shrink-0 shadow-sm text-white">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                </div>
+                <!-- Title / Selector Section -->
+                <div class="flex-1 min-w-0 pr-2">
+                    <div id="floatingHeaderTitleSection">
+                        <h3 class="text-xs font-extrabold truncate flex items-center gap-1.5 text-white">
+                            Team Chat
+                            <span class="text-[10px] font-mono text-sky-200 bg-sky-900/80 px-1.5 py-0.2 rounded border border-sky-400/50 font-bold">Projects</span>
+                        </h3>
+                        <p class="text-[10px] truncate text-slate-300">All Project Discussions</p>
+                    </div>
+                    <div id="floatingHeaderSelectorSection" class="hidden">
+                        <select id="floatingProjectSelect" onchange="loadFloatingProjectChat(this.value)" class="w-full text-xs font-bold rounded-lg px-2.5 py-1 border outline-none cursor-pointer truncate">
+                            <option value="">All Projects / Select Room...</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-1.5 shrink-0">
+                <!-- Sound Chime Toggle -->
+                <button type="button" id="floatingSoundToggleBtn" onclick="toggleFloatingSound()" class="p-1.5 rounded-lg transition" title="Toggle Sound Chime">
+                    <i data-lucide="volume-2" id="floatingSoundIcon" class="w-4 h-4"></i>
+                </button>
+                <!-- Browser Notification Permission -->
+                <button type="button" onclick="requestChatNotificationPermission()" class="p-1.5 rounded-lg transition" title="Enable Desktop Notifications">
+                    <i data-lucide="bell" class="w-4 h-4"></i>
+                </button>
+                <!-- Expand to Full Screen / Conversations Page -->
+                <a id="floatingExpandBtn" href="{% url 'projects:conversations' %}" class="p-1.5 rounded-lg transition" title="Open Full Chat Workspace">
+                    <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                </a>
+                <!-- Close Button -->
+                <button type="button" onclick="toggleFloatingChat(false)" class="p-1.5 rounded-lg transition" title="Minimize Chat">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- All Projects Section (Shown by default on chat button click) -->
+        <div id="floatingRoomsListContainer" class="flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-[#111b21]">
+            <!-- Search & Filter Bar -->
+            <div class="p-3 bg-white dark:bg-[#162032] border-b border-slate-200 dark:border-white/10 shrink-0">
+                <div class="relative flex items-center">
+                    <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 text-slate-500 pointer-events-none"></i>
+                    <input type="text" id="floatingProjectSearchInput" oninput="filterFloatingProjects(this.value)" placeholder="Search projects by code or name..." class="w-full bg-slate-100 dark:bg-[#0b141a] border border-slate-300 dark:border-white/10 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 dark:text-gray-100 placeholder-slate-400 outline-none focus:border-[#1E5BFF] transition font-medium">
+                </div>
+            </div>
+            <!-- Section Subheader -->
+            <div class="px-4 py-2 bg-slate-100 dark:bg-[#0b141a] border-b border-slate-200 dark:border-white/10 flex items-center justify-between text-[11px] font-bold text-slate-800 dark:text-gray-300 shrink-0">
+                <span class="flex items-center gap-1.5">
+                    <i data-lucide="folder" class="w-3.5 h-3.5 text-[#1E5BFF]"></i>
+                    All Projects
+                </span>
+                <span id="floatingProjectsCount" class="font-mono text-[10px] text-slate-700 bg-white dark:bg-white/10 px-2 py-0.5 rounded border border-slate-200 dark:border-transparent font-bold"></span>
+            </div>
+            <!-- Project List Items with Infinite/Custom Scroll -->
+            <div id="floatingRoomsListItems" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5"></div>
+        </div>
+
+        <!-- Active Conversation Feed View (Shown when a project is chosen) -->
+        <div id="floatingChatThreadContainer" class="flex-1 flex flex-col min-h-0 bg-[#F8FAFC] dark:bg-[#0b141a] hidden">
+            <!-- Subheader with Back Button, Project Details & Mark Read -->
+            <div id="floatingThreadSubheader" class="px-3 py-2 bg-white/95 dark:bg-[#111b21]/95 backdrop-blur-sm border-b border-slate-200 dark:border-white/10 flex items-center justify-between text-xs shrink-0">
+                <div class="flex items-center gap-2 min-w-0">
+                    <button type="button" onclick="showFloatingRoomsList()" class="flex items-center gap-1 text-[11px] font-bold text-[#1E5BFF] dark:text-[#38bdf8] hover:underline" title="Back to All Projects">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5 stroke-[#1E5BFF]"></i> All Projects
+                    </button>
+                    <span class="text-slate-300 dark:text-white/20">|</span>
+                    <span id="floatingThreadCode" class="font-mono font-bold text-slate-900 dark:text-slate-100 text-[11px]"></span>
+                    <span id="floatingThreadName" class="truncate font-semibold text-slate-800 dark:text-slate-200 text-xs max-w-[170px] inline-block"></span>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" id="floatingMarkReadBtn" onclick="markCurrentFloatingRoomRead()" class="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 hidden">
+                        <i data-lucide="check-check" class="w-3.5 h-3.5 stroke-emerald-600 dark:stroke-emerald-400"></i> Mark Read
+                    </button>
+                </div>
+            </div>
+
+            <!-- Feed Messages Scroll Area -->
+            <div id="floatingChatFeed" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5">
+                <div class="m-auto text-center p-6 text-slate-400 text-xs font-medium">Select a project to start chatting...</div>
+            </div>
+
+            <!-- Fast Composer Input Bar -->
+            <div class="p-3 bg-white dark:bg-[#111b21] border-t border-slate-200 dark:border-white/10 shrink-0">
+                <form id="floatingChatForm" onsubmit="sendFloatingChatMessage(event)" class="flex flex-col gap-2">
+                    <!-- Entity Linking Bar in Floating Widget -->
+                    <div class="flex items-center gap-2">
+                        <select id="floatingEntityTypeSelect" onchange="toggleFloatingEntityInput(this.value)" class="bg-slate-50 dark:bg-[#202c33] text-slate-700 dark:text-gray-300 text-[11px] font-medium rounded-md px-2 py-1 border border-slate-300 dark:border-white/10 outline-none">
+                            <option value="NONE">🔗 No Link</option>
+                            <option value="TASK">Task (#TSK)</option>
+                            <option value="INVOICE">Invoice (#INV)</option>
+                            <option value="LEAD">Lead (#LD)</option>
+                        </select>
+                        <input type="text" id="floatingEntityIdInput" placeholder="Tag # (e.g. TSK-501)" class="flex-1 bg-slate-50 dark:bg-[#202c33] text-slate-800 dark:text-gray-200 text-[11px] rounded-md px-2.5 py-1 border border-slate-300 dark:border-white/10 outline-none hidden">
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="floatingChatInput" placeholder="Type a message (Press Enter)..." class="flex-1 bg-slate-50 dark:bg-[#202c33] text-slate-800 dark:text-gray-200 text-xs rounded-xl px-3.5 py-2 border border-slate-300 dark:border-white/10 focus:border-[#1E5BFF] outline-none transition font-medium" required autocomplete="off">
+                        <button type="submit" id="floatingSendBtn" class="w-9 h-9 rounded-xl bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md transition transform active:scale-95 cursor-pointer" title="Send Message">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Global Team Chat Engine, Notifications, Audio & Floating Widget Scripts -->
     <script>
+        const CURRENT_USER_ID = {{ request.user.id|default:'null' }};
+        let currentFloatingProjectId = null;
+        let floatingChatOpen = false;
+        let globalChatSocket = null;
+        let activeRoomSocket = null;
+        let cachedProjects = [];
+
+        // Synthesized Two-Tone Web Audio Chime (Slack / WhatsApp style harmonic sound)
+        function playNotificationSound() {
+            if (localStorage.getItem('b1_chat_sound') === 'muted') return;
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+
+                // Bell Tone 1: D5 (587.33 Hz)
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+                gain1.gain.setValueAtTime(0.18, ctx.currentTime);
+                gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(ctx.currentTime);
+                osc1.stop(ctx.currentTime + 0.35);
+
+                // Bell Tone 2: A5 (880 Hz) harmonic ring
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
+                gain2.gain.setValueAtTime(0.22, ctx.currentTime + 0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(ctx.currentTime + 0.1);
+                osc2.stop(ctx.currentTime + 0.65);
+            } catch (err) {
+                // AudioContext restrictions before user interaction
+            }
+        }
+        window.playNotificationSound = playNotificationSound;
+
+        function toggleFloatingSound() {
+            const isMuted = localStorage.getItem('b1_chat_sound') === 'muted';
+            if (isMuted) {
+                localStorage.setItem('b1_chat_sound', 'unmuted');
+                showNotificationToast('Sound enabled', 'Incoming chat audio chimes are now ON.', 'info');
+                playNotificationSound();
+            } else {
+                localStorage.setItem('b1_chat_sound', 'muted');
+                showNotificationToast('Sound muted', 'Incoming chat audio chimes are now muted.', 'warning');
+            }
+            updateSoundIcon();
+        }
+
+        function updateSoundIcon() {
+            const icon = document.getElementById('floatingSoundIcon');
+            if (!icon) return;
+            const isMuted = localStorage.getItem('b1_chat_sound') === 'muted';
+            icon.setAttribute('data-lucide', isMuted ? 'volume-x' : 'volume-2');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // Request browser desktop push notifications
+        function requestChatNotificationPermission() {
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications.");
+                return;
+            }
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    showNotificationToast('Notifications Enabled', 'You will receive desktop alerts for incoming team messages.', 'success');
+                    new Notification("B ONE Team Chat", {
+                        body: "Desktop notifications successfully activated!",
+                        icon: "/static/b-one-logo-package/svg/b-one-mark-color.svg"
+                    });
+                } else {
+                    showNotificationToast('Notifications Blocked', 'Please grant notification permissions in your browser settings.', 'warning');
+                }
+            });
+        }
+
+        // In-App Toast Banner
+        function showNotificationToast(title, body, tag = 'info', actionCallback = null) {
+            const container = document.getElementById('chatIncomingToastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto p-3.5 rounded-xl border shadow-xl backdrop-blur-md flex items-start gap-3 bg-white/95 dark:bg-[#101720]/95 transition-all duration-300 transform translate-x-full cursor-pointer hover:scale-[1.02] ${
+                tag === 'warning' ? 'border-amber-500/50 shadow-amber-500/10' :
+                tag === 'success' ? 'border-emerald-500/50 shadow-emerald-500/10' :
+                'border-[#1E5BFF]/50 shadow-[#1E5BFF]/10'
+            }`;
+
+            toast.innerHTML = `
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 font-bold text-xs ${
+                    tag === 'warning' ? 'bg-amber-500/15 text-amber-600' :
+                    tag === 'success' ? 'bg-emerald-500/15 text-emerald-600' :
+                    'bg-[#1E5BFF]/15 text-[#1E5BFF]'
+                }">
+                    <i data-lucide="message-square" class="w-4 h-4"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-slate-100 mb-0.5 truncate">${escapeHtml(title)}</div>
+                    <div class="text-xs text-slate-600 dark:text-slate-300 font-medium line-clamp-2">${escapeHtml(body)}</div>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 text-xs">✕</button>
+            `;
+
+            toast.addEventListener('click', (e) => {
+                if (e.target.tagName !== 'BUTTON') {
+                    if (actionCallback) actionCallback();
+                }
+                toast.remove();
+            });
+
+            const closeBtn = toast.querySelector('button');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => toast.remove());
+            }
+
+            container.appendChild(toast);
+            if (window.lucide) lucide.createIcons();
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 5500);
+        }
+
+        // Trigger notification for an incoming chat message
+        function triggerChatNotification(msg) {
+            playNotificationSound();
+
+            const title = `${msg.sender_name || 'Team Member'} in ${msg.project_code || 'Project'}`;
+            const body = msg.message_text || '';
+
+            // Desktop push
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    const notif = new Notification(title, {
+                        body: body,
+                        icon: "/static/b-one-logo-package/svg/b-one-mark-color.svg"
+                    });
+                    notif.onclick = function() {
+                        window.focus();
+                        openFloatingProject(msg.project_id);
+                        notif.close();
+                    };
+                } catch (e) {}
+            }
+
+            // In-App Toast
+            showNotificationToast(title, body, 'info', () => {
+                openFloatingProject(msg.project_id);
+            });
+        }
+        window.triggerChatNotification = triggerChatNotification;
+
+        function toggleFloatingEntityInput(val) {
+            const input = document.getElementById('floatingEntityIdInput');
+            if (!input) return;
+            if (val === 'NONE') {
+                input.classList.add('hidden');
+                input.value = '';
+            } else {
+                input.classList.remove('hidden');
+                input.placeholder = val === 'TASK' ? 'e.g. TSK-501' : (val === 'INVOICE' ? 'e.g. INV-1001' : 'e.g. LD-101');
+                input.focus();
+            }
+        }
+
+        // Open Floating Chat Modal
+        function toggleFloatingChat(forceState) {
+            const modal = document.getElementById('floatingChatModal');
+            if (!modal) return;
+
+            const shouldOpen = (typeof forceState === 'boolean') ? forceState : !floatingChatOpen;
+            if (shouldOpen) {
+                modal.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
+                modal.classList.add('scale-100', 'opacity-100', 'pointer-events-auto');
+                floatingChatOpen = true;
+
+                // When clicking chat button, always open in All Projects section!
+                showFloatingRoomsList();
+                fetchFloatingUnreadSummary(false);
+            } else {
+                modal.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+                modal.classList.remove('scale-100', 'opacity-100', 'pointer-events-auto');
+                floatingChatOpen = false;
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+        window.toggleFloatingChat = toggleFloatingChat;
+
+        function openFloatingProject(projectId) {
+            toggleFloatingChat(true);
+            loadFloatingProjectChat(projectId);
+        }
+        window.openFloatingProject = openFloatingProject;
+
+        // Fetch Unread Summary & Populate Selector
+        async function fetchFloatingUnreadSummary(autoSelect = false) {
+            try {
+                const resp = await fetch('/projects/api/chat/unread-summary/');
+                if (!resp.ok) return;
+                const data = await resp.json();
+
+                cachedProjects = data.projects || [];
+                updateBadgeCounters(data.total_unread);
+
+                const select = document.getElementById('floatingProjectSelect');
+                if (select) {
+                    select.innerHTML = '<option value="">All Projects / Select Room...</option>';
+                    cachedProjects.forEach(p => {
+                        const opt = document.createElement('option');
+                        opt.value = p.id;
+                        opt.innerText = `${p.code} — ${p.name} ${p.unread_count > 0 ? `(${p.unread_count} unread)` : ''}`;
+                        if (currentFloatingProjectId && p.id == currentFloatingProjectId) {
+                            opt.selected = true;
+                        }
+                        select.appendChild(opt);
+                    });
+                }
+
+                renderFloatingRoomsList(cachedProjects);
+            } catch (err) {
+                console.error('Failed to fetch chat summary:', err);
+            }
+        }
+        window.refreshUnreadBadges = () => fetchFloatingUnreadSummary(false);
+
+        function updateBadgeCounters(count) {
+            const floatingBadge = document.getElementById('floatingChatBadge');
+            const floatingPulse = document.getElementById('floatingChatPulse');
+            const railBadge = document.getElementById('railChatBadge');
+            const sidebarBadge = document.getElementById('sidebarChatBadge');
+            const hoverSidebarBadge = document.getElementById('hoverSidebarChatBadge');
+            const mobileBadge = document.getElementById('mobileChatBadge');
+
+            const hasUnread = (count > 0);
+            const label = count > 99 ? '99+' : count;
+
+            [floatingBadge, railBadge, sidebarBadge, hoverSidebarBadge, mobileBadge].forEach(badge => {
+                if (!badge) return;
+                if (hasUnread) {
+                    badge.innerText = label;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            if (floatingPulse) {
+                if (hasUnread) floatingPulse.classList.remove('hidden');
+                else floatingPulse.classList.add('hidden');
+            }
+        }
+
+        function showFloatingRoomsList() {
+            currentFloatingProjectId = null;
+            const roomsList = document.getElementById('floatingRoomsListContainer');
+            const thread = document.getElementById('floatingChatThreadContainer');
+            const titleSec = document.getElementById('floatingHeaderTitleSection');
+            const selectSec = document.getElementById('floatingHeaderSelectorSection');
+            const backBtn = document.getElementById('floatingBackToRoomsBtn');
+
+            if (roomsList) roomsList.classList.remove('hidden');
+            if (thread) thread.classList.add('hidden');
+            if (titleSec) titleSec.classList.remove('hidden');
+            if (selectSec) selectSec.classList.add('hidden');
+            if (backBtn) backBtn.classList.add('hidden');
+
+            const select = document.getElementById('floatingProjectSelect');
+            if (select) select.value = '';
+
+            const searchInput = document.getElementById('floatingProjectSearchInput');
+            if (searchInput) {
+                searchInput.value = '';
+                filterFloatingProjects('');
+            } else {
+                renderFloatingRoomsList(cachedProjects);
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+        window.showFloatingRoomsList = showFloatingRoomsList;
+
+        function filterFloatingProjects(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) {
+                renderFloatingRoomsList(cachedProjects);
+                return;
+            }
+            const filtered = (cachedProjects || []).filter(p => 
+                (p.name && p.name.toLowerCase().includes(q)) || 
+                (p.code && p.code.toLowerCase().includes(q)) ||
+                (p.last_message && p.last_message.toLowerCase().includes(q))
+            );
+            renderFloatingRoomsList(filtered);
+        }
+        window.filterFloatingProjects = filterFloatingProjects;
+
+        function renderFloatingRoomsList(projects) {
+            const listEl = document.getElementById('floatingRoomsListItems');
+            const countEl = document.getElementById('floatingProjectsCount');
+            const total = projects ? projects.length : 0;
+            if (countEl) countEl.innerText = `${total} Room${total === 1 ? '' : 's'}`;
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            if (!projects || projects.length === 0) {
+                listEl.innerHTML = `
+                    <div class="p-8 text-center text-xs text-slate-400 dark:text-gray-500 flex flex-col items-center">
+                        <i data-lucide="folder-search" class="w-8 h-8 text-slate-400 mb-2"></i>
+                        <span class="font-medium">No project conversations found.</span>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            projects.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'floating-room-card p-3.5 flex items-center justify-between gap-3 hover:bg-white dark:hover:bg-[#182229] bg-slate-50/50 dark:bg-[#111b21] cursor-pointer transition border-b border-slate-100 dark:border-white/5 group';
+                item.dataset.projectId = p.id;
+                item.onclick = () => loadFloatingProjectChat(p.id);
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-[#1E5BFF] flex items-center justify-center font-bold text-xs text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+                            ${escapeHtml(p.code ? p.code.slice(0, 3) : 'PRJ')}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                    <span class="text-[10px] font-mono font-bold text-[#1E5BFF] dark:text-[#38bdf8] bg-blue-50 dark:bg-sky-950/60 px-1.5 py-0.2 rounded border border-blue-200 dark:border-sky-800/40 shrink-0">${escapeHtml(p.code)}</span>
+                                    <h4 class="text-xs font-bold text-slate-900 dark:text-gray-100 truncate">${escapeHtml(p.name)}</h4>
+                                </div>
+                                <span class="font-mono text-[10px] text-slate-500 dark:text-gray-400 shrink-0 room-last-time">${escapeHtml(p.last_message_time || '')}</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 dark:text-gray-400 truncate mt-1 font-medium room-last-message">${escapeHtml(p.last_message || 'No messages yet')}</p>
+                        </div>
+                    </div>
+                    ${p.unread_count > 0 ? `
+                        <div class="shrink-0 flex items-center room-unread-badge-container">
+                            <span class="bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs room-unread-badge">${p.unread_count}</span>
+                        </div>
+                    ` : ''}
+                `;
+                listEl.appendChild(item);
+            });
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // WhatsApp-style Group Reordering: moves active or receiving project to first in floating widget
+        function moveFloatingProjectToFirst(projectId, lastMsgText, lastMsgTime, incrementUnread) {
+            if (!cachedProjects || cachedProjects.length === 0) return;
+            const idx = cachedProjects.findIndex(p => String(p.id) === String(projectId));
+            if (idx === -1) return; // Not in user's assigned projects
+
+            const project = cachedProjects.splice(idx, 1)[0];
+            if (lastMsgText !== undefined && lastMsgText !== null) {
+                project.last_message = lastMsgText;
+            }
+            if (lastMsgTime) {
+                project.last_message_time = lastMsgTime;
+            } else {
+                const now = new Date();
+                project.last_message_time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            }
+            if (incrementUnread) {
+                project.unread_count = (project.unread_count || 0) + 1;
+            }
+            cachedProjects.unshift(project);
+
+            const searchInput = document.getElementById('floatingProjectSearchInput');
+            if (searchInput && searchInput.value.trim() !== '') {
+                filterFloatingProjects(searchInput.value);
+            } else {
+                const listEl = document.getElementById('floatingRoomsListItems');
+                if (listEl) {
+                    const existingCard = listEl.querySelector(`.floating-room-card[data-project-id="${projectId}"]`);
+                    if (existingCard) {
+                        const snippet = existingCard.querySelector('.room-last-message');
+                        if (snippet && lastMsgText) snippet.innerText = lastMsgText;
+                        const timeEl = existingCard.querySelector('.room-last-time');
+                        if (timeEl && project.last_message_time) timeEl.innerText = project.last_message_time;
+                        if (incrementUnread) {
+                            let badge = existingCard.querySelector('.room-unread-badge');
+                            if (!badge) {
+                                const badgeContainer = document.createElement('div');
+                                badgeContainer.className = 'shrink-0 flex items-center room-unread-badge-container';
+                                badgeContainer.innerHTML = `<span class="bg-rose-500 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs room-unread-badge">${project.unread_count}</span>`;
+                                existingCard.appendChild(badgeContainer);
+                            } else {
+                                badge.innerText = project.unread_count;
+                            }
+                        }
+                        listEl.prepend(existingCard);
+                        existingCard.classList.add('bg-blue-50/80', 'dark:bg-blue-900/30');
+                        setTimeout(() => existingCard.classList.remove('bg-blue-50/80', 'dark:bg-blue-900/30'), 1500);
+                        return;
+                    }
+                }
+                renderFloatingRoomsList(cachedProjects);
+            }
+        }
+        window.moveFloatingProjectToFirst = moveFloatingProjectToFirst;
+
+        // Load project conversation inside floating widget
+        async function loadFloatingProjectChat(projectId) {
+            if (!projectId) {
+                showFloatingRoomsList();
+                return;
+            }
+
+            currentFloatingProjectId = projectId;
+            const roomsList = document.getElementById('floatingRoomsListContainer');
+            const thread = document.getElementById('floatingChatThreadContainer');
+            const titleSec = document.getElementById('floatingHeaderTitleSection');
+            const selectSec = document.getElementById('floatingHeaderSelectorSection');
+            const backBtn = document.getElementById('floatingBackToRoomsBtn');
+
+            if (roomsList) roomsList.classList.add('hidden');
+            if (thread) thread.classList.remove('hidden');
+            if (titleSec) titleSec.classList.add('hidden');
+            if (selectSec) selectSec.classList.remove('hidden');
+            if (backBtn) backBtn.classList.remove('hidden');
+
+            const select = document.getElementById('floatingProjectSelect');
+            if (select) select.value = projectId;
+
+            const expandBtn = document.getElementById('floatingExpandBtn');
+            if (expandBtn) expandBtn.href = `/projects/conversations/?project_id=${projectId}`;
+
+            const feed = document.getElementById('floatingChatFeed');
+            feed.innerHTML = '<div class="m-auto text-center p-6 text-slate-400 text-xs chat-empty-placeholder">Loading discussion thread...</div>';
+
+            try {
+                const resp = await fetch(`/projects/api/chat/thread/${projectId}/`);
+                if (!resp.ok) {
+                    feed.innerHTML = '<div class="m-auto text-center p-6 text-rose-500 text-xs font-semibold chat-empty-placeholder">Failed to load conversation.</div>';
+                    return;
+                }
+                const data = await resp.json();
+
+                // Subheader update
+                document.getElementById('floatingThreadCode').innerText = data.project.code;
+                document.getElementById('floatingThreadName').innerText = data.project.name;
+
+                const markBtn = document.getElementById('floatingMarkReadBtn');
+                if (markBtn) {
+                    if (data.unread_count > 0) {
+                        markBtn.classList.remove('hidden');
+                        markBtn.innerHTML = `<i data-lucide="check-check" class="w-3.5 h-3.5"></i> Mark Read (${data.unread_count})`;
+                    } else {
+                        markBtn.classList.add('hidden');
+                    }
+                }
+
+                feed.innerHTML = '';
+                if (!data.messages || data.messages.length === 0) {
+                    feed.innerHTML = `
+                        <div class="m-auto text-center p-8 text-slate-400 dark:text-slate-500 text-xs flex flex-col items-center chat-empty-placeholder">
+                            <i data-lucide="messages-square" class="w-8 h-8 text-[#1E5BFF] mb-2"></i>
+                            <span class="font-medium">No messages yet in ${escapeHtml(data.project.code)}.</span>
+                        </div>
+                    `;
+                    if (window.lucide) lucide.createIcons();
+                    return;
+                }
+
+                // Render messages with WhatsApp date pills & unread separator
+                data.messages.forEach(msg => {
+                    if (msg.is_first_of_date) {
+                        const datePill = document.createElement('div');
+                        datePill.className = 'flex justify-center my-2 select-none date-divider';
+                        datePill.dataset.dateIso = msg.date_iso;
+                        datePill.innerHTML = `
+                            <span class="bg-slate-200/90 dark:bg-[#182229] text-slate-700 dark:text-gray-300 border border-slate-300 dark:border-white/10 text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+                                ${escapeHtml(msg.date_label || 'Today')}
+                            </span>
+                        `;
+                        feed.appendChild(datePill);
+                    }
+
+                    if (msg.is_first_unread) {
+                        const unreadBanner = document.createElement('div');
+                        unreadBanner.id = 'floatingUnreadSeparator';
+                        unreadBanner.className = 'flex items-center gap-2 my-2.5 select-none';
+                        unreadBanner.innerHTML = `
+                            <div class="h-0.5 bg-rose-500/50 flex-1"></div>
+                            <span class="bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                                <i data-lucide="arrow-down-circle" class="w-3 h-3"></i>
+                                ${data.unread_count} Unread Message${data.unread_count > 1 ? 's' : ''}
+                            </span>
+                            <div class="h-0.5 bg-rose-500/50 flex-1"></div>
+                        `;
+                        feed.appendChild(unreadBanner);
+                    }
+
+                    renderFloatingMessageBubble(feed, msg);
+                });
+
+                if (window.lucide) lucide.createIcons();
+
+                // Position view: if unread messages exist, scroll directly to first unread!
+                const unreadSep = document.getElementById('floatingUnreadSeparator');
+                if (unreadSep) {
+                    unreadSep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Automatically mark as read after 2.5 seconds
+                    setTimeout(() => {
+                        markCurrentFloatingRoomRead();
+                    }, 2500);
+                } else {
+                    feed.scrollTop = feed.scrollHeight;
+                }
+
+                // Connect project room socket if not on full conversations page
+                connectActiveRoomSocket(projectId);
+            } catch (err) {
+                console.error('Error loading project thread:', err);
+                feed.innerHTML = '<div class="m-auto text-center p-6 text-rose-500 text-xs chat-empty-placeholder">Connection error.</div>';
+            }
+        }
+        window.loadFloatingProjectChat = loadFloatingProjectChat;
+
+        function renderFloatingMessageBubble(feed, msg) {
+            if (!feed) return;
+
+            // Deduplication guard: do not render duplicate message in UI
+            if (msg.id && feed.querySelector(`.floating-msg-bubble[data-message-id="${msg.id}"]`)) {
+                return;
+            }
+
+            const placeholder = feed.querySelector('.chat-empty-placeholder');
+            if (placeholder) placeholder.remove();
+
+            const isMe = Boolean(msg.is_mine);
+            const bubble = document.createElement('div');
+            bubble.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} my-0.5 floating-msg-bubble`;
+            if (msg.id) {
+                bubble.dataset.messageId = msg.id;
+            }
+
+            let ticks = '';
+            if (isMe) {
+                if (msg.is_read_by_others) {
+                    ticks = '<span class="text-[#1E5BFF] dark:text-[#38bdf8] font-bold text-xs" title="Read by team">✓✓</span>';
+                } else {
+                    ticks = '<span class="text-slate-400 font-bold text-xs" title="Delivered">✓✓</span>';
+                }
+            } else if (msg.is_unread) {
+                ticks = '<span class="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block unread-dot" title="Unread"></span>';
+            }
+
+            let bubbleColor = '';
+            if (msg.message_type === 'ESCALATION') {
+                bubbleColor = 'bg-rose-50 text-rose-950 border border-rose-300 dark:bg-[#381119] dark:text-rose-100 rounded-tl-none';
+            } else if (msg.message_type === 'TASK_UPDATE') {
+                bubbleColor = 'bg-sky-50 text-sky-950 border border-sky-300 dark:bg-[#102738] dark:text-sky-100 rounded-tl-none';
+            } else if (isMe) {
+                bubbleColor = 'bg-[#1E5BFF] text-white rounded-tr-none shadow-sm';
+            } else {
+                bubbleColor = 'bg-white text-slate-900 border border-slate-200 dark:bg-[#182229] dark:text-gray-100 dark:border-white/10 rounded-tl-none shadow-sm';
+            }
+
+            let entityTag = '';
+            if (msg.related_entity_type && msg.related_entity_type !== 'NONE' && msg.related_entity_id) {
+                const url = msg.related_entity_type === 'TASK' ? `/projects/tasks/lookup/${msg.related_entity_id}/` :
+                            msg.related_entity_type === 'INVOICE' ? `/projects/invoices/lookup/${msg.related_entity_id}/` :
+                            `/projects/leads/lookup/${msg.related_entity_id}/`;
+                entityTag = `
+                    <div class="mt-1.5 pt-1 border-t ${isMe ? 'border-white/20 text-white' : 'border-slate-200 dark:border-white/10 text-[#1E5BFF]'} text-[10px] font-mono flex items-center gap-1">
+                        <span>🔗 #${escapeHtml(msg.related_entity_id)}</span>
+                    </div>
+                `;
+            }
+
+            bubble.innerHTML = `
+                <div class="text-[10px] text-slate-500 dark:text-gray-400 mb-0.5 px-1 flex items-center gap-1">
+                    <span class="font-bold text-slate-800 dark:text-slate-200">${escapeHtml(msg.sender_name || 'User')}</span>
+                    <span>•</span>
+                    <span class="font-mono">${escapeHtml(msg.created_at || '')}</span>
+                    ${ticks}
+                </div>
+                <div class="max-w-[85%] p-2.5 rounded-xl text-xs font-medium ${bubbleColor}">
+                    <div class="whitespace-pre-line leading-relaxed">${escapeHtml(msg.message_text || '')}</div>
+                    ${entityTag}
+                </div>
+            `;
+            feed.appendChild(bubble);
+        }
+
+        async function sendFloatingChatMessage(e) {
+            e.preventDefault();
+            if (!currentFloatingProjectId) return;
+
+            const input = document.getElementById('floatingChatInput');
+            const entityType = document.getElementById('floatingEntityTypeSelect').value;
+            const entityId = document.getElementById('floatingEntityIdInput').value.trim();
+            const text = input.value.trim();
+            if (!text) return;
+
+            const sendBtn = document.getElementById('floatingSendBtn');
+            if (sendBtn.disabled) return;
+            sendBtn.disabled = true;
+
+            try {
+                const formData = new FormData();
+                formData.append('message_text', text);
+                formData.append('entity_type', entityType);
+                formData.append('entity_id', entityId);
+
+                const resp = await fetch(`/projects/api/chat/send/${currentFloatingProjectId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                    },
+                    body: formData
+                });
+
+                const data = await resp.json();
+                if (data.success && data.message) {
+                    input.value = '';
+                    document.getElementById('floatingEntityTypeSelect').value = 'NONE';
+                    toggleFloatingEntityInput('NONE');
+
+                    const feed = document.getElementById('floatingChatFeed');
+                    data.message.is_mine = true;
+                    // Deduplication inside renderFloatingMessageBubble prevents duplicate with websocket
+                    renderFloatingMessageBubble(feed, data.message);
+                    feed.scrollTop = feed.scrollHeight;
+
+                    // Move this project to first position immediately
+                    moveFloatingProjectToFirst(currentFloatingProjectId, text, null, false);
+                }
+            } catch (err) {
+                console.error('Failed to send floating message:', err);
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+            }
+        }
+        window.sendFloatingChatMessage = sendFloatingChatMessage;
+
+        async function markCurrentFloatingRoomRead() {
+            if (!currentFloatingProjectId) return;
+            try {
+                const resp = await fetch(`/projects/api/chat/mark-read/${currentFloatingProjectId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCsrfToken(),
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    const markBtn = document.getElementById('floatingMarkReadBtn');
+                    if (markBtn) markBtn.classList.add('hidden');
+                    document.querySelectorAll('#floatingChatFeed .unread-dot').forEach(el => el.remove());
+                    fetchFloatingUnreadSummary(false);
+                }
+            } catch (err) {
+                console.error('Failed to mark floating room read:', err);
+            }
+        }
+        window.markCurrentFloatingRoomRead = markCurrentFloatingRoomRead;
+
+        function getCsrfToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                   document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || '';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Room WebSocket for the floating widget
+        function connectActiveRoomSocket(projectId) {
+            if (activeRoomSocket) {
+                try { activeRoomSocket.close(); } catch (e) {}
+            }
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/projects/${projectId}/chat/`;
+
+            try {
+                activeRoomSocket = new WebSocket(wsUrl);
+                activeRoomSocket.onmessage = function(e) {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'chat_message' && data.message) {
+                            if (currentFloatingProjectId == data.message.project_id && floatingChatOpen) {
+                                const feed = document.getElementById('floatingChatFeed');
+                                data.message.is_mine = (CURRENT_USER_ID !== null && data.message.sender_id === CURRENT_USER_ID);
+                                renderFloatingMessageBubble(feed, data.message);
+                                feed.scrollTop = feed.scrollHeight;
+                                if (!data.message.is_mine) {
+                                    playNotificationSound();
+                                    setTimeout(markCurrentFloatingRoomRead, 1200);
+                                }
+                            }
+                            // Move group to first in project list
+                            moveFloatingProjectToFirst(data.message.project_id, data.message.message_text, data.message.created_at, !data.message.is_mine);
+                        }
+                    } catch (err) {}
+                };
+            } catch (err) {}
+        }
+
+        // Global Notifications WebSocket for badges, sound chimes & incoming toasts
+        function connectGlobalNotificationSocket() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/chat/notifications/`;
+
+            try {
+                globalChatSocket = new WebSocket(wsUrl);
+                globalChatSocket.onmessage = function(e) {
+                    try {
+                        const data = JSON.parse(e.data);
+                        if (data.type === 'chat_notification' && data.message) {
+                            const msg = data.message;
+                            if (CURRENT_USER_ID !== null && msg.sender_id === CURRENT_USER_ID) {
+                                return; // Ignore own message
+                            }
+                            // Defense-in-depth: only process notification if project is in user's assigned projects
+                            if (cachedProjects && cachedProjects.length > 0) {
+                                const isAssigned = cachedProjects.some(p => String(p.id) === String(msg.project_id));
+                                if (!isAssigned) {
+                                    return; // Staff member not in this group, do not notify!
+                                }
+                            }
+                            // Move project to first in floating widget & in conversations sidebar
+                            moveFloatingProjectToFirst(msg.project_id, msg.message_text, msg.created_at, true);
+                            if (window.moveSideProjectToFirst) {
+                                window.moveSideProjectToFirst(msg.project_id, msg.message_text, true);
+                            }
+                            // Trigger sound, desktop notification & toast
+                            triggerChatNotification(msg);
+                            // Refresh unread counters
+                            fetchFloatingUnreadSummary(false);
+                        }
+                    } catch (err) {}
+                };
+                globalChatSocket.onclose = function() {
+                    setTimeout(connectGlobalNotificationSocket, 5000);
+                };
+            } catch (err) {
+                setTimeout(connectGlobalNotificationSocket, 5000);
+            }
+        }
+
+        // Theme Switcher Script
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            if (isDark) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('b1_theme', 'light');
+                localStorage.removeItem('theme');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('b1_theme', 'dark');
+            }
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             if (window.lucide) {
                 lucide.createIcons();
             }
+            updateSoundIcon();
+
+            // Connect global WebSocket and poll unread summary
+            connectGlobalNotificationSocket();
+            fetchFloatingUnreadSummary(false);
+
+            // Poll every 6 seconds as backup
+            setInterval(() => {
+                fetchFloatingUnreadSummary(false);
+            }, 6000);
         });
+
         document.body.addEventListener('htmx:afterSwap', function() {
             if (window.lucide) {
                 lucide.createIcons();

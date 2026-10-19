@@ -6,8 +6,10 @@ from decimal import Decimal
 from datetime import datetime
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime, parse_date
-from django.db.models import Q, Count
-from projects.models import Project, ProjectMember, Task, WorkLog, ProjectMessage, TaskAuditLog
+from django.db.models import Q, Count, Max
+from django.db.models.functions import Coalesce
+from projects.models import Project, ProjectMember, Task, WorkLog, ProjectMessage, TaskAuditLog, ProjectMessageRead
+from projects.consumers import format_date_label, serialize_project_message
 from projects.notifications import (
     notify_task_created,
     notify_task_updated,
@@ -679,7 +681,8 @@ def task_detail(request, task_id):
 @require_permission('projects', 'view')
 def conversations(request):
     """
-    WhatsApp Desktop style project messaging view with Entity Tagging.
+    WhatsApp Desktop style project messaging view with Entity Tagging,
+    WhatsApp date dividers, unread message separator, and scroll-to-first-unread.
     Only assigned team members can access project conversations.
     """
     company = request.company
@@ -687,20 +690,38 @@ def conversations(request):
     admin_user = is_project_admin(request.user, membership)
 
     if admin_user:
-        projects = Project.objects.filter(company=company)
+        projects_qs = Project.objects.filter(company=company)
     else:
-        projects = Project.objects.filter(company=company).filter(
+        projects_qs = Project.objects.filter(company=company).filter(
             Q(members__user=request.user) | Q(manager=request.user)
         ).distinct()
+
+    # Sort projects by latest message timestamp (WhatsApp style: most recent activity first)
+    projects = list(projects_qs.annotate(
+        last_message_at=Max('messages__created_at')
+    ).annotate(
+        latest_activity=Coalesce('last_message_at', 'created_at')
+    ).order_by('-latest_activity', '-id'))
+
+    # Annotate unread counts on each project for this user
+    for p in projects:
+        unread_cnt = ProjectMessage.objects.filter(
+            project=p
+        ).exclude(
+            sender=request.user
+        ).exclude(
+            read_receipts__user=request.user
+        ).count()
+        p.unread_count = unread_cnt
 
     selected_project_id = request.GET.get('project_id')
     active_project = None
     
     if selected_project_id:
-        active_project = projects.filter(id=selected_project_id).first()
+        active_project = next((p for p in projects if str(p.id) == str(selected_project_id)), None)
         if not active_project:
             messages.error(request, "Access Denied: You are not an assigned team member of this project conversation.")
-            active_project = projects.first()
+            active_project = projects[0] if projects else None
     else:
         active_project = None
 
@@ -751,18 +772,302 @@ def conversations(request):
     if active_project:
         check_and_escalate_overdue_tasks(company=company, project=active_project)
 
-    chat_messages = active_project.messages.select_related('sender', 'sender__employee_profile').all() if active_project else []
+    chat_messages = []
+    unread_count = 0
+    first_unread_id = None
+
+    if active_project:
+        raw_msgs = list(active_project.messages.select_related('sender', 'sender__employee_profile').prefetch_related('read_receipts').all())
+        read_msg_ids = set(ProjectMessageRead.objects.filter(
+            message__project=active_project,
+            user=request.user
+        ).values_list('message_id', flat=True))
+
+        prev_date = None
+        unreads = []
+        for msg in raw_msgs:
+            local_dt = timezone.localtime(msg.created_at) if msg.created_at else timezone.localtime(timezone.now())
+            msg.local_date = local_dt.date()
+            msg.date_label = format_date_label(local_dt)
+            msg.formatted_time = local_dt.strftime("%H:%M")
+            msg.is_first_of_date = (prev_date != msg.local_date)
+            prev_date = msg.local_date
+
+            msg.is_mine = bool(msg.sender_id and msg.sender_id == request.user.id)
+            if msg.is_mine:
+                msg.is_read_by_others = any(r.user_id != request.user.id for r in msg.read_receipts.all())
+                msg.is_unread = False
+            else:
+                msg.is_read_by_others = False
+                msg.is_unread = (msg.id not in read_msg_ids)
+                if msg.is_unread:
+                    unreads.append(msg)
+
+        unread_count = len(unreads)
+        if unreads:
+            first_unread_id = unreads[0].id
+            for msg in raw_msgs:
+                msg.is_first_unread = (msg.id == first_unread_id)
+        else:
+            for msg in raw_msgs:
+                msg.is_first_unread = False
+
+        chat_messages = raw_msgs
 
     return render(request, 'projects/conversations.html', {
         'projects': projects,
         'active_project': active_project,
         'chat_messages': chat_messages,
+        'unread_count': unread_count,
+        'first_unread_id': first_unread_id,
         'is_admin': admin_user,
         'can_view_invoices': can_view_invoices,
         'can_view_leads': can_view_leads,
         'can_view_tasks': can_view_tasks,
         'active_tab': 'chat',
         'active_sub': 'chat'
+    })
+
+
+@login_required
+def api_chat_unread_summary(request):
+    """
+    Returns unread counts across all accessible projects for current user.
+    Used by floating button badge and real-time poller.
+    """
+    company = getattr(request, 'company', None)
+    if not company:
+        return JsonResponse({'total_unread': 0, 'projects': []})
+
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    if admin_user:
+        projects_qs = Project.objects.filter(company=company)
+    else:
+        projects_qs = Project.objects.filter(company=company).filter(
+            Q(members__user=request.user) | Q(manager=request.user)
+        ).distinct()
+
+    # Sort projects by latest message timestamp (WhatsApp style: most recent activity first)
+    projects = list(projects_qs.annotate(
+        last_message_at=Max('messages__created_at')
+    ).annotate(
+        latest_activity=Coalesce('last_message_at', 'created_at')
+    ).order_by('-latest_activity', '-id'))
+
+    proj_list = []
+    total_unread = 0
+
+    for p in projects:
+        unread_cnt = ProjectMessage.objects.filter(
+            project=p
+        ).exclude(
+            sender=request.user
+        ).exclude(
+            read_receipts__user=request.user
+        ).count()
+        total_unread += unread_cnt
+
+        last_msg = p.messages.order_by('-created_at').first()
+        last_text = last_msg.message_text if last_msg else ""
+        last_time = timezone.localtime(last_msg.created_at).strftime("%H:%M") if last_msg else ""
+        last_iso = timezone.localtime(last_msg.created_at).isoformat() if last_msg else ""
+
+        proj_list.append({
+            'id': p.id,
+            'code': p.code,
+            'name': p.name,
+            'unread_count': unread_cnt,
+            'last_message': last_text,
+            'last_message_time': last_time,
+            'last_message_iso': last_iso,
+        })
+
+    return JsonResponse({
+        'total_unread': total_unread,
+        'projects': proj_list,
+    })
+
+
+@login_required
+def api_chat_thread(request, project_id):
+    """
+    Fetches full message thread for floating chat widget and dynamic views.
+    Includes WhatsApp date dividers, unread flags, and first unread marker.
+    """
+    company = getattr(request, 'company', None)
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    try:
+        project = Project.objects.get(id=project_id, company=company)
+    except Project.DoesNotExist:
+        return JsonResponse({'error': 'Project not found'}, status=404)
+
+    if not admin_user and not can_access_project(request.user, membership, project):
+        return JsonResponse({'error': 'Access Denied: You are not assigned to this project'}, status=403)
+
+    raw_msgs = list(project.messages.select_related('sender', 'sender__employee_profile').prefetch_related('read_receipts').all())
+    read_msg_ids = set(ProjectMessageRead.objects.filter(
+        message__project=project,
+        user=request.user
+    ).values_list('message_id', flat=True))
+
+    prev_date = None
+    unreads = []
+    message_dicts = []
+
+    for msg in raw_msgs:
+        local_dt = timezone.localtime(msg.created_at) if msg.created_at else timezone.localtime(timezone.now())
+        msg_date = local_dt.date()
+        date_label = format_date_label(local_dt)
+        is_first_of_date = (prev_date != msg_date)
+        prev_date = msg_date
+
+        is_mine = bool(msg.sender_id and msg.sender_id == request.user.id)
+        if is_mine:
+            is_read_by_others = any(r.user_id != request.user.id for r in msg.read_receipts.all())
+            is_unread = False
+        else:
+            is_read_by_others = False
+            is_unread = (msg.id not in read_msg_ids)
+            if is_unread:
+                unreads.append(msg.id)
+
+        sender_name = "System"
+        if msg.sender:
+            emp = getattr(msg.sender, 'employee_profile', None)
+            if emp and getattr(emp, 'full_name', None):
+                sender_name = emp.full_name
+            elif msg.sender.get_full_name():
+                sender_name = msg.sender.get_full_name()
+            else:
+                sender_name = msg.sender.username
+
+        message_dicts.append({
+            'id': msg.id,
+            'project_id': msg.project_id,
+            'sender_id': msg.sender_id,
+            'sender_name': sender_name,
+            'is_mine': is_mine,
+            'message_type': msg.message_type,
+            'message_text': msg.message_text,
+            'related_entity_type': msg.related_entity_type,
+            'related_entity_id': msg.related_entity_id,
+            'related_entity_label': msg.related_entity_label,
+            'created_at': local_dt.strftime("%H:%M"),
+            'date_iso': local_dt.strftime("%Y-%m-%d"),
+            'date_label': date_label,
+            'is_first_of_date': is_first_of_date,
+            'is_unread': is_unread,
+            'is_first_unread': False,
+            'is_read_by_others': is_read_by_others,
+        })
+
+    first_unread_id = unreads[0] if unreads else None
+    if first_unread_id:
+        for md in message_dicts:
+            if md['id'] == first_unread_id:
+                md['is_first_unread'] = True
+                break
+
+    return JsonResponse({
+        'project': {
+            'id': project.id,
+            'code': project.code,
+            'name': project.name,
+            'manager': project.manager.username if project.manager else 'Unassigned',
+        },
+        'unread_count': len(unreads),
+        'first_unread_id': first_unread_id,
+        'messages': message_dicts,
+    })
+
+
+@login_required
+def api_chat_mark_read(request, project_id):
+    """
+    Marks all unread messages for request.user in the specified project as read.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    company = getattr(request, 'company', None)
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    try:
+        project = Project.objects.get(id=project_id, company=company)
+    except Project.DoesNotExist:
+        return JsonResponse({'error': 'Project not found'}, status=404)
+
+    if not admin_user and not can_access_project(request.user, membership, project):
+        return JsonResponse({'error': 'Access Denied'}, status=403)
+
+    unread_messages = ProjectMessage.objects.filter(
+        project=project
+    ).exclude(
+        sender=request.user
+    ).exclude(
+        read_receipts__user=request.user
+    )
+
+    new_receipts = [
+        ProjectMessageRead(message=m, user=request.user)
+        for m in unread_messages
+    ]
+    created = ProjectMessageRead.objects.bulk_create(new_receipts, ignore_conflicts=True)
+
+    return JsonResponse({
+        'success': True,
+        'marked_count': len(created),
+        'project_id': project_id,
+    })
+
+
+@login_required
+def api_chat_send(request, project_id):
+    """
+    Sends a message via AJAX POST.
+    Automatically triggers post_save signal which broadcasts to WebSocket channels.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+
+    company = getattr(request, 'company', None)
+    membership = getattr(request, 'membership', None)
+    admin_user = is_project_admin(request.user, membership)
+
+    try:
+        project = Project.objects.get(id=project_id, company=company)
+    except Project.DoesNotExist:
+        return JsonResponse({'error': 'Project not found'}, status=404)
+
+    if not admin_user and not can_access_project(request.user, membership, project):
+        return JsonResponse({'error': 'Access Denied'}, status=403)
+
+    text = request.POST.get('message_text', '').strip()
+    if not text:
+        return JsonResponse({'error': 'Message text is required'}, status=400)
+
+    entity_type = request.POST.get('entity_type', 'NONE')
+    entity_id = request.POST.get('entity_id', '').strip()
+    entity_label = request.POST.get('entity_label', '').strip()
+
+    msg = ProjectMessage.objects.create(
+        project=project,
+        sender=request.user,
+        message_type='CHAT',
+        message_text=text,
+        related_entity_type=entity_type,
+        related_entity_id=entity_id,
+        related_entity_label=entity_label
+    )
+
+    return JsonResponse({
+        'success': True,
+        'message': serialize_project_message(msg),
     })
 
 

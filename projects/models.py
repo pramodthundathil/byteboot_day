@@ -187,12 +187,37 @@ class ProjectMessage(models.Model):
     related_entity_label = models.CharField(max_length=255, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
+    read_by = models.ManyToManyField(User, through='ProjectMessageRead', related_name='read_project_messages_set', blank=True)
 
     class Meta:
         ordering = ['created_at']
 
     def __str__(self):
-        return f"Message by {self.sender.username} in {self.project.code} at {self.created_at.strftime('%H:%M')}"
+        sender_name = self.sender.username if self.sender else "System"
+        return f"Message by {sender_name} in {self.project.code} at {self.created_at.strftime('%H:%M')}"
+
+    def is_read_by_user(self, user):
+        if not user or not user.is_authenticated:
+            return False
+        if self.sender_id == user.id:
+            return True
+        return self.read_receipts.filter(user=user).exists()
+
+
+class ProjectMessageRead(models.Model):
+    message = models.ForeignKey(ProjectMessage, on_delete=models.CASCADE, related_name='read_receipts')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='read_project_messages')
+    read_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('message', 'user')
+        indexes = [
+            models.Index(fields=['user', 'message']),
+            models.Index(fields=['message', 'user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} read msg #{self.message_id} at {self.read_at.strftime('%H:%M')}"
 
 
 class TaskAuditLog(models.Model):

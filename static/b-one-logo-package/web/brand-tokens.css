@@ -1,0 +1,12 @@
+/* B ONE by Byteboot - brand tokens */
+:root {
+  --b1-navy:      #0B1F3A;  /* text, dark backgrounds */
+  --b1-blue:      #1E5BFF;  /* primary brand blue */
+  --b1-blue-deep: #0A2A7A;  /* gradient end, hover/pressed */
+  --b1-cyan:      #22D3EE;  /* accent (the "1" flag) */
+  --b1-slate:     #5B6B85;  /* secondary text */
+  --b1-mist:      #D5DCE8;  /* borders, rules */
+  --b1-white:     #FFFFFF;
+  --b1-gradient:  linear-gradient(135deg, #2F6BFF 0%, #0A2A7A 100%);
+  --b1-font:      'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
