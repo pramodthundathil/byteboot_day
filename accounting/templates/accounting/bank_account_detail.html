@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <a href="{% url 'accounting:banking_overview' %}" class="hover:text-blue-500">Banking</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">{{ bank_account.account_name }}</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                {{ bank_account.account_name }} <span class="font-mono text-sm text-slate-400 font-normal">({{ bank_account.bank_name }} - {{ bank_account.account_number }})</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Classification: {{ bank_account.get_account_type_display }} &bull; Current Ledger Balance: <strong class="text-slate-900 dark:text-slate-100">₹{{ bank_account.current_balance }}</strong>
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 flex items-center gap-1.5 transition">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Statement
+            </button>
+            <a href="{% url 'accounting:banking_overview' %}" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center gap-1.5 transition">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Banking
+            </a>
+        </div>
+    </div>
+
+    <!-- Account Details Card -->
+    <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+        <div>
+            <span class="text-slate-400 block">Bank / Vault:</span>
+            <span class="font-bold text-slate-900 dark:text-slate-100 block mt-0.5">{{ bank_account.bank_name }}</span>
+        </div>
+        <div>
+            <span class="text-slate-400 block">Account Number:</span>
+            <span class="font-mono font-bold text-slate-900 dark:text-slate-100 block mt-0.5">{{ bank_account.account_number }}</span>
+        </div>
+        <div>
+            <span class="text-slate-400 block">IFSC / Code:</span>
+            <span class="font-mono font-bold text-slate-900 dark:text-slate-100 block mt-0.5">{{ bank_account.ifsc_code|default:"—" }}</span>
+        </div>
+        <div>
+            <span class="text-slate-400 block">Current Balance:</span>
+            <span class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 block mt-0.5">₹{{ bank_account.current_balance }}</span>
+        </div>
+    </div>
+
+    <!-- Statement Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">Bank Statement Transactions</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Date</th>
+                        <th class="p-3.5">Txn Type</th>
+                        <th class="p-3.5">Particulars / Description</th>
+                        <th class="p-3.5">Reference #</th>
+                        <th class="p-3.5 text-right">Amount (₹)</th>
+                        <th class="p-3.5 text-right">Running Balance (₹)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {% for t in transactions %}
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <td class="p-3.5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono">
+                            {{ t.date|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
+                                {% if t.transaction_type == 'DEPOSIT' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                {% elif t.transaction_type == 'WITHDRAWAL' %}bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400
+                                {% else %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400{% endif %}">
+                                {{ t.transaction_type }}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-slate-800 dark:text-slate-200">
+                            {{ t.description }}
+                            {% if t.party_name %}<span class="text-[11px] text-slate-400 block">Party: {{ t.party_name }}</span>{% endif %}
+                        </td>
+                        <td class="p-3.5 font-mono text-slate-500">
+                            {{ t.reference|default:"—" }}
+                        </td>
+                        <td class="p-3.5 text-right font-extrabold {% if t.transaction_type == 'DEPOSIT' %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                            {% if t.transaction_type == 'DEPOSIT' %}+{% else %}-{% endif %}₹{{ t.amount }}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
+                            ₹{{ t.running_balance }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400">
+                            No transactions recorded on this account yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

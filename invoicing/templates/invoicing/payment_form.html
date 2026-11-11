@@ -1,62 +1,241 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto">
-    <div class="mb-6 flex justify-between items-center">
+<div class="max-w-4xl mx-auto space-y-6" x-data="paymentReceivedForm()">
+    <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-xl font-bold text-gray-100">Record Customer Payment</h1>
-            <p class="text-xs text-gray-400">Receive funds and allocate against outstanding tax invoices</p>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'invoicing:payment_list' %}" class="hover:text-white">Customer Payments</a> / 
+                <span class="text-[#1E5BFF]">Record Receipt</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-500"></i>
+                Record Customer Payment & Issue Receipt
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Receive customer collections and allocate against open tax invoices in General Ledger.</p>
         </div>
-        <a href="{% url 'invoicing:payment_list' %}" class="btn-secondary">Back to Payments</a>
+        <a href="{% url 'invoicing:payment_list' %}" class="btn-secondary text-xs">Back to Payments</a>
     </div>
 
-    <form method="POST" class="card">
+    <form method="POST" class="card space-y-5">
         {% csrf_token %}
-        <div class="grid grid-cols-2 gap-4">
-            <div class="form-group col-span-2">
-                <label class="form-label">Customer</label>
-                <select name="customer_id" class="form-control" required>
-                    <option value="">-- Choose Customer --</option>
-                    {% for c in customers %}
-                    <option value="{{ c.id }}">{{ c.customer_code }} - {{ c.name }}</option>
-                    {% endfor %}
-                </select>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Searchable Customer Combobox -->
+            <div class="form-group md:col-span-2 relative" x-data="{
+                custOpen: false,
+                custSearch: '',
+                get filteredCustomers() {
+                    if (!this.custSearch.trim()) {
+                        return catalogCustomers.slice(0, 8); // Top 8 initial for high performance
+                    }
+                    const q = this.custSearch.toLowerCase();
+                    return catalogCustomers.filter(c => 
+                        c.name.toLowerCase().includes(q) || 
+                        (c.code && c.code.toLowerCase().includes(q)) || 
+                        (c.city && c.city.toLowerCase().includes(q)) ||
+                        (c.state && c.state.toLowerCase().includes(q))
+                    ).slice(0, 15);
+                }
+            }" @click.away="custOpen = false">
+                <label class="form-label font-semibold">Customer / Debtor <span class="text-red-500">*</span></label>
+                
+                <div @click="custOpen = !custOpen; if (custOpen) $nextTick(() => $refs.custSearchInput?.focus())"
+                     class="form-control flex items-center justify-between cursor-pointer text-xs py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-[#1E5BFF] transition">
+                    <span class="truncate font-semibold text-slate-800 dark:text-slate-100" x-text="selectedCustomerLabel || '-- Click or Type to Search Customer --'"></span>
+                    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                </div>
+                <input type="hidden" name="customer_id" :value="selectedCustomerId" required>
+
+                <!-- Dropdown Panel -->
+                <div x-show="custOpen" x-cloak class="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-2">
+                    <div class="relative">
+                        <input x-ref="custSearchInput" type="text" x-model="custSearch" placeholder="Type customer name or code..." class="form-control text-xs pl-8 py-1.5 w-full bg-slate-50 dark:bg-slate-800" @keydown.escape="custOpen = false">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                    </div>
+                    <div class="max-h-56 overflow-y-auto space-y-0.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        <template x-for="c in filteredCustomers" :key="c.id">
+                            <div @click="pickCustomer(c); custOpen = false; custSearch = ''" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between transition">
+                                <div>
+                                    <div class="font-bold text-slate-900 dark:text-slate-100" x-text="c.name"></div>
+                                    <div class="text-[11px] text-slate-400 font-mono" x-text="c.code + ' • ' + (c.city || 'Location')"></div>
+                                </div>
+                                <span x-show="selectedCustomerId == c.id" class="text-[#1E5BFF] font-bold">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </span>
+                            </div>
+                        </template>
+                        <div x-show="filteredCustomers.length === 0" class="p-3 text-center text-slate-400 text-xs">
+                            No customer matches "<span x-text="custSearch"></span>".
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-1">
+                        <span x-text="custSearch ? 'Filtered results' : 'Showing top ' + filteredCustomers.length + ' clients for performance'"></span>
+                        <span class="text-slate-400">Search filters all</span>
+                    </div>
+                </div>
             </div>
+
+            <!-- Payment Date -->
             <div class="form-group">
-                <label class="form-label">Payment Date</label>
-                <input type="date" name="payment_date" class="form-control" required>
+                <label class="form-label font-semibold">Receipt Date <span class="text-red-500">*</span></label>
+                <input type="date" name="payment_date" value="{% now 'Y-m-d' %}" class="form-control font-semibold" required>
             </div>
+
+            <!-- Amount Received -->
             <div class="form-group">
-                <label class="form-label">Amount Received (₹)</label>
-                <input type="number" step="0.01" name="amount" class="form-control" required placeholder="177000.00">
+                <label class="form-label font-semibold">Amount Received (₹) <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" min="0.01" name="amount" x-model="amount" class="form-control font-bold text-base text-slate-900 dark:text-slate-100" required placeholder="50000.00">
             </div>
+
+            <!-- Payment Method -->
             <div class="form-group">
-                <label class="form-label">Payment Method</label>
+                <label class="form-label font-semibold">Payment Instrument / Method</label>
                 <select name="payment_method" class="form-control">
                     <option value="BANK_TRANSFER">Bank Transfer / NEFT / RTGS</option>
                     <option value="UPI">UPI / GPay / PhonePe</option>
                     <option value="CHEQUE">Cheque</option>
                     <option value="CASH">Cash</option>
+                    <option value="CREDIT_CARD">Credit / Debit Card</option>
                 </select>
             </div>
+
+            <!-- Reference / UTR -->
             <div class="form-group">
-                <label class="form-label">UTR / Ref Number</label>
-                <input type="text" name="reference_number" class="form-control" placeholder="e.g. UTR123456789">
+                <label class="form-label font-semibold">UTR / Cheque / Txn Number</label>
+                <input type="text" name="reference_number" class="form-control font-mono" placeholder="e.g. UTR9876543210">
             </div>
-            <div class="form-group col-span-2 border-t border-gray-800 pt-3">
-                <label class="form-label">Allocate Payment to Invoice (Optional)</label>
-                <select name="invoice_id" class="form-control">
-                    <option value="">-- Leave Unallocated / General Advance --</option>
-                    {% for inv in invoices %}
-                    <option value="{{ inv.id }}">{{ inv.invoice_number }} - {{ inv.customer.name }} (Due: ₹{{ inv.balance_due }})</option>
-                    {% endfor %}
-                </select>
+
+            <!-- Searchable Invoice Allocation Combobox -->
+            <div class="form-group md:col-span-2 pt-3 border-t border-slate-200 dark:border-slate-800 relative" x-data="{
+                invOpen: false,
+                invSearch: '',
+                get filteredInvoices() {
+                    let list = catalogInvoices;
+                    // If customer is chosen, prioritize/filter by customer unless search query entered
+                    if (selectedCustomerId && !this.invSearch.trim()) {
+                        const byCust = list.filter(i => i.customer_id == selectedCustomerId);
+                        if (byCust.length > 0) return byCust.slice(0, 8);
+                    }
+                    if (!this.invSearch.trim()) {
+                        return list.slice(0, 8); // Top 8 initial for high performance
+                    }
+                    const q = this.invSearch.toLowerCase();
+                    return list.filter(i => 
+                        i.number.toLowerCase().includes(q) || 
+                        i.customer_name.toLowerCase().includes(q)
+                    ).slice(0, 15);
+                }
+            }" @click.away="invOpen = false">
+                <div class="flex items-center justify-between mb-1">
+                    <label class="form-label font-semibold mb-0">Allocate Payment to Invoice (Optional)</label>
+                    <button type="button" x-show="selectedInvoiceId" @click="clearInvoice()" class="text-[11px] text-rose-500 hover:underline">Clear Allocation (General Advance)</button>
+                </div>
+
+                <div @click="invOpen = !invOpen; if (invOpen) $nextTick(() => $refs.invSearchInput?.focus())"
+                     class="form-control flex items-center justify-between cursor-pointer text-xs py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-[#1E5BFF] transition">
+                    <span class="truncate font-semibold" :class="selectedInvoiceId ? 'text-slate-900 dark:text-slate-100' : 'text-slate-400'" x-text="selectedInvoiceLabel || '-- Leave Unallocated / General Advance --'"></span>
+                    <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                </div>
+                <input type="hidden" name="invoice_id" :value="selectedInvoiceId">
+
+                <!-- Dropdown Panel -->
+                <div x-show="invOpen" x-cloak class="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-2">
+                    <div class="relative">
+                        <input x-ref="invSearchInput" type="text" x-model="invSearch" placeholder="Type invoice number (INV-...) or client name..." class="form-control text-xs pl-8 py-1.5 w-full bg-slate-50 dark:bg-slate-800" @keydown.escape="invOpen = false">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                    </div>
+
+                    <div class="max-h-56 overflow-y-auto space-y-0.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                        <!-- Unallocated Option -->
+                        <div @click="clearInvoice(); invOpen = false; invSearch = ''" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
+                            <span>-- Leave Unallocated / General Advance --</span>
+                            <span x-show="!selectedInvoiceId" class="text-[#1E5BFF]"><i data-lucide="check" class="w-4 h-4"></i></span>
+                        </div>
+
+                        <!-- Filtered Invoices -->
+                        <template x-for="inv in filteredInvoices" :key="inv.id">
+                            <div @click="pickInvoice(inv); invOpen = false; invSearch = ''" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between transition">
+                                <div>
+                                    <div class="font-bold text-slate-900 dark:text-slate-100" x-text="inv.number + ' — ' + inv.customer_name"></div>
+                                    <div class="text-[11px] text-slate-400 font-mono">Outstanding Balance: ₹<span x-text="Number(inv.balance_due).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></div>
+                                </div>
+                                <span x-show="selectedInvoiceId == inv.id" class="text-[#1E5BFF] font-bold">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                </span>
+                            </div>
+                        </template>
+                        <div x-show="filteredInvoices.length === 0" class="p-3 text-center text-slate-400 text-xs">
+                            No open invoices match "<span x-text="invSearch"></span>".
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-1">
+                        <span x-text="invSearch ? 'Filtered results' : 'Showing top ' + filteredInvoices.length + ' open invoices'"></span>
+                        <span class="text-slate-400">Search filters all</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="mt-4 flex justify-end">
-            <button type="submit" class="btn-primary">Record Payment & Generate Receipt</button>
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <button type="submit" class="btn-primary flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Record Payment & Post to Ledger
+            </button>
         </div>
     </form>
 </div>
+
+<script>
+function paymentReceivedForm() {
+    return {
+        selectedCustomerId: '',
+        selectedCustomerLabel: '',
+        selectedInvoiceId: '',
+        selectedInvoiceLabel: '',
+        amount: '',
+        catalogCustomers: {{ customers_json|safe|default:'[]' }},
+        catalogInvoices: {{ invoices_json|safe|default:'[]' }},
+
+        init() {
+            if (this.catalogCustomers.length > 0) {
+                this.pickCustomer(this.catalogCustomers[0]);
+            }
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        pickCustomer(c) {
+            this.selectedCustomerId = c.id;
+            this.selectedCustomerLabel = c.code + ' — ' + c.name + (c.city ? ' (' + c.city + ')' : '');
+            // Auto match first open invoice for this customer if any
+            const matchingInv = this.catalogInvoices.find(i => i.customer_id == c.id);
+            if (matchingInv) {
+                this.pickInvoice(matchingInv);
+            }
+        },
+
+        pickInvoice(inv) {
+            this.selectedInvoiceId = inv.id;
+            this.selectedInvoiceLabel = inv.number + ' — ' + inv.customer_name + ' (Due: ₹' + Number(inv.balance_due).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')';
+            if (!this.amount || parseFloat(this.amount) === 0) {
+                this.amount = inv.balance_due;
+            }
+            // Also sync customer if not already matching
+            if (this.selectedCustomerId != inv.customer_id) {
+                const c = this.catalogCustomers.find(item => item.id == inv.customer_id);
+                if (c) {
+                    this.selectedCustomerId = c.id;
+                    this.selectedCustomerLabel = c.code + ' — ' + c.name + (c.city ? ' (' + c.city + ')' : '');
+                }
+            }
+        },
+
+        clearInvoice() {
+            this.selectedInvoiceId = '';
+            this.selectedInvoiceLabel = '';
+        }
+    }
+}
+</script>
 {% endblock %}

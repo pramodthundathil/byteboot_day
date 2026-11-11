@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <a href="{% url 'accounting:voucher_list' %}" class="hover:text-blue-500">Vouchers</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">{{ voucher.voucher_number }}</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                Voucher <span class="font-mono text-[#1E5BFF]">{{ voucher.voucher_number }}</span>
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Type: {{ voucher.get_voucher_type_display }} &bull; Date: {{ voucher.date|date:"F d, Y" }} &bull; Status: {{ voucher.get_status_display }}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Voucher
+            </button>
+            {% if voucher.status == 'POSTED' %}
+            <a href="{% url 'accounting:voucher_cancel' voucher.id %}" onclick="return confirm('Are you sure you want to cancel and reverse this voucher?')" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 hover:bg-rose-100 flex items-center gap-1.5 transition border border-rose-200 dark:border-rose-900/40">
+                <i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Cancel Voucher
+            </a>
+            {% endif %}
+            <a href="{% url 'accounting:voucher_list' %}" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center gap-1.5 transition">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Vouchers
+            </a>
+        </div>
+    </div>
+
+    <!-- Voucher Paper Canvas -->
+    <div class="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl mx-auto space-y-6">
+        <!-- Top Title Bar -->
+        <div class="flex items-start justify-between pb-6 border-b border-slate-200 dark:border-slate-800">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">{{ current_company.name }}</span>
+                <h2 class="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1">{{ voucher.get_voucher_type_display }}</h2>
+                <span class="text-xs text-slate-500 font-mono">Voucher No: {{ voucher.voucher_number }}</span>
+            </div>
+            <div class="text-right">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold
+                    {% if voucher.status == 'POSTED' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                    {% elif voucher.status == 'CANCELLED' %}bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400
+                    {% else %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
+                    {{ voucher.get_status_display }}
+                </span>
+                <span class="text-xs text-slate-500 block mt-2 font-mono">Date: {{ voucher.date|date:"Y-m-d" }}</span>
+                {% if voucher.reference_number %}
+                <span class="text-xs text-slate-500 block font-mono">Ref: {{ voucher.reference_number }}</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Party & Particulars -->
+        <div class="grid grid-cols-2 gap-4 text-xs">
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Party / Contact</span>
+                <span class="text-sm font-bold text-slate-900 dark:text-slate-100 block mt-1">{{ voucher.party_name|default:"Not Specified (General / Internal)" }}</span>
+                <span class="text-slate-500 text-[11px] block mt-0.5">{{ voucher.get_party_type_display }}</span>
+            </div>
+            <div class="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Narration / Particulars</span>
+                <p class="text-slate-800 dark:text-slate-200 font-semibold mt-1">{{ voucher.narration }}</p>
+                {% if voucher.journal_entry %}
+                <span class="text-[10px] text-slate-500 block mt-1 font-mono">GL Link: <a href="{% url 'accounting:journal_detail' voucher.journal_entry.id %}" class="text-[#1E5BFF] hover:underline">{{ voucher.journal_entry.entry_number }}</a></span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Account Code & Name</th>
+                        <th class="p-3.5">Particulars / Line Memo</th>
+                        <th class="p-3.5 text-right text-blue-600 dark:text-blue-400">Debit (₹)</th>
+                        <th class="p-3.5 text-right text-purple-600 dark:text-purple-400">Credit (₹)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {% for l in lines %}
+                    <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                        <td class="p-3.5">
+                            <a href="{% url 'accounting:account_detail' l.account.id %}" class="font-bold text-slate-900 dark:text-slate-100 hover:text-blue-500 block">
+                                <span class="font-mono text-[#1E5BFF]">{{ l.account.code }}</span> &bull; {{ l.account.name }}
+                            </a>
+                            <span class="text-[10px] text-slate-400 block">{{ l.account.get_sub_category_display }}</span>
+                        </td>
+                        <td class="p-3.5 text-slate-600 dark:text-slate-300">
+                            {{ l.description|default:voucher.narration }}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-blue-600 dark:text-blue-400">
+                            {% if l.entry_type == 'DEBIT' %}₹{{ l.amount }}{% else %}—{% endif %}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-purple-600 dark:text-purple-400">
+                            {% if l.entry_type == 'CREDIT' %}₹{{ l.amount }}{% else %}—{% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="bg-slate-50 dark:bg-slate-800/80 font-bold border-t border-slate-200 dark:border-slate-800 text-xs">
+                    <tr>
+                        <td colspan="2" class="p-3.5 text-right uppercase text-slate-500">Total:</td>
+                        <td class="p-3.5 text-right text-blue-600 dark:text-blue-400 font-extrabold text-sm">₹{{ voucher.total_debits }}</td>
+                        <td class="p-3.5 text-right text-purple-600 dark:text-purple-400 font-extrabold text-sm">₹{{ voucher.total_credits }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Sign-off Footer -->
+        <div class="grid grid-cols-3 gap-6 pt-10 text-xs text-center border-t border-slate-200 dark:border-slate-800">
+            <div>
+                <div class="h-10 border-b border-dashed border-slate-300 dark:border-slate-700"></div>
+                <span class="text-slate-500 font-semibold block mt-1.5">Prepared By: {{ voucher.created_by.get_full_name|default:voucher.created_by.username }}</span>
+            </div>
+            <div>
+                <div class="h-10 border-b border-dashed border-slate-300 dark:border-slate-700"></div>
+                <span class="text-slate-500 font-semibold block mt-1.5">Verified / Audited By</span>
+            </div>
+            <div>
+                <div class="h-10 border-b border-dashed border-slate-300 dark:border-slate-700"></div>
+                <span class="text-slate-500 font-semibold block mt-1.5">Approved Signatory</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

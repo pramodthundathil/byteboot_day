@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'invoicing:payment_made_list' %}" class="hover:text-white">Disbursements</a> / 
+                <span class="text-emerald-500 font-mono">{{ payment.payment_number }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100">Disbursement #{{ payment.payment_number }}</h1>
+                <span class="status-pill {% if payment.status == 'POSTED' %}status-success{% else %}status-info{% endif %}">
+                    {{ payment.get_status_display }}
+                </span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Vendor Beneficiary: <strong class="text-slate-700 dark:text-slate-200">{{ payment.vendor.name }}</strong> | 
+                Date: {{ payment.payment_date }} | Method: {{ payment.get_payment_method_display }}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'invoicing:payment_made_create' %}" class="btn-primary flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500">
+                <i data-lucide="plus" class="w-4 h-4"></i> New Disbursement
+            </a>
+            <a href="{% url 'invoicing:payment_made_list' %}" class="btn-secondary text-xs">Back to List</a>
+        </div>
+    </div>
+
+    <!-- Payment KPI Overview -->
+    <div class="card space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs bg-slate-50 dark:bg-[#090d12] p-4 rounded-xl border border-slate-200 dark:border-white/10">
+            <div>
+                <span class="text-slate-400 block">Total Amount Disbursed:</span>
+                <span class="text-base font-extrabold text-emerald-600 dark:text-emerald-400 block">₹{{ payment.amount|floatformat:2 }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Disbursed From Bank:</span>
+                <span class="font-medium text-slate-800 dark:text-slate-200 block">{{ payment.paid_from_bank.bank_name|default:"Operating Bank" }}</span>
+                {% if payment.paid_from_bank %}<span class="text-[10px] text-slate-400 font-mono">{{ payment.paid_from_bank.account_number }}</span>{% endif %}
+            </div>
+            <div>
+                <span class="text-slate-400 block">Reference / UTR:</span>
+                <span class="font-mono text-slate-800 dark:text-slate-200 block font-bold">{{ payment.reference_number|default:"—" }}</span>
+            </div>
+            <div>
+                <span class="text-slate-400 block">Ledger Status:</span>
+                <span class="font-mono text-emerald-500 block font-bold">{% if payment.posted_journal %}Posted (#{{ payment.posted_journal.entry_number }}){% else %}Draft{% endif %}</span>
+                {% if payment.voucher %}<span class="text-[10px] font-mono text-slate-400 block">Voucher: {{ payment.voucher.voucher_number }}</span>{% endif %}
+            </div>
+        </div>
+
+        {% if payment.notes %}
+        <div class="text-xs text-slate-500">
+            <strong>Notes / Narration:</strong> {{ payment.notes }}
+        </div>
+        {% endif %}
+
+        <!-- Allocations Table -->
+        <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Applied Vendor Bills</h3>
+            <div class="table-wrap">
+                <table class="app-table">
+                    <thead>
+                        <tr>
+                            <th>Bill #</th>
+                            <th>Bill Date</th>
+                            <th>Bill Grand Total</th>
+                            <th class="text-right">Allocated Amount</th>
+                            <th>Bill Remaining Balance</th>
+                            <th>Bill Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in allocations %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'invoicing:bill_detail' a.bill.id %}" class="font-bold text-[#1E5BFF] hover:underline">
+                                    {{ a.bill.bill_number }}
+                                </a>
+                            </td>
+                            <td>{{ a.bill.bill_date }}</td>
+                            <td class="font-bold text-slate-900 dark:text-slate-100">₹{{ a.bill.grand_total|floatformat:2 }}</td>
+                            <td class="font-bold text-emerald-600 dark:text-emerald-400 text-right">₹{{ a.allocated_amount|floatformat:2 }}</td>
+                            <td class="font-mono text-xs text-slate-700 dark:text-slate-300">₹{{ a.bill.balance_due|floatformat:2 }}</td>
+                            <td>
+                                <span class="status-pill {% if a.bill.status == 'PAID' %}status-success{% else %}status-warning{% endif %}">
+                                    {{ a.bill.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-6 text-slate-400 text-xs">
+                                Unallocated disbursement of ₹{{ payment.unallocated_amount|floatformat:2 }} (available as vendor advance).
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -199,3 +199,79 @@ class CRMCallHistoryTests(TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, target_next)
+
+
+class CRMAnalyticsExportTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.company = Company.objects.create(
+            name="Apex Technologies",
+            code="APEX",
+            is_active=True,
+        )
+        self.admin_user = User.objects.create_user(
+            username="crm_admin",
+            email="admin@apex.com",
+            password="password123",
+            first_name="Admin",
+            last_name="Manager",
+        )
+        UserProfile.objects.create(user=self.admin_user, active_company=self.company)
+        CompanyMembership.objects.create(
+            user=self.admin_user,
+            company=self.company,
+            role="COMPANY_ADMIN",
+            is_active=True,
+        )
+        self.client.force_login(self.admin_user)
+
+    def test_analytics_export_pdf_without_won_deals(self):
+        """Exporting 360 PDF when there are no won deals (top_src is None) should succeed."""
+        Lead.objects.create(
+            company=self.company,
+            lead_number="LD-2001",
+            company_name="Prospect Co",
+            contact_person="Jane Doe",
+            phone="+91 9876543210",
+            source="Website",
+            status="NEW",
+            assigned_to=self.admin_user,
+        )
+        for report_type in ("360_master", "staff_performance", "lead_quality", "conversion_funnel", "activity_log"):
+            response = self.client.get(
+                reverse("crm:staff_analytics_export")
+                + f"?format=pdf&report_type={report_type}&preset=this_month&staff_id={self.admin_user.id}"
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "application/pdf")
+            self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_analytics_export_pdf_with_won_deal(self):
+        Lead.objects.create(
+            company=self.company,
+            lead_number="LD-2002",
+            company_name="Won Client",
+            contact_person="Bob",
+            phone="+91 9876543211",
+            source="Referral",
+            status="WON",
+            estimated_value=150000,
+            assigned_to=self.admin_user,
+        )
+        for report_type in ("360_master", "staff_performance", "lead_quality", "conversion_funnel", "activity_log"):
+            response = self.client.get(
+                reverse("crm:staff_analytics_export")
+                + f"?format=pdf&report_type={report_type}&preset=this_month"
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response["Content-Type"], "application/pdf")
+
+    def test_analytics_export_excel_without_won_deals(self):
+        response = self.client.get(
+            reverse("crm:staff_analytics_export") + "?format=excel&report_type=360_master&preset=this_month"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["Content-Type"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )

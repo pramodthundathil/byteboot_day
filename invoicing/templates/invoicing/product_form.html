@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'invoicing:product_list' %}" class="hover:text-white">Products</a> / 
+                <span class="text-[#1E5BFF]">Add New</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i data-lucide="package-plus" class="w-5 h-5 text-emerald-500"></i>
+                Add Product or Service
+            </h1>
+        </div>
+        <a href="{% url 'invoicing:product_list' %}" class="btn-secondary text-xs">Back to Catalog</a>
+    </div>
+
+    <form method="POST" class="card space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-group md:col-span-2">
+                <label class="form-label font-semibold">Product / Service Name <span class="text-red-500">*</span></label>
+                <input type="text" name="name" class="form-control" placeholder="e.g. B ONE Cloud ERP License" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">SKU / Item Code</label>
+                <input type="text" name="sku" class="form-control" placeholder="e.g. PRD-001">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">Classification Type</label>
+                <select name="item_type" class="form-control">
+                    <option value="SERVICE">Service (Consulting, Dev, Cloud)</option>
+                    <option value="GOODS">Physical Goods / Hardware</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">HSN / SAC Code</label>
+                <input type="text" name="hsn_sac_code" class="form-control" value="998314" placeholder="998314">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">Billing Unit</label>
+                <select name="unit" class="form-control">
+                    <option value="NOS">NOS (Numbers / Units)</option>
+                    <option value="HRS">HRS (Hourly Rate)</option>
+                    <option value="MONTH">MONTH (Monthly Retainer)</option>
+                    <option value="YEAR">YEAR (Annual License)</option>
+                    <option value="PCS">PCS (Pieces)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">Default Unit Price (₹) <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" name="unit_price" class="form-control" value="50000.00" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-semibold">GST Rate (%)</label>
+                <select name="tax_rate" class="form-control">
+                    <option value="0">0% (Nil / Exempted)</option>
+                    <option value="5">5% GST</option>
+                    <option value="12">12% GST</option>
+                    <option value="18" selected>18% GST (Standard)</option>
+                    <option value="28">28% GST (Luxury)</option>
+                </select>
+            </div>
+
+            <div class="form-group md:col-span-2">
+                <label class="form-label font-semibold">Description / Scope of Work</label>
+                <textarea name="description" rows="3" class="form-control" placeholder="Default deliverable scope or product specs for invoice line items..."></textarea>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <button type="submit" class="btn-primary flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Save to Product Catalog
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

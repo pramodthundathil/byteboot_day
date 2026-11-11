@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'invoicing:vendor_list' %}" class="hover:text-white">Vendors</a> / 
+                <span class="text-[#1E5BFF]">{{ vendor.name }}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100">{{ vendor.name }}</h1>
+                <span class="status-pill status-info">{{ vendor.category }}</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">Code: {{ vendor.vendor_code }} | Payment Terms: {{ vendor.payment_terms }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'invoicing:bill_create' %}?vendor_id={{ vendor.id }}" class="btn-primary text-xs flex items-center gap-1.5">
+                <i data-lucide="file-plus" class="w-4 h-4"></i> New Bill
+            </a>
+            <a href="{% url 'invoicing:payment_made_create' %}?vendor_id={{ vendor.id }}" class="btn-secondary text-xs flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                <i data-lucide="credit-card" class="w-4 h-4"></i> Record Payment
+            </a>
+            <a href="{% url 'invoicing:vendor_list' %}" class="btn-secondary text-xs">Back to List</a>
+        </div>
+    </div>
+
+    <!-- Vendor KPI Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="card p-4">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Billed Purchases</span>
+            <span class="text-xl font-bold text-slate-900 dark:text-white mt-1 block">₹{{ vendor.total_billed|floatformat:2 }}</span>
+            <span class="text-[11px] text-slate-400 block mt-1">{{ bills.count }} total bill(s) recorded</span>
+        </div>
+
+        <div class="card p-4">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Payments Disbursed</span>
+            <span class="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-1 block">₹{{ vendor.total_paid|floatformat:2 }}</span>
+            <span class="text-[11px] text-slate-400 block mt-1">{{ payments.count }} payment transaction(s)</span>
+        </div>
+
+        <div class="card p-4 border-amber-500/30 bg-amber-500/5">
+            <span class="text-[11px] font-bold text-amber-500 uppercase tracking-wider block">Outstanding AP Balance</span>
+            <span class="text-xl font-extrabold text-amber-500 mt-1 block">₹{{ vendor.balance_due|floatformat:2 }}</span>
+            <span class="text-[11px] text-slate-400 block mt-1">Due to vendor</span>
+        </div>
+    </div>
+
+    <!-- Vendor Contact & Compliance Info -->
+    <div class="card grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div>
+            <span class="text-slate-400 block">Contact Person:</span>
+            <span class="font-semibold text-slate-800 dark:text-slate-200">{{ vendor.contact_person|default:"—" }}</span>
+        </div>
+        <div>
+            <span class="text-slate-400 block">Email & Phone:</span>
+            <span class="text-slate-800 dark:text-slate-200">{{ vendor.email|default:"—" }} <br>{{ vendor.phone }}</span>
+        </div>
+        <div>
+            <span class="text-slate-400 block">GSTIN / PAN:</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200 font-semibold">{{ vendor.gstin|default:"Unregistered" }}</span>
+            {% if vendor.pan %}<span class="block font-mono text-slate-400 text-[10px]">PAN: {{ vendor.pan }}</span>{% endif %}
+        </div>
+        <div>
+            <span class="text-slate-400 block">Bank Account:</span>
+            <span class="font-mono text-slate-800 dark:text-slate-200">{{ vendor.bank_name|default:"—" }}</span>
+            {% if vendor.account_number %}<span class="block font-mono text-slate-400 text-[10px]">{{ vendor.account_number }} ({{ vendor.ifsc_code }})</span>{% endif %}
+        </div>
+    </div>
+
+    <!-- Bills History Table -->
+    <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Purchase Bills</h3>
+            <a href="{% url 'invoicing:bill_create' %}?vendor_id={{ vendor.id }}" class="text-xs text-[#1E5BFF] dark:text-[#38bdf8] font-semibold hover:underline">+ New Bill</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Bill #</th>
+                        <th>Vendor Inv #</th>
+                        <th>Bill Date</th>
+                        <th>Due Date</th>
+                        <th>Total Amount</th>
+                        <th>Paid</th>
+                        <th>Balance Due</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bills %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoicing:bill_detail' b.id %}" class="font-bold text-[#1E5BFF] hover:underline">
+                                {{ b.bill_number }}
+                            </a>
+                        </td>
+                        <td class="font-mono text-xs text-slate-400">{{ b.vendor_invoice_number|default:"—" }}</td>
+                        <td>{{ b.bill_date }}</td>
+                        <td>{{ b.due_date }}</td>
+                        <td class="font-bold text-slate-900 dark:text-slate-100">₹{{ b.grand_total|floatformat:2 }}</td>
+                        <td class="text-emerald-500 font-medium">₹{{ b.paid_amount|floatformat:2 }}</td>
+                        <td class="font-bold {% if b.balance_due > 0 %}text-amber-500{% else %}text-slate-400{% endif %}">
+                            ₹{{ b.balance_due|floatformat:2 }}
+                        </td>
+                        <td>
+                            <span class="status-pill {% if b.status == 'PAID' %}status-success{% elif b.status == 'POSTED' or b.status == 'PARTIALLY_PAID' %}status-warning{% else %}status-info{% endif %}">
+                                {{ b.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'invoicing:bill_detail' b.id %}" class="btn-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-6 text-slate-400 text-xs">
+                            No bills logged for this vendor yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Payments Made Table -->
+    <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Disbursements & Payments Made</h3>
+            <a href="{% url 'invoicing:payment_made_create' %}?vendor_id={{ vendor.id }}" class="text-xs text-emerald-500 font-semibold hover:underline">+ Record Payment</a>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Payment #</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Bank / Cash</th>
+                        <th>Reference #</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoicing:payment_made_detail' p.id %}" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ p.payment_number }}
+                            </a>
+                        </td>
+                        <td>{{ p.payment_date }}</td>
+                        <td class="font-bold text-emerald-600 dark:text-emerald-400">₹{{ p.amount|floatformat:2 }}</td>
+                        <td>{{ p.get_payment_method_display }}</td>
+                        <td class="font-mono text-xs text-slate-400">{{ p.paid_from_bank.bank_name|default:"Operating Bank" }}</td>
+                        <td class="font-mono text-xs text-slate-400">{{ p.reference_number|default:"—" }}</td>
+                        <td>
+                            <span class="status-pill {% if p.status == 'POSTED' %}status-success{% else %}status-info{% endif %}">
+                                {{ p.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'invoicing:payment_made_detail' p.id %}" class="btn-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-6 text-slate-400 text-xs">
+                            No disbursement records for this vendor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

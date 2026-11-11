@@ -1,64 +1,908 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto">
-    <div class="mb-6 flex justify-between items-center">
+<style>
+/* Scoped Table Inputs to override bulky .form-control padding and guarantee visibility of all items */
+.table-input {
+    width: 100%;
+    background-color: var(--input-bg, #ffffff);
+    border: 1px solid var(--input-border, #cbd5e1);
+    border-radius: 8px;
+    padding: 7px 10px !important;
+    color: var(--input-text, #0f172a);
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+html.dark .table-input {
+    background-color: var(--input-bg, #0f172a);
+    border-color: var(--input-border, #334155);
+    color: var(--input-text, #f8fafc);
+}
+.table-input:focus {
+    border-color: #1E5BFF !important;
+    box-shadow: 0 0 0 2px rgba(30, 91, 255, 0.2) !important;
+}
+.table-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+/* Premium floating shadow and ultra-high z-index for line item dropdown */
+.line-dropdown-menu {
+    box-shadow: 0 20px 30px -5px rgba(0, 0, 0, 0.25), 0 10px 15px -5px rgba(0, 0, 0, 0.12);
+    z-index: 99999 !important;
+}
+</style>
+
+<div class="max-w-7xl mx-auto space-y-6" x-data="invoiceForm()">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h1 class="text-xl font-bold text-gray-100">Create Tax Invoice</h1>
-            <p class="text-xs text-gray-400">Generate GST compliant invoice for client billing</p>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'invoicing:invoice_list' %}" class="hover:text-white">Invoices</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8]">Create</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="receipt" class="w-6 h-6 text-[#1E5BFF]"></i>
+                Create Tax Invoice
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">GST-compliant multi-item invoices with fast search-as-you-type dropdowns and instant custom product creation.</p>
         </div>
-        <a href="{% url 'invoicing:invoice_list' %}" class="btn-secondary">Back to Invoices</a>
+        <div class="flex items-center gap-2">
+            <button type="button" @click="openQuickCustomerModal()" class="btn-secondary flex items-center gap-2 text-xs font-semibold text-[#1E5BFF] dark:text-[#38bdf8] border-[#1E5BFF]/30 hover:bg-[#1E5BFF]/10">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                + Add Customer
+            </button>
+            <button type="button" @click="openQuickProductModal()" class="btn-secondary flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                + Add Product
+            </button>
+            <a href="{% url 'invoicing:invoice_list' %}" class="btn-secondary text-xs">Back to Invoices</a>
+        </div>
     </div>
 
-    <form method="POST" class="card">
+    <!-- Main Invoice Form -->
+    <form method="POST" class="space-y-6" @submit="validateBeforeSubmit($event)">
         {% csrf_token %}
-        <div class="grid grid-cols-2 gap-4">
-            <div class="form-group col-span-2">
-                <label class="form-label">Select Customer</label>
-                <select name="customer_id" class="form-control" required>
-                    <option value="">-- Choose Customer --</option>
-                    {% for c in customers %}
-                    <option value="{{ c.id }}">{{ c.customer_code }} - {{ c.name }} ({{ c.city }}, {{ c.state }})</option>
-                    {% endfor %}
-                </select>
+
+        <!-- Invoice & Customer Details Card (Higher Z-Index so customer dropdown floats over subsequent cards) -->
+        <div class="card space-y-4 relative z-50">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-[#1E5BFF]"></i>
+                    Invoice & Customer Details
+                </h2>
+                <button type="button" @click="openQuickCustomerModal()" class="btn-secondary text-xs font-semibold text-[#1E5BFF] dark:text-[#38bdf8] border-[#1E5BFF]/30 hover:bg-[#1E5BFF]/10 flex items-center gap-1.5 py-1 px-2.5">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+                    <span>+ Add Customer</span>
+                </button>
             </div>
-            <div class="form-group">
-                <label class="form-label">Invoice Date</label>
-                <input type="date" name="date" class="form-control" required>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Payment Due Date</label>
-                <input type="date" name="due_date" class="form-control" required>
-            </div>
-            <div class="form-group col-span-2">
-                <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
-                    <input type="checkbox" name="is_interstate" class="rounded bg-gray-900 border-gray-700">
-                    Inter-state Supply (Apply IGST @ 18% instead of CGST 9% + SGST 9%)
-                </label>
-            </div>
-            <div class="form-group col-span-2 border-t border-gray-800 pt-4 mt-2">
-                <label class="form-label font-bold text-gray-200">Line Item Description</label>
-                <input type="text" name="description" class="form-control mb-2" value="B ONE Platform License & Software Development Services" required>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="form-label">Quantity / Units</label>
-                        <input type="number" step="0.01" name="quantity" class="form-control" value="1.00" required>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Searchable Customer Combobox -->
+                <div class="form-group md:col-span-2 relative" :style="custOpen ? 'position: relative; z-index: 60;' : 'position: relative; z-index: 20;'" x-data="{
+                    custOpen: false,
+                    custSearch: '',
+                    get filteredCustomers() {
+                        if (!this.custSearch.trim()) {
+                            return catalogCustomers.slice(0, 8); // Top 8 initial for high performance
+                        }
+                        const q = this.custSearch.toLowerCase();
+                        return catalogCustomers.filter(c => 
+                            c.name.toLowerCase().includes(q) || 
+                            (c.code && c.code.toLowerCase().includes(q)) || 
+                            (c.city && c.city.toLowerCase().includes(q)) ||
+                            (c.state && c.state.toLowerCase().includes(q))
+                        ).slice(0, 15);
+                    }
+                }" @click.away="custOpen = false">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="form-label font-semibold mb-0">Customer / Client <span class="text-red-500">*</span></label>
+                        <button type="button" @click="openQuickCustomerModal()" class="text-[#1E5BFF] dark:text-[#38bdf8] text-xs font-semibold hover:underline flex items-center gap-1">
+                            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> + Add Customer
+                        </button>
                     </div>
-                    <div>
-                        <label class="form-label">Rate per Unit (₹)</label>
-                        <input type="number" step="0.01" name="rate" class="form-control" value="150000.00" required>
+                    
+                    <div @click="custOpen = !custOpen; if (custOpen) $nextTick(() => $refs.custSearchInput?.focus())"
+                         class="form-control flex items-center justify-between cursor-pointer text-xs py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-[#1E5BFF] transition">
+                        <span class="truncate font-semibold text-slate-800 dark:text-slate-100" x-text="selectedCustomerLabel || '-- Click or Type to Search Customer --'"></span>
+                        <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                    </div>
+                    <input type="hidden" name="customer_id" :value="selectedCustomerId" required>
+
+                    <!-- Dropdown Panel (Z-Index 100 to float cleanly over all elements) -->
+                    <div x-show="custOpen" x-cloak class="absolute left-0 right-0 z-[100] mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-2">
+                        <div class="relative">
+                            <input x-ref="custSearchInput" type="text" x-model="custSearch" placeholder="Type name, client code or city to filter..." class="form-control text-xs pl-8 py-1.5 w-full bg-slate-50 dark:bg-slate-800" @keydown.escape="custOpen = false">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                        </div>
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <template x-for="c in filteredCustomers" :key="c.id">
+                                <div @click="pickCustomer(c); custOpen = false; custSearch = ''" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between transition">
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-100" x-text="c.name"></div>
+                                        <div class="text-[11px] text-slate-400 font-mono" x-text="c.code + ' • ' + (c.city || 'Location') + ', ' + (c.state || 'Kerala')"></div>
+                                    </div>
+                                    <span x-show="selectedCustomerId == c.id" class="text-[#1E5BFF] font-bold">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                            </template>
+                            <div x-show="filteredCustomers.length === 0" class="p-3 text-center text-slate-400 text-xs">
+                                No customer matches "<span x-text="custSearch"></span>".
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-1">
+                            <span x-text="custSearch ? 'Filtered results' : 'Showing top ' + filteredCustomers.length + ' clients for performance'"></span>
+                            <button type="button" @click="custOpen = false; openQuickCustomerModal()" class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold hover:underline flex items-center gap-1">
+                                <i data-lucide="user-plus" class="w-3 h-3"></i> + New Customer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Supply Destination / State</label>
+                    <input type="text" class="form-control bg-slate-100 dark:bg-slate-800 cursor-not-allowed" x-model="customerState" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Invoice Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Payment Due Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="due_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                </div>
+
+                <div class="form-group flex flex-col justify-end">
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <input type="checkbox" name="is_interstate" x-model="isInterstate" class="rounded text-[#1E5BFF] focus:ring-[#1E5BFF] w-4 h-4">
+                        <span>Inter-State Supply (Apply IGST instead of CGST+SGST)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Invoice Line Items Card -->
+        <div class="card space-y-4 relative z-30">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i>
+                        Invoice Line Items & Products
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pick from catalog or type custom product names and descriptions directly.</p>
+                </div>
+            </div>
+
+            <!-- Table of Lines (Overflow visible so dropdown never clips or hides behind card) -->
+            <div class="overflow-x-auto sm:overflow-visible relative">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[11px]">
+                            <th class="py-2.5 px-2 w-8 text-center">#</th>
+                            <th class="py-2.5 px-2.5 min-w-[280px]">Item / Service & Description</th>
+                            <th class="py-2.5 px-2 w-24 text-center">HSN/SAC</th>
+                            <th class="py-2.5 px-2 w-20 text-center">Qty</th>
+                            <th class="py-2.5 px-2 w-36 text-right">Rate & Taxable</th>
+                            <th class="py-2.5 px-2 w-28 text-center">GST %</th>
+                            <th class="py-2.5 px-2 w-32 text-right">Total (₹)</th>
+                            <th class="py-2.5 px-1.5 w-10 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <template x-for="(line, index) in lines" :key="index">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition"
+                                :style="'position: relative; z-index: ' + (activeDropdownIndex === index ? 60 : (30 - index))">
+                                <td class="py-3 px-2 text-center font-bold text-slate-400 align-top pt-5" x-text="index + 1"></td>
+                                
+                                <!-- Product Name + Description Stacked in ONE Clean Column -->
+                                <td class="py-3 px-2.5 relative align-top" x-data="{ prodSearch: '' }"
+                                    :style="activeDropdownIndex === index ? 'position: relative; z-index: 60;' : 'position: relative; z-index: 1;'"
+                                    @click.away="if (activeDropdownIndex === index) { activeDropdownIndex = null; prodSearch = ''; }">
+                                    
+                                    <!-- Top: Item Name Input with integrated Catalog selector button -->
+                                    <div class="relative">
+                                        <input type="text" name="line_item_name[]" x-model="line.item_name" 
+                                               placeholder="Item / Service Name (or select from catalog →)" 
+                                               class="table-input font-semibold text-slate-800 dark:text-slate-100 pr-24" required>
+                                        
+                                        <!-- Quick Catalog Dropdown Button inside input -->
+                                        <button type="button" 
+                                                @click="toggleProductDropdown(index); if (activeDropdownIndex === index) $nextTick(() => $refs.prodSearchInput?.focus())"
+                                                class="absolute right-1 top-1 bottom-1 px-2.5 py-0.5 text-[11px] font-semibold rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-[#1E5BFF] hover:text-white dark:hover:bg-[#1E5BFF] dark:hover:text-white transition flex items-center gap-1 border border-slate-200 dark:border-slate-700 shadow-sm"
+                                                title="Choose from product catalog">
+                                            <i data-lucide="package" class="w-3.5 h-3.5 text-[#1E5BFF]"></i>
+                                            <span>Catalog</span>
+                                            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+                                        </button>
+                                        <input type="hidden" name="line_product_id[]" :value="line.product_id">
+                                    </div>
+
+                                    <!-- Floating Dropdown Menu (Z-Index 99999, never hidden behind cards) -->
+                                    <div x-show="activeDropdownIndex === index" x-cloak
+                                         class="absolute left-0 z-50 w-full min-w-[340px] max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2.5 space-y-2 line-dropdown-menu"
+                                         :class="(index > 0 && index === lines.length - 1) ? 'bottom-full mb-1' : 'top-10 mt-1'">
+                                        <div class="relative">
+                                            <input x-ref="prodSearchInput" type="text" x-model="prodSearch" placeholder="Type to filter product name or SKU..." class="table-input pl-8 py-1.5 w-full bg-slate-50 dark:bg-slate-800 text-xs" @keydown.escape="activeDropdownIndex = null">
+                                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                                        </div>
+
+                                        <div class="max-h-52 overflow-y-auto space-y-1 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            <!-- Custom Option -->
+                                            <div @click="pickCustomProduct(line); prodSearch = ''" class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg cursor-pointer flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold border-b border-slate-100 dark:border-slate-800 transition">
+                                                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                                                <span>-- Custom Product / Manual Entry --</span>
+                                            </div>
+
+                                            <!-- Filtered Products -->
+                                            <template x-for="p in getFilteredProducts(prodSearch)" :key="p.id">
+                                                <div @click="pickProduct(line, p); prodSearch = ''" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-bold text-slate-800 dark:text-slate-100 truncate" x-text="p.name"></span>
+                                                        <span class="font-bold text-slate-900 dark:text-white shrink-0 ml-2">₹<span x-text="formatCurrency(p.rate)"></span></span>
+                                                    </div>
+                                                    <div class="text-[10px] text-slate-400 flex items-center justify-between mt-0.5">
+                                                        <span x-text="p.sku || 'No SKU'"></span>
+                                                        <span x-text="p.tax_rate + '% GST • ' + (p.unit || 'NOS')"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <div x-show="getFilteredProducts(prodSearch).length === 0" class="p-2 text-center text-slate-400 text-xs">
+                                                No catalog product matches "<span x-text="prodSearch"></span>".
+                                            </div>
+                                        </div>
+
+                                        <div class="text-[10px] text-slate-400 pt-1.5 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-1">
+                                            <span x-text="prodSearch ? 'Matches found' : 'Showing top products'"></span>
+                                            <button type="button" @click="activeDropdownIndex = null; openQuickProductModal()" class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold hover:underline flex items-center gap-1">
+                                                <i data-lucide="plus" class="w-3 h-3"></i> + New Catalog Item
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description directly BELOW product name -->
+                                    <div class="mt-2">
+                                        <textarea name="line_description[]" x-model="line.description" rows="2" 
+                                                  placeholder="Detailed scope of work, deliverables or specifications..." 
+                                                  class="table-input resize-y min-h-[58px] leading-relaxed text-xs text-slate-600 dark:text-slate-300" required></textarea>
+                                    </div>
+                                </td>
+
+                                <!-- HSN / SAC -->
+                                <td class="py-3 px-2 align-top pt-3.5">
+                                    <input type="text" name="line_hsn[]" x-model="line.hsn" placeholder="998314" class="table-input font-mono text-center text-xs">
+                                </td>
+
+                                <!-- Qty -->
+                                <td class="py-3 px-2 align-top pt-3.5">
+                                    <input type="number" step="0.01" min="0.01" name="line_qty[]" x-model.number="line.qty" @input="recalcLine(line)" class="table-input font-semibold text-center text-xs" required>
+                                </td>
+
+                                <!-- Rate & Taxable Stacked (Taxable under Rate) -->
+                                <td class="py-3 px-2 align-top pt-3.5">
+                                    <div class="space-y-1.5">
+                                        <input type="number" step="0.01" min="0" name="line_rate[]" x-model="line.rate" @input="recalcLine(line)" 
+                                               placeholder="0.00" class="table-input font-semibold text-right text-xs" required>
+                                        <div class="text-[11px] text-right text-slate-500 dark:text-slate-400 font-medium whitespace-nowrap">
+                                            <span class="text-slate-400 font-normal">Taxable:</span> 
+                                            <span class="font-semibold text-slate-700 dark:text-slate-200">₹<span x-text="formatCurrency(line.taxable_amount)"></span></span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- GST Rate -->
+                                <td class="py-3 px-2 align-top pt-3.5">
+                                    <select name="line_tax_rate[]" x-model.number="line.tax_rate" @change="recalcLine(line)" class="table-input font-medium text-xs bg-white dark:bg-slate-900 cursor-pointer text-center">
+                                        <option value="0">0% (Nil)</option>
+                                        <option value="5">5% GST</option>
+                                        <option value="12">12% GST</option>
+                                        <option value="18">18% GST</option>
+                                        <option value="28">28% GST</option>
+                                    </select>
+                                </td>
+
+                                <!-- Line Total -->
+                                <td class="py-3 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400 align-top pt-4">
+                                    ₹<span x-text="formatCurrency(line.total_amount)"></span>
+                                    <div class="text-[10px] font-normal text-slate-400" x-text="'Tax: ₹' + formatCurrency(line.tax_amount)"></div>
+                                </td>
+
+                                <!-- Remove button -->
+                                <td class="py-3 px-1.5 text-center align-top pt-4">
+                                    <button type="button" @click="removeLine(index)" :disabled="lines.length <= 1" class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition" title="Remove line">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Add Item Button directly below the items in that space -->
+            <div class="pt-3 pb-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                <button type="button" @click="addLine()" class="btn-primary text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/15">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>+ Add Item</span>
+                </button>
+                <span class="text-[11px] text-slate-400 font-medium" x-text="lines.length + ' item' + (lines.length > 1 ? 's' : '') + ' added'"></span>
+            </div>
+        </div>
+
+        <!-- Summary & Notes Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
+            <!-- Left: Notes & Bank info -->
+            <div class="lg:col-span-7 card space-y-4">
+                <div class="form-group">
+                    <label class="form-label font-semibold">Terms, Payment Conditions & Notes</label>
+                    <textarea name="notes" class="form-control" rows="4">Thank you for your business! Please remit payment via bank transfer within 30 days of invoice date.</textarea>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
+                    <div class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <i data-lucide="landmark" class="w-4 h-4 text-sky-500"></i> Remittance Bank Details
+                    </div>
+                    <div class="text-slate-500 dark:text-slate-400">
+                        Bank: <strong>HDFC Bank</strong> | A/C: <strong>50200084920192</strong> | IFSC: <strong>HDFC0001234</strong> | Branch: MG Road
                     </div>
                 </div>
             </div>
-            <div class="form-group col-span-2">
-                <label class="form-label">Terms & Notes</label>
-                <textarea name="notes" class="form-control" rows="2">Thank you for your business! Please remit payment via bank transfer.</textarea>
+
+            <!-- Right: Calculations Summary Card -->
+            <div class="lg:col-span-5 card space-y-3 bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-900/90 border-blue-500/20">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-2">
+                    Invoice Grand Summary
+                </h3>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60">
+                        <span class="text-slate-500">Items / Deliverables Count</span>
+                        <span class="font-bold text-slate-800 dark:text-slate-200" x-text="lines.length + ' item(s)'"></span>
+                    </div>
+
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60">
+                        <span class="text-slate-500">Taxable Subtotal</span>
+                        <span class="font-bold text-slate-900 dark:text-slate-100">₹<span x-text="formatCurrency(subtotal())"></span></span>
+                    </div>
+
+                    <!-- Interstate or Intra-state Taxes Breakdown -->
+                    <template x-if="!isInterstate">
+                        <div class="space-y-1.5 py-1 border-b border-slate-100 dark:border-slate-800/60">
+                            <div class="flex justify-between text-slate-500">
+                                <span>Central GST (CGST)</span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">₹<span x-text="formatCurrency(cgstTotal())"></span></span>
+                            </div>
+                            <div class="flex justify-between text-slate-500">
+                                <span>State GST (SGST)</span>
+                                <span class="font-medium text-slate-700 dark:text-slate-300">₹<span x-text="formatCurrency(sgstTotal())"></span></span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="isInterstate">
+                        <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60 text-slate-500">
+                            <span>Integrated GST (IGST)</span>
+                            <span class="font-medium text-slate-700 dark:text-slate-300">₹<span x-text="formatCurrency(igstTotal())"></span></span>
+                        </div>
+                    </template>
+
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60 text-slate-500">
+                        <span>Rounding Adjustment</span>
+                        <span class="font-mono text-slate-600 dark:text-slate-400" x-text="(roundingAdj() >= 0 ? '+₹' : '-₹') + formatCurrency(Math.abs(roundingAdj()))"></span>
+                    </div>
+
+                    <!-- Grand Total Banner -->
+                    <div class="p-3 rounded-xl bg-[#1E5BFF]/10 border border-[#1E5BFF]/30 flex items-center justify-between mt-3">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-[#1E5BFF] dark:text-[#38bdf8] block tracking-wider">Invoice Total (INR)</span>
+                            <span class="text-xl font-extrabold text-[#1E5BFF] dark:text-white">
+                                ₹<span x-text="formatCurrency(grandTotal())"></span>
+                            </span>
+                        </div>
+                        <i data-lucide="shield-check" class="w-7 h-7 text-[#1E5BFF] dark:text-[#38bdf8]"></i>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" class="w-full btn-primary py-3 font-bold text-sm shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Save & Generate Tax Invoice
+                    </button>
+                </div>
             </div>
         </div>
-
-        <div class="mt-4 flex justify-end">
-            <button type="submit" class="btn-primary">Generate Tax Invoice</button>
-        </div>
     </form>
+
+    <!-- Quick Add Product Modal -->
+    <div x-show="quickProductModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @keydown.escape.window="quickProductModalOpen = false">
+        <div class="card max-w-lg w-full space-y-4 shadow-2xl border-emerald-500/30" @click.away="quickProductModalOpen = false">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-500 font-bold">
+                        <i data-lucide="package-plus" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Add New Product / Service</h3>
+                        <p class="text-[11px] text-slate-500">Register custom items into the catalog instantly</p>
+                    </div>
+                </div>
+                <button type="button" @click="quickProductModalOpen = false" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="form-group">
+                    <label class="form-label font-semibold">Product or Service Name <span class="text-red-500">*</span></label>
+                    <input type="text" x-model="newProduct.name" placeholder="e.g. Custom AI Integration Module" class="form-control" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label font-semibold">Item Type</label>
+                        <select x-model="newProduct.item_type" class="form-control">
+                            <option value="SERVICE">Service</option>
+                            <option value="GOODS">Physical Goods</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label font-semibold">HSN / SAC Code</label>
+                        <input type="text" x-model="newProduct.hsn_sac_code" placeholder="998314" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="form-group">
+                        <label class="form-label font-semibold">Unit</label>
+                        <select x-model="newProduct.unit" class="form-control">
+                            <option value="NOS">NOS</option>
+                            <option value="HRS">HRS</option>
+                            <option value="MONTH">MONTH</option>
+                            <option value="YEAR">YEAR</option>
+                            <option value="PCS">PCS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label font-semibold">Price (₹)</label>
+                        <input type="number" step="0.01" x-model.number="newProduct.unit_price" placeholder="50000.00" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label font-semibold">GST Rate</label>
+                        <select x-model.number="newProduct.tax_rate" class="form-control">
+                            <option value="0">0% (Nil)</option>
+                            <option value="5">5%</option>
+                            <option value="12">12%</option>
+                            <option value="18">18%</option>
+                            <option value="28">28%</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Description / Scope of Work</label>
+                    <textarea x-model="newProduct.description" rows="2" placeholder="Brief description of the service deliverables" class="form-control"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
+                <button type="button" @click="quickProductModalOpen = false" class="btn-secondary text-xs">Cancel</button>
+                <button type="button" @click="saveQuickProduct()" :disabled="savingProduct" class="btn-primary text-xs flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    <span x-text="savingProduct ? 'Saving...' : 'Add to Catalog & Use'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Add Customer Modal -->
+    <div x-show="quickCustomerModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" @keydown.escape.window="quickCustomerModalOpen = false">
+        <div class="card max-w-lg w-full space-y-4 shadow-2xl border-blue-500/30" @click.away="quickCustomerModalOpen = false">
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-blue-500/15 flex items-center justify-center text-[#1E5BFF] font-bold">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-slate-100">Add New Customer / Client</h3>
+                        <p class="text-[11px] text-slate-500">Register client and select for this invoice</p>
+                    </div>
+                </div>
+                <button type="button" @click="quickCustomerModalOpen = false" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+                <div class="form-group">
+                    <label class="form-label font-semibold">Customer / Company Name <span class="text-red-500">*</span></label>
+                    <input type="text" x-model="newCustomer.name" placeholder="e.g. Acme Innovations Pvt Ltd" class="form-control" required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label font-semibold">Phone Number</label>
+                        <input type="text" x-model="newCustomer.phone" placeholder="+91 98765 43210" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label font-semibold">Email Address</label>
+                        <input type="email" x-model="newCustomer.email" placeholder="billing@acme.com" class="form-control">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label class="form-label font-semibold">City</label>
+                        <input type="text" x-model="newCustomer.city" placeholder="e.g. Kochi" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label font-semibold">State / Supply Destination <span class="text-red-500">*</span></label>
+                        <input type="text" x-model="newCustomer.state" placeholder="e.g. Kerala" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">GSTIN (Optional)</label>
+                    <input type="text" x-model="newCustomer.gstin" placeholder="e.g. 32ABCDE1234F1Z5" class="form-control font-mono uppercase">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Billing Address</label>
+                    <textarea x-model="newCustomer.billing_address" rows="2" placeholder="Street address, building, postal code" class="form-control"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 border-t border-slate-200 dark:border-slate-800 pt-3">
+                <button type="button" @click="quickCustomerModalOpen = false" class="btn-secondary text-xs">Cancel</button>
+                <button type="button" @click="saveQuickCustomer()" :disabled="savingCustomer" class="btn-primary text-xs flex items-center gap-1.5 bg-[#1E5BFF] hover:bg-blue-600">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    <span x-text="savingCustomer ? 'Saving...' : 'Save & Select Customer'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Invoice Form Alpine.js Controller -->
+<script>
+function invoiceForm() {
+    return {
+        selectedCustomerId: '',
+        selectedCustomerLabel: '',
+        customerState: 'Kerala',
+        isInterstate: false,
+        catalogCustomers: {{ customers_json|safe|default:'[]' }},
+        catalogProducts: {{ products_json|safe|default:'[]' }},
+        lines: [],
+        activeDropdownIndex: null,
+        quickProductModalOpen: false,
+        savingProduct: false,
+        quickCustomerModalOpen: false,
+        savingCustomer: false,
+        newCustomer: {
+            name: '',
+            phone: '',
+            email: '',
+            city: 'Kochi',
+            state: 'Kerala',
+            gstin: '',
+            billing_address: ''
+        },
+        newProduct: {
+            name: '',
+            item_type: 'SERVICE',
+            hsn_sac_code: '998314',
+            unit: 'NOS',
+            unit_price: 50000,
+            tax_rate: 18,
+            description: ''
+        },
+
+        init() {
+            // Check if customer_id is provided in URL query string
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryCustId = urlParams.get('customer_id');
+            if (queryCustId) {
+                const found = this.catalogCustomers.find(c => String(c.id) === String(queryCustId));
+                if (found) {
+                    this.pickCustomer(found);
+                }
+            }
+
+            // Always reset lines to strictly 1 clean empty line on initial load
+            this.lines = [{
+                product_id: '',
+                selectedProductLabel: '',
+                item_name: '',
+                description: '',
+                hsn: '',
+                qty: 1,
+                rate: '',
+                tax_rate: 18,
+                taxable_amount: 0,
+                tax_amount: 0,
+                total_amount: 0
+            }];
+
+            this.recalcAll();
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        toggleProductDropdown(index) {
+            this.activeDropdownIndex = (this.activeDropdownIndex === index ? null : index);
+        },
+
+        closeProductDropdown() {
+            this.activeDropdownIndex = null;
+        },
+
+        getFilteredProducts(search) {
+            if (!search || !search.trim()) {
+                return this.catalogProducts.slice(0, 10);
+            }
+            const q = search.toLowerCase().trim();
+            return this.catalogProducts.filter(p => 
+                (p.name && p.name.toLowerCase().includes(q)) || 
+                (p.sku && p.sku.toLowerCase().includes(q)) ||
+                (p.description && p.description.toLowerCase().includes(q))
+            ).slice(0, 15);
+        },
+
+        pickCustomer(c) {
+            this.selectedCustomerId = c.id;
+            this.selectedCustomerLabel = c.code + ' — ' + c.name + ' (' + (c.city || 'Location') + ', ' + (c.state || 'Kerala') + ')';
+            this.customerState = c.state || 'Kerala';
+            this.isInterstate = (this.customerState.toLowerCase().trim() !== 'kerala');
+            this.recalcAll();
+        },
+
+        pickProduct(line, p) {
+            line.product_id = p.id;
+            line.selectedProductLabel = p.name + ' — ₹' + Number(p.rate).toLocaleString();
+            line.item_name = p.name;
+            line.description = p.description || p.name;
+            line.hsn = p.hsn || '998314';
+            line.rate = parseFloat(p.rate) || 0;
+            line.tax_rate = parseFloat(p.tax_rate) !== undefined ? parseFloat(p.tax_rate) : 18;
+            this.recalcLine(line);
+            this.activeDropdownIndex = null;
+        },
+
+        pickCustomProduct(line) {
+            line.product_id = '';
+            line.selectedProductLabel = '-- Custom Product / Manual Entry --';
+            if (!line.item_name) line.item_name = '';
+            this.recalcLine(line);
+            this.activeDropdownIndex = null;
+        },
+
+        addLine() {
+            this.lines.push({
+                product_id: '',
+                selectedProductLabel: '',
+                item_name: '',
+                description: '',
+                hsn: '',
+                qty: 1,
+                rate: '',
+                tax_rate: 18,
+                taxable_amount: 0,
+                tax_amount: 0,
+                total_amount: 0
+            });
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        removeLine(index) {
+            if (this.lines.length > 1) {
+                this.lines.splice(index, 1);
+                this.recalcAll();
+            }
+        },
+
+        recalcLine(line) {
+            const qty = parseFloat(line.qty) || 0;
+            const rate = parseFloat(line.rate) || 0;
+            const taxRate = parseFloat(line.tax_rate);
+            const effectiveTaxRate = (!isNaN(taxRate) && taxRate >= 0) ? taxRate : 0;
+            
+            line.taxable_amount = Math.round((qty * rate) * 100) / 100;
+            if (effectiveTaxRate > 0) {
+                line.tax_amount = Math.round((line.taxable_amount * (effectiveTaxRate / 100)) * 100) / 100;
+            } else {
+                line.tax_amount = 0;
+            }
+            line.total_amount = Math.round((line.taxable_amount + line.tax_amount) * 100) / 100;
+        },
+
+        recalcAll() {
+            this.lines.forEach(l => this.recalcLine(l));
+        },
+
+        subtotal() {
+            return this.lines.reduce((sum, l) => sum + (parseFloat(l.taxable_amount) || 0), 0);
+        },
+
+        totalTax() {
+            return this.lines.reduce((sum, l) => sum + (parseFloat(l.tax_amount) || 0), 0);
+        },
+
+        cgstTotal() {
+            return Math.round((this.totalTax() / 2) * 100) / 100;
+        },
+
+        sgstTotal() {
+            return Math.round((this.totalTax() / 2) * 100) / 100;
+        },
+
+        igstTotal() {
+            return Math.round(this.totalTax() * 100) / 100;
+        },
+
+        rawTotal() {
+            return this.subtotal() + this.totalTax();
+        },
+
+        grandTotal() {
+            return Math.round(this.rawTotal());
+        },
+
+        roundingAdj() {
+            return Math.round((this.grandTotal() - this.rawTotal()) * 100) / 100;
+        },
+
+        formatCurrency(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        openQuickProductModal() {
+            this.quickProductModalOpen = true;
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        async saveQuickProduct() {
+            if (!this.newProduct.name.trim()) {
+                alert('Please provide a product name.');
+                return;
+            }
+
+            this.savingProduct = true;
+            try {
+                const resp = await fetch("{% url 'invoicing:product_quick_create' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(this.newProduct)
+                });
+                const res = await resp.json();
+                if (res.success) {
+                    this.catalogProducts.push(res.product);
+                    // Add new line with this product
+                    this.lines.push({
+                        product_id: res.product.id,
+                        selectedProductLabel: res.product.name + ' — ₹' + Number(res.product.rate).toLocaleString(),
+                        item_name: res.product.name,
+                        description: res.product.description || res.product.name,
+                        hsn: res.product.hsn || '998314',
+                        qty: 1,
+                        rate: parseFloat(res.product.rate) || 0,
+                        tax_rate: parseFloat(res.product.tax_rate) !== undefined ? parseFloat(res.product.tax_rate) : 18,
+                        taxable_amount: 0,
+                        tax_amount: 0,
+                        total_amount: 0
+                    });
+                    this.recalcAll();
+                    this.quickProductModalOpen = false;
+                    this.newProduct = { name: '', item_type: 'SERVICE', hsn_sac_code: '998314', unit: 'NOS', unit_price: 50000, tax_rate: 18, description: '' };
+                } else {
+                    alert('Error: ' + (res.error || 'Failed to save product'));
+                }
+            } catch (e) {
+                alert('Error creating product: ' + e);
+            } finally {
+                this.savingProduct = false;
+                this.$nextTick(() => {
+                    if (window.lucide) lucide.createIcons();
+                });
+            }
+        },
+
+        openQuickCustomerModal() {
+            this.quickCustomerModalOpen = true;
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        async saveQuickCustomer() {
+            if (!this.newCustomer.name.trim()) {
+                alert('Please provide a customer or company name.');
+                return;
+            }
+            if (!this.newCustomer.state.trim()) {
+                this.newCustomer.state = 'Kerala';
+            }
+
+            this.savingCustomer = true;
+            try {
+                const resp = await fetch("{% url 'invoicing:customer_quick_create' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(this.newCustomer)
+                });
+                const res = await resp.json();
+                if (res.success) {
+                    this.catalogCustomers.unshift(res.customer);
+                    this.pickCustomer(res.customer);
+                    this.quickCustomerModalOpen = false;
+                    this.newCustomer = {
+                        name: '',
+                        phone: '',
+                        email: '',
+                        city: 'Kochi',
+                        state: 'Kerala',
+                        gstin: '',
+                        billing_address: ''
+                    };
+                } else {
+                    alert('Error: ' + (res.error || 'Failed to save customer'));
+                }
+            } catch (e) {
+                alert('Error creating customer: ' + e);
+            } finally {
+                this.savingCustomer = false;
+                this.$nextTick(() => {
+                    if (window.lucide) lucide.createIcons();
+                });
+            }
+        },
+
+        validateBeforeSubmit(e) {
+            if (!this.selectedCustomerId) {
+                alert('Please select a customer for this invoice.');
+                e.preventDefault();
+                return;
+            }
+            if (this.lines.length === 0) {
+                alert('Please add at least one line item to the invoice.');
+                e.preventDefault();
+                return;
+            }
+            for (let i = 0; i < this.lines.length; i++) {
+                const line = this.lines[i];
+                if (!line.item_name && !line.description) {
+                    alert('Line #' + (i + 1) + ' must have an item name or description.');
+                    e.preventDefault();
+                    return;
+                }
+                if (!line.description && line.item_name) {
+                    line.description = line.item_name;
+                }
+                if (!line.item_name && line.description) {
+                    line.item_name = line.description.substring(0, 50);
+                }
+                if (line.rate === '' || line.rate === null || line.rate === undefined) {
+                    line.rate = 0;
+                }
+            }
+        }
+    };
+}
+</script>
 {% endblock %}

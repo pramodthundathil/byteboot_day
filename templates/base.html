@@ -834,6 +834,88 @@
             stroke: #FFFFFF !important;
             stroke-width: 2.2 !important;
         }
+
+        /* ========================================================================= */
+        /* Modern View Transitions & Page Load Motion (Progressive Enhancement)    */
+        /* ========================================================================= */
+        @media (prefers-reduced-motion: no-preference) {
+            @view-transition {
+                navigation: auto;
+            }
+            ::view-transition-old(root) {
+                animation: 140ms cubic-bezier(0.4, 0, 0.2, 1) both b1PageFadeOut;
+            }
+            ::view-transition-new(root) {
+                animation: 200ms cubic-bezier(0.16, 1, 0.3, 1) both b1PageFadeIn;
+            }
+        }
+        @keyframes b1PageFadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.997); }
+        }
+        @keyframes b1PageFadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Content Enter Animation for Full & HTMX Swaps */
+        @keyframes b1PageReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .b1-page-enter {
+            animation: b1PageReveal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .b1-page-enter {
+                animation: none !important;
+            }
+        }
+
+        /* Top Glowing Loading Bar in Signature Cyan (#00a0da) */
+        #b1PageProgressBar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            z-index: 999999;
+            pointer-events: none;
+            background: linear-gradient(90deg, #00a0da 0%, #38bdf8 50%, #008ec2 100%);
+            box-shadow: 0 0 10px rgba(0, 160, 218, 0.8), 0 0 4px rgba(56, 189, 248, 0.6);
+            transition: width 0.24s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.18s ease;
+            opacity: 0;
+        }
+        #b1PageProgressBar.loading {
+            opacity: 1;
+        }
+
+        /* Refined Custom Scrollbar for Drawer Navigation */
+        .drawer-nav-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .drawer-nav-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .drawer-nav-scroll::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.25);
+            border-radius: 9999px;
+        }
+        html.dark .drawer-nav-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .drawer-nav-scroll:hover::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.45);
+        }
+        html.dark .drawer-nav-scroll:hover::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.22);
+        }
     </style>
 
     <script>
@@ -847,6 +929,16 @@
                 mobileMenuOpen: false,
                 commandOpen: false,
                 drawerOpen: false,
+                sidebarFilter: '',
+                sidebarSections: {
+                    overview: false,
+                    crm: false,
+                    invoicing: false,
+                    accounting: false,
+                    hr: false,
+                    projects: false,
+                    admin: false
+                },
 
                 init() {
                     // Sync sidebarOpen with stored pin state
@@ -855,9 +947,72 @@
                         this.sidebarPinned = val;
                         localStorage.setItem('b1_sidebar_pinned', val ? 'true' : 'false');
                     });
+
+                    // Determine active section from URL context so only the current module is open
+                    const curTab = "{{ active_tab|default:'' }}";
+                    const curSub = "{{ active_sub|default:'' }}";
+                    let activeKey = 'overview';
+
+                    if (curTab === 'invoicing' || ['invoices', 'payments', 'products', 'vendors', 'bills', 'payments_made'].includes(curSub)) {
+                        activeKey = 'invoicing';
+                    } else if (curTab === 'accounting' || ['accounts', 'ledger', 'vouchers', 'journals', 'banking', 'assets', 'taxes', 'reports'].includes(curSub)) {
+                        activeKey = 'accounting';
+                    } else if (curTab === 'crm' || ['followup_dashboard', 'call_history', 'leads', 'won_leads', 'lost_leads', 'bulk_upload', 'staff_analytics', 'customers'].includes(curSub)) {
+                        activeKey = 'crm';
+                    } else if (['projects', 'chat'].includes(curTab) || ['projects', 'tasks', 'chat'].includes(curSub)) {
+                        activeKey = 'projects';
+                    } else if (curTab === 'hr' || ['leaves', 'employees'].includes(curSub)) {
+                        activeKey = 'hr';
+                    } else if (curTab === 'settings' || ['roles'].includes(curSub)) {
+                        activeKey = 'admin';
+                    } else if (curTab === 'dashboard' || curTab === 'reports') {
+                        activeKey = 'overview';
+                    }
+
+                    // On page load, only open the active route's section so sidebar stays clean & easy to identify
+                    this.sidebarSections[activeKey] = true;
+
                     this.$nextTick(() => {
                         if (window.lucide) lucide.createIcons();
                     });
+                },
+
+                toggleSection(key) {
+                    const isCurrentlyOpen = !!this.sidebarSections[key];
+                    if (isCurrentlyOpen) {
+                        this.sidebarSections[key] = false;
+                    } else {
+                        // When clicked, open this section and collapse others so only this section's sub-items are shown
+                        Object.keys(this.sidebarSections).forEach(k => {
+                            this.sidebarSections[k] = false;
+                        });
+                        this.sidebarSections[key] = true;
+                    }
+                    localStorage.setItem('b1_sidebar_sections_v3', JSON.stringify(this.sidebarSections));
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                expandAllSections(open = true) {
+                    Object.keys(this.sidebarSections).forEach(k => {
+                        this.sidebarSections[k] = open;
+                    });
+                    localStorage.setItem('b1_sidebar_sections_v3', JSON.stringify(this.sidebarSections));
+                    this.$nextTick(() => {
+                        if (window.lucide) lucide.createIcons();
+                    });
+                },
+
+                isSectionOpen(key) {
+                    if (this.sidebarFilter && this.sidebarFilter.trim().length > 0) return true;
+                    return !!this.sidebarSections[key];
+                },
+
+                matchesFilter(text) {
+                    if (!this.sidebarFilter || !this.sidebarFilter.trim()) return true;
+                    const query = this.sidebarFilter.trim().toLowerCase();
+                    return text.toLowerCase().includes(query);
                 },
 
                 togglePin() {
@@ -918,6 +1073,18 @@
     </script>
 </head>
 <body x-data="navLayout()" class="bg-[var(--app-bg)] text-[var(--text-primary)] h-screen overflow-hidden flex transition-colors duration-200">
+
+    <!-- Top Loading / Page Transition Glowing Progress Bar -->
+    <div id="b1PageProgressBar"></div>
+
+    <!-- Floating Page Loader Indicator -->
+    <div id="b1PageLoaderPill" class="fixed top-3 right-5 z-[999998] pointer-events-none transition-all duration-200 opacity-0 -translate-y-2 flex items-center gap-2 bg-[#101720]/95 dark:bg-[#0c1421]/95 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full border border-[#00a0da]/40 shadow-lg shadow-[#00a0da]/15">
+        <svg class="animate-spin w-3.5 h-3.5 text-[#00a0da]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span class="text-slate-100 text-[11px] font-medium tracking-wide">Loading page...</span>
+    </div>
 
     <!-- Floating Toast Notifications Container -->
     {% if messages %}
@@ -1000,7 +1167,7 @@
     <div class="hidden sm:flex w-16 bg-[var(--rail-bg)] border-r border-[var(--rail-border)] flex-col justify-between items-center py-3 z-30 flex-shrink-0 transition-colors duration-200">
         <div class="flex flex-col items-center gap-2.5 w-full">
             <!-- Brand Logo at Top of Navigation Rail -->
-            <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 hover:bg-slate-100 dark:hover:bg-[#1e2d44] transition group" title="B ONE — One platform. Complete business control.">
+            <a href="{% url 'dashboard:index' %}" class="w-11 h-11 rounded-xl flex items-center justify-center p-1.5 hover:bg-slate-100 dark:hover:bg-[#1e2b3b] transition group" title="B ONE — One platform. Complete business control.">
                 <img src="/static/b-one-logo-package/svg/b-one-mark-color.svg" alt="B ONE" class="w-8 h-8 object-contain dark:hidden group-hover:scale-105 transition">
                 <img src="/static/b-one-logo-package/svg/b-one-mark-reversed.svg" alt="B ONE" class="w-8 h-8 object-contain hidden dark:block group-hover:scale-105 transition">
             </a>
@@ -1008,7 +1175,7 @@
             <!-- Hamburger Button below Logo (Toggles Pinned Sidebar) -->
             <button @click="togglePin()"
                     class="w-11 h-11 rounded-xl flex items-center justify-center transition relative"
-                    :class="sidebarPinned ? 'bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : 'text-slate-500 hover:text-[#1E5BFF] hover:bg-slate-100 dark:text-slate-400 dark:hover:text-[#38bdf8] dark:hover:bg-[#1e2d44]'"
+                    :class="sidebarPinned ? 'bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : 'text-slate-500 hover:text-[#008ec2] hover:bg-slate-100 dark:text-slate-400 dark:hover:text-[#00a0da] dark:hover:bg-[#1e2b3b]'"
                     :title="sidebarPinned ? 'Unpin Navigation Sidebar (Auto-collapse to hover mode)' : 'Pin Navigation Sidebar Open Permanently'">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
@@ -1019,8 +1186,8 @@
                 <a href="{% url 'dashboard:index' %}"
                    @mouseenter="onIconHover('dashboard', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'dashboard' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'dashboard' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'dashboard' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Dashboard Overview">
                     <i data-lucide="grid" class="w-5 h-5"></i>
                 </a>
@@ -1030,8 +1197,8 @@
                 <a href="{% url 'crm:lead_list' %}"
                    @mouseenter="onIconHover('crm', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'crm' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'crm' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'crm' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'crm' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="CRM & Pipeline">
                     <i data-lucide="users" class="w-5 h-5"></i>
                 </a>
@@ -1042,8 +1209,8 @@
                 <a href="{% url 'invoicing:invoice_list' %}"
                    @mouseenter="onIconHover('invoicing', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'invoicing' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'invoicing' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'invoicing' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'invoicing' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Sales & Invoices">
                     <i data-lucide="receipt" class="w-5 h-5"></i>
                 </a>
@@ -1054,8 +1221,8 @@
                 <a href="{% url 'accounting:journal_list' %}"
                    @mouseenter="onIconHover('accounting', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'accounting' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'accounting' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'accounting' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'accounting' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="General Ledger">
                     <i data-lucide="book-open" class="w-5 h-5"></i>
                 </a>
@@ -1065,8 +1232,8 @@
                 <a href="{% url 'hr:leave_list' %}"
                    @mouseenter="onIconHover('hr', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'hr' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'hr' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'hr' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'hr' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Leave Applications & HR">
                     <i data-lucide="calendar" class="w-5 h-5"></i>
                 </a>
@@ -1076,8 +1243,8 @@
                 <a href="{% url 'projects:project_list' %}"
                    @mouseenter="onIconHover('projects', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'projects' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'projects' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'projects' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Projects & Tasks">
                     <i data-lucide="layout" class="w-5 h-5"></i>
                 </a>
@@ -1086,8 +1253,8 @@
                 <a href="{% url 'projects:conversations' %}"
                    @mouseenter="onIconHover('chat', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'chat' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'chat' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'chat' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Team Chat">
                     <i data-lucide="message-square" class="w-5 h-5"></i>
                     <span id="railChatBadge" class="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-rose-500 ring-2 ring-white dark:ring-[#0f172a] {% if unread_chat_count == 0 %}hidden{% endif %}"></span>
@@ -1098,8 +1265,8 @@
                 <a href="{% url 'dashboard:reports' %}"
                    @mouseenter="onIconHover('reports', $event)"
                    @mouseleave="onIconLeave()"
-                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'reports' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]{% else %}text-slate-400 hover:text-[#1E5BFF] hover:bg-slate-100 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8]{% endif %}"
-                   :class="activeHoverMenu === 'reports' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+                   class="w-11 h-11 rounded-xl flex items-center justify-center transition relative {% if active_tab == 'reports' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] shadow-xs{% else %}text-slate-400 hover:text-[#008ec2] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da]{% endif %}"
+                   :class="activeHoverMenu === 'reports' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                    title="Financial Reports">
                     <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
                 </a>
@@ -1111,15 +1278,15 @@
             <a href="{% url 'tenants:company_settings' %}"
                @mouseenter="onIconHover('settings', $event)"
                @mouseleave="onIconLeave()"
-               class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-[#1e2d44] transition"
-               :class="activeHoverMenu === 'settings' ? 'ring-2 ring-blue-400/40 bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8]' : ''"
+               class="w-11 h-11 rounded-xl flex items-center justify-center text-slate-400 hover:text-[#008ec2] dark:hover:text-[#00a0da] hover:bg-slate-100 dark:hover:bg-[#1e2b3b] transition"
+               :class="activeHoverMenu === 'settings' ? 'ring-2 ring-[#00a0da]/30 bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da]' : ''"
                title="Settings">
                 <i data-lucide="settings" class="w-5 h-5"></i>
             </a>
             <button @mouseenter="onIconHover('user', $event)"
                     @mouseleave="onIconLeave()"
-                    class="w-9 h-9 rounded-full bg-[#1E5BFF] flex items-center justify-center text-white font-bold text-xs ring-2 ring-blue-300 dark:ring-blue-600 hover:scale-105 transition cursor-pointer"
-                    :class="activeHoverMenu === 'user' ? 'ring-4 ring-blue-400' : ''"
+                    class="w-9 h-9 rounded-full bg-[#00a0da] flex items-center justify-center text-white font-bold text-xs ring-2 ring-[#00a0da]/30 hover:scale-105 transition cursor-pointer"
+                    :class="activeHoverMenu === 'user' ? 'ring-4 ring-[#00a0da]/50' : ''"
                     title="User Profile: {{ request.user.username }}">
                 {{ request.user.username|slice:":2"|upper }}
             </button>
@@ -1140,13 +1307,13 @@
          @mouseenter="onMenuEnter()"
          @mouseleave="onMenuLeave()"
          :style="'top: ' + hoverMenuTop + 'px;'"
-         class="hidden sm:block fixed left-[70px] z-50 w-72 bg-white dark:bg-[#0f1726] border border-slate-200 dark:border-white/15 rounded-2xl shadow-2xl shadow-slate-900/20 dark:shadow-black/70 p-3.5 transition-all duration-150 pointer-events-auto before:content-[''] before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-4"
+         class="hidden sm:block fixed left-[70px] z-50 w-72 bg-white dark:bg-[#101720] border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xl shadow-slate-900/20 dark:shadow-black/70 p-3.5 transition-all duration-150 pointer-events-auto before:content-[''] before:absolute before:-left-3 before:top-0 before:bottom-0 before:w-4"
          style="display: none;">
 
         <!-- Flyout Header (Icon, Title, Category and Pin Option) -->
         <div class="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-white/10">
             <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
+                <div class="w-8 h-8 rounded-xl bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] flex items-center justify-center flex-shrink-0 font-bold shadow-xs">
                     <template x-if="activeHoverMenu === 'dashboard'"><i data-lucide="grid" class="w-4 h-4"></i></template>
                     <template x-if="activeHoverMenu === 'crm'"><i data-lucide="users" class="w-4 h-4"></i></template>
                     <template x-if="activeHoverMenu === 'invoicing'"><i data-lucide="receipt" class="w-4 h-4"></i></template>
@@ -1188,37 +1355,37 @@
 
             <!-- Option for Permanently Visible Sidebar -->
             <button @click="togglePin()"
-                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#1E5BFF] hover:bg-blue-50 dark:text-slate-300 dark:hover:text-[#38bdf8] dark:hover:bg-[#1e2d44] border border-slate-200 dark:border-white/10 transition shadow-sm"
+                    class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#008ec2] hover:bg-[#e6f6fc] dark:text-slate-300 dark:hover:text-[#00a0da] dark:hover:bg-[#1e2b3b] border border-slate-200 dark:border-white/10 transition shadow-xs"
                     title="Pin sidebar open permanently">
-                <i data-lucide="pin" class="w-3.5 h-3.5 text-[#1E5BFF] dark:text-[#38bdf8]"></i>
+                <i data-lucide="pin" class="w-3.5 h-3.5 text-[#008ec2] dark:text-[#00a0da]"></i>
                 <span>Pin</span>
             </button>
         </div>
 
         <!-- Pop-up Navigation Items Container (Scrollable if height exceeds) -->
-        <div class="max-h-[380px] overflow-y-auto space-y-1 pr-0.5">
+        <div class="max-h-[380px] overflow-y-auto space-y-1.5 pr-0.5">
 
             <!-- 1. DASHBOARD ITEMS -->
             <template x-if="activeHoverMenu === 'dashboard'">
-                <div class="space-y-1">
-                    <a href="{% url 'dashboard:index' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'dashboard' and not active_sub %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="grid" class="w-4 h-4 text-[#1E5BFF]"></i> Dashboard Overview</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Home</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'dashboard' and not active_sub %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="grid" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'dashboard' and not active_sub %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Dashboard Overview</span>
                     </a>
-                    <a href="{% url 'dashboard:reports' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i> Financial Reports</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Analytics</span>
+                    <a href="{% url 'dashboard:reports' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'reports' and not active_sub %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'reports' and not active_sub %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Financial Reports</span>
                     </a>
                     {% if user_perms.crm %}
-                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
-                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
+                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bell-ring" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'followup_dashboard' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                        <span class="truncate">Follow-up Reminders</span>
                     </a>
                     {% endif %}
                     {% if user_perms.projects %}
-                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Tracker</span>
-                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tasks</span>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'tasks' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'tasks' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Task Tracker</span>
                     </a>
                     {% endif %}
                 </div>
@@ -1227,39 +1394,47 @@
             <!-- 2. CRM & PIPELINE ITEMS -->
             {% if user_perms.crm %}
             <template x-if="activeHoverMenu === 'crm'">
-                <div class="space-y-1">
-                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
-                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-1 pb-0.5">Leads & Follow-ups</div>
+                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bell-ring" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'followup_dashboard' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                        <span class="truncate">Follow-up Reminders</span>
                     </a>
-                    <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'call_history' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i> Call & Contact History</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
+                    <a href="{% url 'crm:call_history' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'call_history' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="phone-call" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'call_history' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Call & Contact History</span>
                     </a>
-                    <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'leads' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#1E5BFF]"></i> Sales Leads</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
+                    <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="target" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Sales Leads</span>
                     </a>
-                    <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-emerald-50 text-emerald-600 dark:bg-[#1e2d44] dark:text-emerald-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-500"></i> Won Leads</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
+                    <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="award" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'won_leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Won Leads</span>
                     </a>
-                    <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-red-50 text-red-600 dark:bg-[#1e2d44] dark:text-red-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-500"></i> Lost Leads</span>
-                        <span class="bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
+                    <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="archive-x" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'lost_leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                        <span class="truncate">Lost Leads</span>
                     </a>
-                    <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <i data-lucide="upload-cloud" class="w-4 h-4 text-indigo-500"></i> Bulk Upload Leads
+                    <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="upload-cloud" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'bulk_upload' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-slate-400{% endif %}"></i>
+                        <span class="truncate">Bulk Upload Leads</span>
+                    </a>
+
+                    <!-- Divider Line Between Leads and Directory -->
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-1 pb-0.5">Clients & Performance</div>
+                    <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'customers' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="building" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'customers' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-slate-400{% endif %}"></i>
+                        <span class="truncate">Customers Directory</span>
                     </a>
                     {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
-                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-500"></i> Staff Analytics</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bar-chart" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'staff_analytics' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Staff Analytics</span>
                     </a>
                     {% endif %}
-                    <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'customers' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <i data-lucide="building" class="w-4 h-4 text-slate-500"></i> Customers Directory
-                    </a>
                 </div>
             </template>
             {% endif %}
@@ -1267,22 +1442,35 @@
             <!-- 3. INVOICING & BILLING ITEMS -->
             {% if user_perms.invoicing %}
             <template x-if="activeHoverMenu === 'invoicing'">
-                <div class="space-y-1">
-                    <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'invoices' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="receipt" class="w-4 h-4 text-[#1E5BFF]"></i> Tax Invoices</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Invoices</span>
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 pt-1 pb-0.5">Sales & Billing (AR)</div>
+                    <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'invoices' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'invoices' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Tax Invoices</span>
                     </a>
-                    <a href="{% url 'invoicing:invoice_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="plus-circle" class="w-4 h-4 text-emerald-500"></i> Create New Invoice</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
+                    <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'payments' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="credit-card" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'payments' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Customer Payments</span>
                     </a>
-                    <a href="{% url 'invoicing:payment_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'payments' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="credit-card" class="w-4 h-4 text-indigo-500"></i> Customer Payments</span>
-                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Payments</span>
+                    <a href="{% url 'invoicing:product_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'products' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="package" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'products' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-purple-400{% endif %}"></i>
+                        <span class="truncate">Products Catalog</span>
                     </a>
-                    <a href="{% url 'invoicing:payment_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="badge-check" class="w-4 h-4 text-amber-500"></i> Record Payment</span>
-                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Record</span>
+
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 pt-1 pb-0.5">Purchases & Payables (AP)</div>
+                    <a href="{% url 'invoicing:vendor_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'vendors' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="truck" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'vendors' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                        <span class="truncate">Vendors & Suppliers</span>
+                    </a>
+                    <a href="{% url 'invoicing:bill_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'bills' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'bills' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                        <span class="truncate">Vendor Bills</span>
+                    </a>
+                    <a href="{% url 'invoicing:payment_made_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'payments_made' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="arrow-up-right" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'payments_made' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                        <span class="truncate">Payments Made</span>
                     </a>
                 </div>
             </template>
@@ -1291,14 +1479,43 @@
             <!-- 4. ACCOUNTING & GENERAL LEDGER ITEMS -->
             {% if user_perms.accounting %}
             <template x-if="activeHoverMenu === 'accounting'">
-                <div class="space-y-1">
-                    <a href="{% url 'accounting:journal_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'journals' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="book-open" class="w-4 h-4 text-[#1E5BFF]"></i> General Ledger</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Journals</span>
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-[#00a0da] px-3 pt-1 pb-0.5">Books & General Ledger</div>
+                    <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'accounts' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="list-tree" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'accounts' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-indigo-400{% endif %}"></i>
+                        <span class="truncate">Chart of Accounts</span>
                     </a>
-                    <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'accounts' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="list-tree" class="w-4 h-4 text-indigo-500"></i> Chart of Accounts</span>
-                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">COA</span>
+                    <a href="{% url 'accounting:general_ledger' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'ledger' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'ledger' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">General Ledger</span>
+                    </a>
+                    <a href="{% url 'accounting:voucher_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'vouchers' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'vouchers' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Accounting Vouchers</span>
+                    </a>
+                    <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'journals' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'journals' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Manual Journals</span>
+                    </a>
+                    <a href="{% url 'accounting:banking_overview' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'banking' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="landmark" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'banking' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                        <span class="truncate">Bank & Cash</span>
+                    </a>
+                    <a href="{% url 'accounting:fixed_assets_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'assets' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="package-check" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'assets' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-indigo-400{% endif %}"></i>
+                        <span class="truncate">Fixed Assets</span>
+                    </a>
+
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-teal-500 px-3 pt-1 pb-0.5">Account Settings & Reports</div>
+                    <a href="{% url 'accounting:tax_management' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'taxes' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="percent" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'taxes' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-teal-400{% endif %}"></i>
+                        <span class="truncate">Tax Rates (GST Setup)</span>
+                    </a>
+                    <a href="{% url 'accounting:financial_reports' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'reports' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'reports' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                        <span class="truncate">Financial Statements</span>
                     </a>
                 </div>
             </template>
@@ -1306,25 +1523,21 @@
 
             <!-- 5. LEAVES & HR ITEMS -->
             <template x-if="activeHoverMenu === 'hr'">
-                <div class="space-y-1">
-                    <a href="{% url 'hr:leave_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'leaves' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i> Leave Applications</span>
-                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Leaves</span>
-                    </a>
-                    <a href="{% url 'hr:leave_request' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="calendar-plus" class="w-4 h-4 text-emerald-500"></i> Apply for Leave</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Apply</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'leaves' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'leaves' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                        <span class="truncate">Leave Applications</span>
                     </a>
                     {% if user_perms.hr %}
-                    <a href="{% url 'hr:employee_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'employees' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="users" class="w-4 h-4 text-indigo-500"></i> HR Employees</span>
-                        <span class="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Staff</span>
+                    <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'employees' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="users" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'employees' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">HR Employees</span>
                     </a>
                     {% endif %}
                     {% if user_perms.roles %}
-                    <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'roles' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#1E5BFF]"></i> Roles & Permissions</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
+                    <a href="{% url 'tenants:role_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'roles' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="shield" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'roles' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                        <span class="truncate">Roles & Permissions</span>
                     </a>
                     {% endif %}
                 </div>
@@ -1333,25 +1546,20 @@
             <!-- 6. PROJECTS & TASKS ITEMS -->
             {% if user_perms.projects %}
             <template x-if="activeHoverMenu === 'projects'">
-                <div class="space-y-1">
-                    <a href="{% url 'projects:project_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="folder" class="w-4 h-4 text-[#1E5BFF]"></i> Projects</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">All</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'projects' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="folder" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'projects' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Projects</span>
                     </a>
-                    <a href="{% url 'projects:project_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="folder-plus" class="w-4 h-4 text-emerald-500"></i> Create Project</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'tasks' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'tasks' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Task Tracker</span>
                     </a>
-                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'tasks' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Tracker</span>
-                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tasks</span>
-                    </a>
-                    <a href="{% url 'projects:task_create' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="plus-square" class="w-4 h-4 text-emerald-500"></i> Create Task</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">New</span>
-                    </a>
-                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_sub == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
+                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'chat' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-3 truncate">
+                            <i data-lucide="message-square" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'chat' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">Team Chat</span>
+                        </span>
                         <span id="hoverSidebarChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
                     </a>
                 </div>
@@ -1359,14 +1567,14 @@
 
             <!-- 7. TEAM CHAT ITEMS -->
             <template x-if="activeHoverMenu === 'chat'">
-                <div class="space-y-1">
-                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="messages-square" class="w-4 h-4 text-[#1E5BFF]"></i> Open Team Chat</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Live</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'projects:conversations' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'chat' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="messages-square" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'chat' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Open Team Chat</span>
                     </a>
-                    <a href="{% url 'projects:task_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="check-square" class="w-4 h-4 text-sky-500"></i> Task Discussions</span>
-                        <span class="bg-sky-500/15 text-sky-600 dark:text-sky-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tracker</span>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0 transition text-emerald-400"></i>
+                        <span class="truncate">Task Discussions</span>
                     </a>
                 </div>
             </template>
@@ -1374,16 +1582,16 @@
 
             <!-- 8. FINANCIAL REPORTS ITEMS -->
             <template x-if="activeHoverMenu === 'reports'">
-                <div class="space-y-1">
-                    <a href="{% url 'dashboard:reports' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition {% if active_tab == 'reports' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                        <span class="flex items-center gap-2.5"><i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i> Financial Reports</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Reports</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'dashboard:reports' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'reports' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'reports' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Financial Reports</span>
                     </a>
                     {% if user_perms.crm %}
                     {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
-                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="trending-up" class="w-4 h-4 text-[#1E5BFF]"></i> Staff Sales Analytics</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Staff</span>
+                    <a href="{% url 'crm:staff_analytics' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="trending-up" class="w-4 h-4 flex-shrink-0 transition text-teal-400"></i>
+                        <span class="truncate">Staff Sales Analytics</span>
                     </a>
                     {% endif %}
                     {% endif %}
@@ -1392,47 +1600,50 @@
 
             <!-- 9. SETTINGS ITEMS -->
             <template x-if="activeHoverMenu === 'settings'">
-                <div class="space-y-1">
-                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="building" class="w-4 h-4 text-[#1E5BFF]"></i> Company Settings</span>
-                        <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Settings</span>
+                <div class="space-y-1.5">
+                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="building" class="w-4 h-4 flex-shrink-0 transition text-sky-400"></i>
+                        <span class="truncate">Company Settings</span>
                     </a>
                     {% if user_perms.roles %}
-                    <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i> Roles & Permissions</span>
-                        <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Access</span>
+                    <a href="{% url 'tenants:role_list' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="shield" class="w-4 h-4 flex-shrink-0 transition text-amber-400"></i>
+                        <span class="truncate">Roles & Permissions</span>
                     </a>
                     {% endif %}
-                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white">
-                        <span class="flex items-center gap-2.5"><i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i> Switch Company</span>
-                        <span class="bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Tenants</span>
+                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="repeat" class="w-4 h-4 flex-shrink-0 transition text-emerald-400"></i>
+                        <span class="truncate">Switch Company</span>
                     </a>
-                    <a href="{% url 'tenants:logout' %}" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
-                        <span class="flex items-center gap-2.5"><i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Sign Out</span>
-                        <span class="bg-rose-500/15 text-rose-600 text-[10px] font-bold px-1.5 py-0.5 rounded">Exit</span>
+                    <a href="{% url 'tenants:logout' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30">
+                        <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0 transition text-rose-500"></i>
+                        <span class="truncate">Sign Out</span>
                     </a>
                 </div>
             </template>
 
             <!-- 10. USER PROFILE ITEMS -->
             <template x-if="activeHoverMenu === 'user'">
-                <div class="space-y-1">
-                    <div class="p-2 mb-1 rounded-xl bg-slate-50 dark:bg-[#162032] border border-slate-100 dark:border-white/5">
+                <div class="space-y-1.5">
+                    <div class="p-2.5 mb-1.5 rounded-xl bg-slate-50 dark:bg-[#16202c] border border-slate-100 dark:border-white/5">
                         <div class="text-xs font-bold text-slate-900 dark:text-white">{{ request.user.get_full_name|default:request.user.username }}</div>
                         <div class="text-[10px] text-slate-500 dark:text-slate-400">{{ request.user.email|default:"Active User" }}</div>
                         <div class="mt-1 flex items-center gap-1.5">
-                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8]">{{ current_membership.get_role_display|default:"Staff" }}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#00a0da]/15 text-[#008ec2] dark:text-[#00a0da]">{{ current_membership.get_role_display|default:"Staff" }}</span>
                             <span class="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300">{{ current_company.code|default:"DEFAULT" }}</span>
                         </div>
                     </div>
-                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white transition">
-                        <i data-lucide="settings" class="w-4 h-4 text-[#1E5BFF]"></i> Company Settings
+                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white transition">
+                        <i data-lucide="settings" class="w-4 h-4 flex-shrink-0 transition text-sky-400"></i>
+                        <span class="truncate">Company Settings</span>
                     </a>
-                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white transition">
-                        <i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i> Switch Company
+                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white transition">
+                        <i data-lucide="repeat" class="w-4 h-4 flex-shrink-0 transition text-emerald-400"></i>
+                        <span class="truncate">Switch Company</span>
                     </a>
-                    <a href="{% url 'tenants:logout' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
-                        <i data-lucide="log-out" class="w-4 h-4 text-rose-500"></i> Sign Out
+                    <a href="{% url 'tenants:logout' %}" class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition">
+                        <i data-lucide="log-out" class="w-4 h-4 flex-shrink-0 transition text-rose-500"></i>
+                        <span class="truncate">Sign Out</span>
                     </a>
                 </div>
             </template>
@@ -1450,118 +1661,543 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="translate-x-0 opacity-100"
          x-transition:leave-end="-translate-x-full opacity-0"
-         class="hidden md:flex w-64 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] flex-col flex-shrink-0 z-20 transition-colors duration-200">
+         class="hidden md:flex w-[270px] bg-white dark:bg-[#0c1421] border-r border-slate-200/80 dark:border-white/5 shadow-[1px_0_12px_rgba(0,0,0,0.02)] dark:shadow-[1px_0_15px_rgba(0,0,0,0.25)] flex-col flex-shrink-0 z-20 transition-all duration-200">
         
         <!-- Pinned Sidebar Header with Unpin Action -->
-        <div class="p-3 border-b border-[var(--border-color)] flex items-center justify-between">
+        <div class="px-3.5 py-3 border-b border-slate-200/80 dark:border-white/5 flex items-center justify-between bg-slate-50/40 dark:bg-slate-900/20">
             <a href="{% url 'dashboard:index' %}" class="flex items-center gap-2 group">
                 <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE by Byteboot" class="h-7 object-contain dark:hidden group-hover:opacity-90 transition">
                 <img src="/static/b-one-logo-package/svg/b-one-horizontal-reversed.svg" alt="B ONE by Byteboot" class="h-7 object-contain hidden dark:block group-hover:opacity-90 transition">
             </a>
             <div class="flex items-center gap-1.5">
-                <button @click="commandOpen = true" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-[#1e2d44] dark:hover:bg-[#253856] dark:text-slate-300 px-2 py-0.5 rounded font-mono border border-[var(--border-color)] transition" title="Command Palette">⌘K</button>
-                <button @click="togglePin()" class="p-1 rounded-md text-slate-400 hover:text-[#1E5BFF] hover:bg-blue-50 dark:hover:bg-[#1e2d44] dark:hover:text-[#38bdf8] transition" title="Unpin sidebar (Auto-hide on hover)">
-                    <i data-lucide="pin-off" class="w-4 h-4 text-[#1E5BFF] dark:text-[#38bdf8]"></i>
+                <button @click="commandOpen = true" class="text-[10px] font-mono font-semibold bg-white hover:bg-slate-100 text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-white/10 transition shadow-2xs" title="Command Palette">⌘K</button>
+                <button @click="togglePin()" class="p-1.5 rounded-lg text-slate-400 hover:text-[#008ec2] hover:bg-[#e6f6fc] dark:hover:bg-[#1e2b3b] dark:hover:text-[#00a0da] transition" title="Unpin sidebar (Auto-hide on hover)">
+                    <i data-lucide="pin-off" class="w-3.5 h-3.5 text-[#008ec2] dark:text-[#00a0da]"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Search Box -->
-        <div class="p-3">
-            <div class="relative">
-                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
-                <input type="text" placeholder="Global search..." class="w-full bg-[var(--surface-secondary)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-1.5 text-xs text-[var(--text-primary)] placeholder-slate-400 outline-none focus:border-[#1E5BFF] focus:ring-1 focus:ring-[#1E5BFF] transition" @keydown.meta.k.window="commandOpen = true" @keydown.ctrl.k.window="commandOpen = true">
+        <!-- Search & Filter Box -->
+        <div class="px-3.5 pt-3 pb-2.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/20 dark:bg-transparent">
+            <div class="relative flex items-center">
+                <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none"></i>
+                <input type="text" 
+                       x-model="sidebarFilter"
+                       placeholder="Global search..." 
+                       class="w-full bg-slate-100/90 dark:bg-[#16202c] border border-slate-200 dark:border-white/10 rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:bg-white dark:focus:bg-[#101720] focus:border-[#00a0da] focus:ring-1 focus:ring-[#00a0da] transition-all shadow-2xs"
+                       @keydown.escape="sidebarFilter = ''">
+                <button x-show="sidebarFilter.length > 0" 
+                        @click="sidebarFilter = ''" 
+                        class="absolute right-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs transition p-0.5" 
+                        title="Clear filter">✕</button>
+            </div>
+            <div class="flex items-center justify-between mt-2.5 px-0.5 text-[11px] text-slate-400 dark:text-slate-500 font-medium select-none">
+                <span class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                    <span class="w-1.5 h-1.5 rounded-full" :class="sidebarFilter ? 'bg-[#00a0da] animate-pulse' : 'bg-slate-300 dark:bg-slate-600'"></span>
+                    <span x-show="!sidebarFilter">Navigation</span>
+                    <span x-show="sidebarFilter" class="text-[#00a0da]">Filtering</span>
+                </span>
+                <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-white/5 text-[10px]">
+                    <button type="button" @click="expandAllSections(true)" class="px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-[#00a0da] hover:bg-white dark:hover:bg-slate-700 font-medium transition" title="Expand all sections">Expand</button>
+                    <span class="text-slate-300 dark:text-slate-600">|</span>
+                    <button type="button" @click="expandAllSections(false)" class="px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400 hover:text-[#00a0da] hover:bg-white dark:hover:bg-slate-700 font-medium transition" title="Collapse all sections">Collapse</button>
+                </div>
             </div>
         </div>
 
         <!-- Navigation Drawer Links -->
-        <div class="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+        <div class="flex-1 overflow-y-auto px-3 py-2.5 space-y-1.5 drawer-nav-scroll">
             {% block sub_nav %}
+
+            <!-- ========================================== -->
+            <!-- 1. OVERVIEW & WORKSPACE -->
+            <!-- ========================================== -->
+            <div x-show="matchesFilter('Dashboard Home Reports Analytics Overview')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('overview') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('overview')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('overview') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('overview') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">Overview & Workspace</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('overview') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('overview') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('overview')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    <a href="{% url 'dashboard:index' %}" 
+                       x-show="matchesFilter('Dashboard Overview Home Insights')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'dashboard' and not active_sub %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="grid" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'dashboard' and not active_sub %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Dashboard Overview</span>
+                    </a>
+                    <a href="{% url 'dashboard:reports' %}" 
+                       x-show="matchesFilter('Reports Financial Performance Analytics Revenue')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_tab == 'reports' and not active_sub %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 flex-shrink-0 transition {% if active_tab == 'reports' and not active_sub %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Financial Reports</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
+
+            <!-- ========================================== -->
+            <!-- 2. CRM & PIPELINE -->
+            <!-- ========================================== -->
             {% if user_perms.crm %}
-            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-2 mb-1">CRM & Sales</div>
-            <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders</span>
-                <span class="bg-amber-500/15 text-amber-600 dark:text-amber-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Hub</span>
-            </a>
-            <a href="{% url 'crm:call_history' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'call_history' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i> Call & Contact History</span>
-                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Calls</span>
-            </a>
-            <a href="{% url 'crm:lead_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'leads' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="target" class="w-4 h-4 text-[#1E5BFF]"></i> Sales Leads</span>
-                <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Pipeline</span>
-            </a>
-            <a href="{% url 'crm:lead_list' %}?status=WON" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-emerald-50 text-emerald-600 dark:bg-[#1e2d44] dark:text-emerald-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="award" class="w-4 h-4 text-emerald-500"></i> Won Leads</span>
-                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Won</span>
-            </a>
-            <a href="{% url 'crm:lead_list' %}?status=LOST" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-red-50 text-red-600 dark:bg-[#1e2d44] dark:text-red-400 font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="archive-x" class="w-4 h-4 text-red-500"></i> Lost Leads</span>
-                <span class="bg-red-500/15 text-red-600 dark:text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">Archive</span>
-            </a>
-            <a href="{% url 'crm:lead_bulk_upload' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="upload-cloud" class="w-4 h-4"></i> Bulk Upload Leads
-            </a>
-            {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
-            <a href="{% url 'crm:staff_analytics' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="bar-chart" class="w-4 h-4 text-emerald-500"></i> Staff Analytics</span>
-                <span class="bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
-            </a>
-            {% endif %}
-            <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'customers' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="building" class="w-4 h-4"></i> Customers
-            </a>
+            <div x-show="matchesFilter('CRM Sales Leads Followup Call Customers Staff Pipeline Won Lost')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('crm') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('crm')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('crm') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('crm') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">CRM & Pipeline</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('crm') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('crm') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('crm')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    
+                    <!-- Sub-category: Leads & Follow-ups -->
+                    <div x-show="matchesFilter('Follow-up Reminders Calls Leads Pipeline Won Lost Bulk Upload CRM')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-2 pb-0.5">Leads & Follow-ups</div>
+                        
+                        <a href="{% url 'crm:followup_dashboard' %}" 
+                           x-show="matchesFilter('Follow-up Reminders Hub CRM Leads Tasks')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'followup_dashboard' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="bell-ring" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'followup_dashboard' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                            <span class="truncate">Follow-up Reminders</span>
+                        </a>
+                        <a href="{% url 'crm:call_history' %}" 
+                           x-show="matchesFilter('Call Contact History Calls CRM')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'call_history' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="phone-call" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'call_history' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                            <span class="truncate">Call & Contact History</span>
+                        </a>
+                        <a href="{% url 'crm:lead_list' %}" 
+                           x-show="matchesFilter('Sales Leads Pipeline CRM Opportunities')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="target" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">Sales Leads</span>
+                        </a>
+                        <a href="{% url 'crm:lead_list' %}?status=WON" 
+                           x-show="matchesFilter('Won Leads Closed Deals Won CRM')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'won_leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="award" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'won_leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                            <span class="truncate">Won Leads</span>
+                        </a>
+                        <a href="{% url 'crm:lead_list' %}?status=LOST" 
+                           x-show="matchesFilter('Lost Leads Archive Rejected CRM')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'lost_leads' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="archive-x" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'lost_leads' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                            <span class="truncate">Lost Leads</span>
+                        </a>
+                        <a href="{% url 'crm:lead_bulk_upload' %}" 
+                           x-show="matchesFilter('Bulk Upload Leads CSV Excel Import CRM')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'bulk_upload' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'bulk_upload' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-slate-400{% endif %}"></i>
+                            <span class="truncate">Bulk Upload Leads</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider Line Between Leads and Directory -->
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <!-- Sub-category: Directory & Analytics -->
+                    <div x-show="matchesFilter('Staff Analytics Team Performance Sales Admin Customers Clients Directory Accounts CRM')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-2 pb-0.5">Clients & Performance</div>
+                        
+                        <a href="{% url 'crm:customer_list' %}" 
+                           x-show="matchesFilter('Customers Clients Directory Accounts CRM')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'customers' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="building" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'customers' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-slate-400{% endif %}"></i>
+                            <span class="truncate">Customers Directory</span>
+                        </a>
+                        {% if request.user.is_superuser or current_membership.role in 'COMPANY_ADMIN,PLATFORM_ADMIN,MANAGER' %}
+                        <a href="{% url 'crm:staff_analytics' %}" 
+                           x-show="matchesFilter('Staff Analytics Team Performance Sales Admin')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'staff_analytics' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="bar-chart" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'staff_analytics' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                            <span class="truncate">Staff Analytics</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
             {% endif %}
 
-            {% if user_perms.invoicing or user_perms.accounting %}
-            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Invoicing & Ledger</div>
+            <!-- ========================================== -->
+            <!-- 3. SALES & PURCHASES (INVOICING AREA) -->
+            <!-- ========================================== -->
             {% if user_perms.invoicing %}
-            <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'invoices' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="receipt" class="w-4 h-4"></i> Tax Invoices
-            </a>
-            <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'payments' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="credit-card" class="w-4 h-4"></i> Customer Payments
-            </a>
+            <div x-show="matchesFilter('Invoicing Sales Billing Purchases Vendors Bills Payments Products AR AP')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('invoicing') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('invoicing')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('invoicing') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('invoicing') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">Sales & Purchases</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('invoicing') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('invoicing') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('invoicing')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    
+                    <!-- Sub-category: Sales & Billing -->
+                    <div x-show="matchesFilter('Sales Invoices Payments Products Billing AR Catalog')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-2 pb-0.5">Sales & Billing (AR)</div>
+                        
+                        <a href="{% url 'invoicing:invoice_list' %}" 
+                           x-show="matchesFilter('Tax Invoices Sales Billing AR')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'invoices' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'invoices' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">Tax Invoices</span>
+                        </a>
+                        <a href="{% url 'invoicing:payment_list' %}" 
+                           x-show="matchesFilter('Customer Payments Received Collections AR')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'payments' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="credit-card" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'payments' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                            <span class="truncate">Customer Payments</span>
+                        </a>
+                        <a href="{% url 'invoicing:product_list' %}" 
+                           x-show="matchesFilter('Products Catalog Items Services Catalog')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'products' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="package" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'products' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-purple-400{% endif %}"></i>
+                            <span class="truncate">Products Catalog</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider Line Between Sales and Purchases -->
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <!-- Sub-category: Purchases & Payables -->
+                    <div x-show="matchesFilter('Purchases Vendors Bills Payments Made AP Payables Suppliers')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-500 px-3 pt-2 pb-0.5">Purchases & Payables (AP)</div>
+                        
+                        <a href="{% url 'invoicing:vendor_list' %}" 
+                           x-show="matchesFilter('Vendors Suppliers AP Payables')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'vendors' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="truck" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'vendors' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                            <span class="truncate">Vendors & Suppliers</span>
+                        </a>
+                        <a href="{% url 'invoicing:bill_list' %}" 
+                           x-show="matchesFilter('Vendor Bills AP Invoices Payables Expenses')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'bills' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'bills' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-amber-400{% endif %}"></i>
+                            <span class="truncate">Vendor Bills</span>
+                        </a>
+                        <a href="{% url 'invoicing:payment_made_list' %}" 
+                           x-show="matchesFilter('Payments Made Outgoing Disbursements AP')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'payments_made' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'payments_made' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                            <span class="truncate">Payments Made</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
             {% endif %}
+
+            <!-- ========================================== -->
+            <!-- 4. ACCOUNTING & GENERAL LEDGER (DIFFERENTIATED) -->
+            <!-- ========================================== -->
             {% if user_perms.accounting %}
-            <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'journals' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="book-open" class="w-4 h-4"></i> General Ledger
-            </a>
-            <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'accounts' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="list-tree" class="w-4 h-4"></i> Chart of Accounts
-            </a>
-            {% endif %}
+            <div x-show="matchesFilter('Accounting General Ledger Vouchers Journals Banking Fixed Assets Taxes GST Rates Reports Statements GL Books COA')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('accounting') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('accounting')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('accounting') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('accounting') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">Accounting & Books</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('accounting') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('accounting') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('accounting')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    
+                    <!-- Sub-category: Books & General Ledger -->
+                    <div x-show="matchesFilter('Accounts General Ledger Vouchers Journals Banking Fixed Assets GL COA Books')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-[#00a0da] px-3 pt-2 pb-0.5">Books & General Ledger</div>
+                        
+                        <a href="{% url 'accounting:chart_of_accounts' %}" 
+                           x-show="matchesFilter('Chart of Accounts COA Structure GL')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'accounts' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="list-tree" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'accounts' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-indigo-400{% endif %}"></i>
+                            <span class="truncate">Chart of Accounts</span>
+                        </a>
+                        <a href="{% url 'accounting:general_ledger' %}" 
+                           x-show="matchesFilter('General Ledger GL Audit Statement Transactions')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'ledger' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="book-open" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'ledger' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">General Ledger</span>
+                        </a>
+                        <a href="{% url 'accounting:voucher_list' %}" 
+                           x-show="matchesFilter('Accounting Vouchers Contra Receipts Payments VCH')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'vouchers' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="receipt" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'vouchers' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                            <span class="truncate">Accounting Vouchers</span>
+                        </a>
+                        <a href="{% url 'accounting:journal_list' %}" 
+                           x-show="matchesFilter('Manual Journals Journal Entries Adjustments JE')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'journals' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'journals' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">Manual Journals</span>
+                        </a>
+                        <a href="{% url 'accounting:banking_overview' %}" 
+                           x-show="matchesFilter('Banking Cash Bank Accounts Transfer Contra')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'banking' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="landmark" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'banking' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                            <span class="truncate">Bank & Cash</span>
+                        </a>
+                        <a href="{% url 'accounting:fixed_assets_list' %}" 
+                           x-show="matchesFilter('Fixed Assets Depreciation Asset Register')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'assets' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="package-check" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'assets' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-indigo-400{% endif %}"></i>
+                            <span class="truncate">Fixed Assets</span>
+                        </a>
+                    </div>
+
+                    <!-- Divider Line Between Accounts and Account Settings -->
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-2 mx-1"></div>
+
+                    <!-- Sub-category: Account Settings & Reports -->
+                    <div x-show="matchesFilter('Account Settings Taxes GST Rates Financial Reports Statements Profit Loss Balance Sheet Setup')" class="space-y-1.5">
+                        <div class="text-[10px] uppercase font-bold tracking-wider text-teal-500 px-3 pt-2 pb-0.5">Account Settings & Reports</div>
+                        
+                        <a href="{% url 'accounting:tax_management' %}" 
+                           x-show="matchesFilter('Tax Rates GST Configuration Setup Account Settings')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'taxes' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="percent" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'taxes' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-teal-400{% endif %}"></i>
+                            <span class="truncate">Tax Rates (GST Setup)</span>
+                        </a>
+                        <a href="{% url 'accounting:financial_reports' %}" 
+                           x-show="matchesFilter('Financial Statements Profit Loss Balance Sheet P&L Reports Account Reports')"
+                           class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'reports' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'reports' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-rose-400{% endif %}"></i>
+                            <span class="truncate">Financial Statements</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
             {% endif %}
 
-            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Leaves & HR</div>
-            <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'leaves' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="calendar" class="w-4 h-4"></i> Leave Applications
-            </a>
-            {% if user_perms.hr %}
-            <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'employees' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="users" class="w-4 h-4"></i> HR Employees
-            </a>
-            {% endif %}
-            {% if user_perms.roles %}
-            <a href="{% url 'tenants:role_list' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'roles' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="shield" class="w-4 h-4 text-[#1E5BFF]"></i> Roles & Permissions</span>
-                <span class="bg-blue-500/15 text-[#1E5BFF] dark:text-[#38bdf8] text-[10px] font-bold px-1.5 py-0.5 rounded">Admin</span>
-            </a>
-            {% endif %}
+            <!-- ========================================== -->
+            <!-- 5. LEAVES & HUMAN RESOURCES -->
+            <!-- ========================================== -->
+            <div x-show="matchesFilter('Leaves HR Employees Staff Time Off Vacation')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('hr') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('hr')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('hr') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('hr') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">Leaves & HR</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('hr') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('hr') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
 
+                <div x-show="isSectionOpen('hr')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    <a href="{% url 'hr:leave_list' %}" 
+                       x-show="matchesFilter('Leave Applications Time Off Vacation Requests')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'leaves' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'leaves' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-sky-400{% endif %}"></i>
+                        <span class="truncate">Leave Applications</span>
+                    </a>
+                    {% if user_perms.hr %}
+                    <a href="{% url 'hr:employee_list' %}" 
+                       x-show="matchesFilter('HR Employees Directory Staff Directory Workforce')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'employees' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="users" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'employees' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">HR Employees</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
+
+            <!-- ========================================== -->
+            <!-- 6. PROJECTS & TEAM -->
+            <!-- ========================================== -->
             {% if user_perms.projects %}
-            <div class="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider px-3 mt-4 mb-1">Projects & Team</div>
-            <a href="{% url 'projects:project_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'projects' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="folder" class="w-4 h-4"></i> Projects
-            </a>
-            <a href="{% url 'projects:task_list' %}" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'tasks' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <i data-lucide="check-square" class="w-4 h-4"></i> Task Tracker
-            </a>
-            <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition {% if active_sub == 'chat' %}bg-blue-50 text-[#1E5BFF] dark:bg-[#1e2d44] dark:text-[#38bdf8] font-semibold{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#1e2d44] hover:text-slate-900 dark:hover:text-white{% endif %}">
-                <span class="flex items-center gap-2.5"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
-                <span id="sidebarChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
-            </a>
+            <div x-show="matchesFilter('Projects Tasks Tracker Chat Messages Team Collaboration')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('projects') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('projects')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('projects') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('projects') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="layout" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">Projects & Team</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('projects') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('projects') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('projects')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    <a href="{% url 'projects:project_list' %}" 
+                       x-show="matchesFilter('Projects Workspace Milestones Tasks')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'projects' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="folder" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'projects' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Projects</span>
+                    </a>
+                    <a href="{% url 'projects:task_list' %}" 
+                       x-show="matchesFilter('Task Tracker Todo Kanban Work Logs')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'tasks' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="check-square" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'tasks' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-emerald-400{% endif %}"></i>
+                        <span class="truncate">Task Tracker</span>
+                    </a>
+                    <a href="{% url 'projects:conversations' %}" 
+                       x-show="matchesFilter('Team Chat Conversations Channels Discussions Messages')"
+                       class="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'chat' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <span class="flex items-center gap-3 truncate">
+                            <i data-lucide="message-square" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'chat' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                            <span class="truncate">Team Chat</span>
+                        </span>
+                        <span id="sidebarChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Dividing Line -->
+            <div class="my-2 border-t border-slate-200/60 dark:border-white/5 mx-1"></div>
             {% endif %}
+
+            <!-- ========================================== -->
+            <!-- 7. SYSTEM & SETTINGS -->
+            <!-- ========================================== -->
+            <div x-show="matchesFilter('Settings Roles Permissions Company Switch Tenant Admin Config')" 
+                 class="transition-all duration-200"
+                 :class="isSectionOpen('admin') ? 'rounded-2xl border border-sky-300/40 dark:border-sky-900/30 bg-sky-50/20 dark:bg-sky-950/10 p-1.5 shadow-2xs' : 'space-y-0.5'">
+                <button type="button" 
+                        @click="toggleSection('admin')" 
+                        class="w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-all duration-200 group select-none"
+                        :class="isSectionOpen('admin') ? 'bg-white dark:bg-[#16202c] text-slate-900 dark:text-white shadow-2xs font-bold' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-[#16202c]/50 hover:text-slate-900 dark:hover:text-white'">
+                    <span class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+                              :class="isSectionOpen('admin') ? 'bg-[#00a0da] text-white shadow-xs' : 'bg-slate-100 dark:bg-[#16202c] text-[#00a0da] group-hover:bg-[#00a0da]/20'">
+                            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="truncate tracking-tight font-semibold">System & Settings</span>
+                    </span>
+                    <span class="w-5 h-5 rounded-md flex items-center justify-center transition-all duration-200 flex-shrink-0"
+                          :class="isSectionOpen('admin') ? 'bg-slate-200/60 dark:bg-slate-700/60 text-slate-800 dark:text-slate-200' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300'">
+                        <i data-lucide="chevron-right" class="w-3 h-3 transition-transform duration-200" :class="isSectionOpen('admin') ? 'rotate-90' : ''"></i>
+                    </span>
+                </button>
+
+                <div x-show="isSectionOpen('admin')" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="space-y-1.5 pt-1.5 pb-0.5 px-0.5">
+                    {% if user_perms.roles %}
+                    <a href="{% url 'tenants:role_list' %}" 
+                       x-show="matchesFilter('Roles Permissions Access Control Admin Security')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition {% if active_sub == 'roles' %}bg-[#e6f6fc] text-[#008ec2] dark:bg-[#1e2b3b] dark:text-[#00a0da] font-semibold shadow-xs{% else %}text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white{% endif %}">
+                        <i data-lucide="shield" class="w-4 h-4 flex-shrink-0 transition {% if active_sub == 'roles' %}text-[#008ec2] dark:text-[#00a0da]{% else %}text-[#00a0da]{% endif %}"></i>
+                        <span class="truncate">Roles & Permissions</span>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'tenants:company_settings' %}" 
+                       x-show="matchesFilter('Company Settings Preferences Profile Configuration')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="building" class="w-4 h-4 flex-shrink-0 text-slate-400 group-hover:text-slate-600 dark:text-slate-400 dark:group-hover:text-slate-200 transition"></i>
+                        <span class="truncate">Company Settings</span>
+                    </a>
+                    <a href="{% url 'tenants:switch_company' %}" 
+                       x-show="matchesFilter('Switch Company Change Tenant Branch Organization')"
+                       class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-medium transition text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-[#1e2b3b] dark:hover:text-white">
+                        <i data-lucide="repeat" class="w-4 h-4 flex-shrink-0 text-amber-400 transition"></i>
+                        <span class="truncate">Switch Company</span>
+                    </a>
+                </div>
+            </div>
+
             {% endblock %}
         </div>
     </div>
@@ -1570,36 +2206,170 @@
     <div x-show="mobileMenuOpen" class="md:hidden fixed inset-0 z-50 flex" style="display: none;">
         <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" @click="mobileMenuOpen = false"></div>
         <div class="relative w-72 bg-[var(--sidebar-bg)] border-r border-[var(--sidebar-border)] flex flex-col h-full z-10 p-4">
-            <div class="flex items-center justify-between mb-4 pb-3 border-b border-[var(--border-color)]">
+            <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-[var(--border-color)]">
                 <div class="flex items-center gap-2.5">
                     <img src="/static/b-one-logo-package/svg/b-one-horizontal-color.svg" alt="B ONE" class="h-7 object-contain dark:hidden">
                     <img src="/static/b-one-logo-package/svg/b-one-horizontal-reversed.svg" alt="B ONE" class="h-7 object-contain hidden dark:block">
                 </div>
                 <button @click="mobileMenuOpen = false" class="text-slate-400 hover:text-slate-700 dark:hover:text-white">✕</button>
             </div>
-            <div class="flex-1 overflow-y-auto space-y-1.5 text-xs">
-                <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="grid" class="w-4 h-4 text-[#1E5BFF]"></i> Dashboard
-                </a>
-                <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="users" class="w-4 h-4 text-[#1E5BFF]"></i> CRM & Leads
-                </a>
-                <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="receipt" class="w-4 h-4 text-[#1E5BFF]"></i> Tax Invoices
-                </a>
-                <a href="{% url 'accounting:journal_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="book-open" class="w-4 h-4 text-[#1E5BFF]"></i> General Ledger
-                </a>
-                <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="user-check" class="w-4 h-4 text-[#1E5BFF]"></i> HR Employees
-                </a>
-                <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <i data-lucide="layout" class="w-4 h-4 text-[#1E5BFF]"></i> Projects & Tasks
-                </a>
-                <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between p-2.5 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
-                    <span class="flex items-center gap-3"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
-                    <span id="mobileChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
-                </a>
+            
+            <div class="flex-1 overflow-y-auto space-y-2 text-xs pr-1">
+                <!-- Overview -->
+                <div class="space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">Overview</div>
+                    <a href="{% url 'dashboard:index' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="grid" class="w-4 h-4 text-[#1E5BFF]"></i> Dashboard
+                    </a>
+                    <a href="{% url 'dashboard:reports' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i> Financial Reports
+                    </a>
+                </div>
+
+                <div class="border-t border-[var(--border-color)] my-1.5"></div>
+
+                <!-- CRM -->
+                {% if user_perms.crm %}
+                <div class="space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">CRM & Pipeline</div>
+                    <a href="{% url 'crm:followup_dashboard' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="bell-ring" class="w-4 h-4 text-amber-500"></i> Follow-up Reminders
+                    </a>
+                    <a href="{% url 'crm:lead_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="target" class="w-4 h-4 text-[#1E5BFF]"></i> Sales Leads
+                    </a>
+                    <a href="{% url 'crm:customer_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="building" class="w-4 h-4 text-slate-400"></i> Customers Directory
+                    </a>
+                </div>
+
+                <div class="border-t border-[var(--border-color)] my-1.5"></div>
+                {% endif %}
+
+                <!-- Finance & Accounts with Sub-Categories -->
+                {% if user_perms.invoicing or user_perms.accounting %}
+                <div class="space-y-1.5">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-emerald-500 px-1">Finance & Accounts</div>
+                    
+                    {% if user_perms.invoicing %}
+                    <!-- Sales -->
+                    <div class="space-y-1 pl-1">
+                        <div class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Sales & Billing (AR)</div>
+                        <a href="{% url 'invoicing:invoice_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="receipt" class="w-4 h-4 text-[#1E5BFF]"></i> Tax Invoices
+                        </a>
+                        <a href="{% url 'invoicing:payment_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="credit-card" class="w-4 h-4 text-emerald-500"></i> Customer Payments
+                        </a>
+                        <a href="{% url 'invoicing:product_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="package" class="w-4 h-4 text-purple-500"></i> Products Catalog
+                        </a>
+                    </div>
+
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-1 mx-1"></div>
+
+                    <!-- Purchases -->
+                    <div class="space-y-1 pl-1">
+                        <div class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Purchases & Payables (AP)</div>
+                        <a href="{% url 'invoicing:bill_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="file-text" class="w-4 h-4 text-amber-500"></i> Vendor Bills (AP)
+                        </a>
+                        <a href="{% url 'invoicing:vendor_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="truck" class="w-4 h-4 text-sky-500"></i> Vendors & Suppliers
+                        </a>
+                        <a href="{% url 'invoicing:payment_made_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4 text-rose-500"></i> Payments Made
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user_perms.accounting %}
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-1 mx-1"></div>
+
+                    <!-- Accounts -->
+                    <div class="space-y-1 pl-1">
+                        <div class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Accounts & Books (GL)</div>
+                        <a href="{% url 'accounting:general_ledger' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="book-open" class="w-4 h-4 text-[#1E5BFF]"></i> General Ledger
+                        </a>
+                        <a href="{% url 'accounting:chart_of_accounts' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="list-tree" class="w-4 h-4 text-indigo-500"></i> Chart of Accounts
+                        </a>
+                        <a href="{% url 'accounting:voucher_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="receipt" class="w-4 h-4 text-emerald-500"></i> Vouchers
+                        </a>
+                        <a href="{% url 'accounting:banking_overview' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="landmark" class="w-4 h-4 text-sky-500"></i> Bank & Cash
+                        </a>
+                    </div>
+
+                    <div class="border-t border-slate-200/80 dark:border-white/10 my-1 mx-1"></div>
+
+                    <!-- Account Settings & Reports -->
+                    <div class="space-y-1 pl-1">
+                        <div class="text-[9px] uppercase font-bold tracking-wider text-slate-400">Account Settings & Reports</div>
+                        <a href="{% url 'accounting:tax_management' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="percent" class="w-4 h-4 text-teal-500"></i> Tax Rates (GST Setup)
+                        </a>
+                        <a href="{% url 'accounting:financial_reports' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-rose-500"></i> Financial Statements
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-[var(--border-color)] my-1.5"></div>
+                {% endif %}
+
+                <!-- Leaves & HR -->
+                <div class="space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">Leaves & HR</div>
+                    <a href="{% url 'hr:leave_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="calendar" class="w-4 h-4 text-sky-500"></i> Leave Applications
+                    </a>
+                    {% if user_perms.hr %}
+                    <a href="{% url 'hr:employee_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="user-check" class="w-4 h-4 text-indigo-500"></i> HR Employees
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="border-t border-[var(--border-color)] my-1.5"></div>
+
+                <!-- Projects & Team -->
+                {% if user_perms.projects %}
+                <div class="space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">Projects & Team</div>
+                    <a href="{% url 'projects:project_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="layout" class="w-4 h-4 text-[#1E5BFF]"></i> Projects
+                    </a>
+                    <a href="{% url 'projects:task_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="check-square" class="w-4 h-4 text-emerald-500"></i> Task Tracker
+                    </a>
+                    <a href="{% url 'projects:conversations' %}" class="flex items-center justify-between p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <span class="flex items-center gap-3"><i data-lucide="message-square" class="w-4 h-4 text-[#1E5BFF]"></i> Team Chat</span>
+                        <span id="mobileChatBadge" class="bg-rose-500 text-white text-[10px] font-extrabold px-1.5 py-0.2 rounded-full min-w-4 text-center {% if unread_chat_count == 0 %}hidden{% endif %}">{{ unread_chat_count }}</span>
+                    </a>
+                </div>
+
+                <div class="border-t border-[var(--border-color)] my-1.5"></div>
+                {% endif %}
+
+                <!-- Administration & Settings -->
+                <div class="space-y-1">
+                    <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400 px-1">Administration</div>
+                    {% if user_perms.roles %}
+                    <a href="{% url 'tenants:role_list' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="shield" class="w-4 h-4 text-emerald-500"></i> Roles & Permissions
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'tenants:company_settings' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="settings" class="w-4 h-4 text-[#1E5BFF]"></i> Company Settings
+                    </a>
+                    <a href="{% url 'tenants:switch_company' %}" class="flex items-center gap-3 p-2 rounded-lg bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-[var(--surface-hover)]">
+                        <i data-lucide="repeat" class="w-4 h-4 text-amber-500"></i> Switch Company
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -1652,8 +2422,8 @@
             </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[var(--app-bg)] transition-colors duration-200">
+        <!-- Main Content Area with Smooth Page Entry Animation -->
+        <div id="mainContentContainer" class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[var(--app-bg)] transition-colors duration-200 b1-page-enter">
             {% block content %}{% endblock %}
         </div>
     </div>
@@ -2645,6 +3415,81 @@
                 lucide.createIcons();
             }
         });
+
+        // =========================================================================
+        // B ONE High-Performance Page Load & Transition Progress Controller
+        // =========================================================================
+        window.b1Loader = {
+            bar: null,
+            pill: null,
+            timer: null,
+            start() {
+                if (!this.bar) this.bar = document.getElementById('b1PageProgressBar');
+                if (!this.pill) this.pill = document.getElementById('b1PageLoaderPill');
+                clearTimeout(this.timer);
+                if (this.bar) {
+                    this.bar.style.transition = 'width 0.24s cubic-bezier(0.1, 0.8, 0.2, 1), opacity 0.15s ease';
+                    this.bar.classList.add('loading');
+                    this.bar.style.width = '35%';
+                }
+                if (this.pill) {
+                    this.pill.classList.remove('opacity-0', '-translate-y-2');
+                    this.pill.classList.add('opacity-100', 'translate-y-0');
+                }
+                this.timer = setTimeout(() => {
+                    if (this.bar) this.bar.style.width = '75%';
+                    this.timer = setTimeout(() => {
+                        if (this.bar) this.bar.style.width = '90%';
+                    }, 280);
+                }, 100);
+            },
+            finish() {
+                if (!this.bar) this.bar = document.getElementById('b1PageProgressBar');
+                if (!this.pill) this.pill = document.getElementById('b1PageLoaderPill');
+                clearTimeout(this.timer);
+                if (this.bar) {
+                    this.bar.style.width = '100%';
+                    setTimeout(() => {
+                        if (this.bar) {
+                            this.bar.classList.remove('loading');
+                            setTimeout(() => {
+                                if (this.bar) this.bar.style.width = '0%';
+                            }, 180);
+                        }
+                    }, 120);
+                }
+                if (this.pill) {
+                    this.pill.classList.remove('opacity-100', 'translate-y-0');
+                    this.pill.classList.add('opacity-0', '-translate-y-2');
+                }
+            }
+        };
+
+        // Attach to standard link clicks for instant visual feedback on page transition
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (!link) return;
+            const href = link.getAttribute('href');
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank' || link.hasAttribute('download') || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            if (href.startsWith('/') || href.startsWith(window.location.origin)) {
+                window.b1Loader.start();
+            }
+        });
+
+        // Trigger on HTMX page swaps
+        document.addEventListener('htmx:beforeRequest', () => window.b1Loader.start());
+        document.addEventListener('htmx:afterOnLoad', () => {
+            window.b1Loader.finish();
+            const container = document.getElementById('mainContentContainer');
+            if (container) {
+                container.classList.remove('b1-page-enter');
+                void container.offsetWidth; // trigger reflow for smooth re-animation
+                container.classList.add('b1-page-enter');
+            }
+        });
+
+        // Finish progress bar on initial page reveal and browser back/forward cache restore
+        window.addEventListener('pageshow', () => window.b1Loader.finish());
     </script>
 </body>
 </html>

@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ addBankModalOpen: false, transferModalOpen: false }">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">Banking & Cash</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="landmark" class="w-6 h-6 text-[#1E5BFF]"></i> Bank Accounts & Cash Vaults
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage real bank accounts, petty cash drawers, and execute automated Contra transfers</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button @click="transferModalOpen = true" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] hover:bg-blue-100 border border-blue-200 dark:border-blue-900/40 flex items-center gap-1.5 transition">
+                <i data-lucide="repeat" class="w-3.5 h-3.5"></i> Contra Transfer
+            </button>
+            <button @click="addBankModalOpen = true" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white shadow-sm flex items-center gap-1.5 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Total Liquidity Card -->
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-blue-200 block">Consolidated Liquid Funds</span>
+                <span class="text-3xl font-black block mt-1 tracking-tight">₹{{ total_liquidity }}</span>
+                <span class="text-xs text-blue-100/80 block mt-1">Available across {{ bank_accounts.count }} active bank accounts & cash drawers</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button @click="transferModalOpen = true" class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-700 hover:bg-blue-50 transition shadow">
+                    Transfer Between Accounts
+                </button>
+            </div>
+        </div>
+        <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-white/10 rounded-full blur-2xl"></div>
+    </div>
+
+    <!-- Bank Accounts Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {% for b in bank_accounts %}
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 hover:border-blue-500/50 transition">
+            <div class="flex items-start justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center {% if b.account_type == 'CASH' %}bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400{% else %}bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8]{% endif %}">
+                        {% if b.account_type == 'CASH' %}
+                        <i data-lucide="wallet" class="w-5 h-5"></i>
+                        {% else %}
+                        <i data-lucide="building-2" class="w-5 h-5"></i>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-slate-900 dark:text-slate-100 text-sm">{{ b.account_name }}</h3>
+                        <span class="text-[11px] text-slate-400 block">{{ b.bank_name }} &bull; {{ b.get_account_type_display }}</span>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if b.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-slate-100 text-slate-500{% endif %}">
+                    {{ b.status }}
+                </span>
+            </div>
+
+            <div class="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">Account #:</span>
+                    <span class="font-mono font-bold text-slate-800 dark:text-slate-200">{{ b.account_number }}</span>
+                </div>
+                {% if b.ifsc_code %}
+                <div class="flex justify-between">
+                    <span class="text-slate-400">IFSC / Code:</span>
+                    <span class="font-mono text-slate-700 dark:text-slate-300">{{ b.ifsc_code }}</span>
+                </div>
+                {% endif %}
+                {% if b.gl_account %}
+                <div class="flex justify-between">
+                    <span class="text-slate-400">GL Code:</span>
+                    <span class="font-mono text-[#1E5BFF]">{{ b.gl_account.code }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Balance</span>
+                    <span class="text-base font-extrabold text-slate-900 dark:text-slate-100 block">₹{{ b.current_balance }}</span>
+                </div>
+                <a href="{% url 'accounting:bank_account_detail' b.id %}" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition">
+                    Statement &rarr;
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-3 p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-slate-400">
+            No bank accounts configured yet. Click "+ Add Account" to configure your bank accounts or petty cash vault.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Recent Transactions Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                <i data-lucide="history" class="w-4 h-4"></i> Recent Banking & Cash Movements
+            </h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Date</th>
+                        <th class="p-3.5">Account</th>
+                        <th class="p-3.5">Type</th>
+                        <th class="p-3.5">Particulars / Ref</th>
+                        <th class="p-3.5 text-right">Amount (₹)</th>
+                        <th class="p-3.5 text-right">Running Balance</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {% for t in recent_transactions %}
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <td class="p-3.5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono">
+                            {{ t.date|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3.5 font-bold text-slate-900 dark:text-slate-100">
+                            {{ t.bank_account.account_name }}
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold
+                                {% if t.transaction_type == 'DEPOSIT' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                {% elif t.transaction_type == 'WITHDRAWAL' %}bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400
+                                {% else %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400{% endif %}">
+                                {{ t.transaction_type }}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-slate-600 dark:text-slate-300">
+                            {{ t.description }}
+                            {% if t.reference %}<span class="text-[10px] font-mono text-slate-400 block">Ref: {{ t.reference }}</span>{% endif %}
+                        </td>
+                        <td class="p-3.5 text-right font-extrabold {% if t.transaction_type == 'DEPOSIT' %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                            {% if t.transaction_type == 'DEPOSIT' %}+{% else %}-{% endif %}₹{{ t.amount }}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-slate-900 dark:text-slate-100 font-mono">
+                            ₹{{ t.running_balance }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="p-6 text-center text-slate-400">
+                            No banking transactions recorded yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CONTRA TRANSFER MODAL -->
+    <div x-show="transferModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
+        <div @click.away="transferModalOpen = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="repeat" class="w-5 h-5 text-[#1E5BFF]"></i> Contra Inter-Account Transfer
+                </h3>
+                <button @click="transferModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500">Transfers money between bank accounts or cash drawers. Posts an automated balanced Contra Voucher (CN-...) to the GL.</p>
+            <form action="{% url 'accounting:bank_transfer_contra' %}" method="POST" class="space-y-4 text-xs">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer From (Source) *</label>
+                        <select name="from_bank_id" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            {% for b in bank_accounts %}
+                            <option value="{{ b.id }}">{{ b.account_name }} (₹{{ b.current_balance }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer To (Destination) *</label>
+                        <select name="to_bank_id" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            {% for b in bank_accounts %}
+                            <option value="{{ b.id }}">{{ b.account_name }} (₹{{ b.current_balance }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Transfer Amount (₹) *</label>
+                        <input type="number" step="0.01" name="amount" required placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-right font-mono font-bold outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Date *</label>
+                        <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Reference / Cheque #</label>
+                    <input type="text" name="reference" placeholder="e.g. Cheque #492019 / NEFT Ref" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Narration / Particulars</label>
+                    <input type="text" name="narration" value="Inter-account bank/cash transfer" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="transferModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#1E5BFF] hover:bg-blue-600 text-white font-semibold shadow-sm">Execute Transfer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ADD BANK ACCOUNT MODAL -->
+    <div x-show="addBankModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
+        <div @click.away="addBankModalOpen = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="building-2" class="w-5 h-5 text-[#1E5BFF]"></i> Add Bank Account / Cash Vault
+                </h3>
+                <button @click="addBankModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form action="{% url 'accounting:bank_account_create' %}" method="POST" class="space-y-4 text-xs">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Bank / Institution Name *</label>
+                        <input type="text" name="bank_name" required placeholder="e.g. HDFC Bank, ICICI Bank, Cash Vault" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Display Name *</label>
+                        <input type="text" name="account_name" required placeholder="e.g. Primary Operations Account" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Number / ID *</label>
+                        <input type="text" name="account_number" required placeholder="e.g. 50200012345678" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Account Classification</label>
+                        <select name="account_type" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            <option value="BANK">Bank Account</option>
+                            <option value="CASH">Petty Cash / Cash Drawer</option>
+                            <option value="CREDIT_CARD">Credit Card Account</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">IFSC / Routing Code</label>
+                        <input type="text" name="ifsc_code" placeholder="e.g. HDFC0001234" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Branch Name</label>
+                        <input type="text" name="branch_name" placeholder="e.g. MG Road Branch" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Linked General Ledger Account</label>
+                        <select name="gl_account_id" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            <option value="">-- Auto-create / Select Account --</option>
+                            {% for gl in gl_accounts %}
+                            <option value="{{ gl.id }}">{{ gl.code }} - {{ gl.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Initial / Opening Balance (₹)</label>
+                        <input type="number" step="0.01" name="opening_balance" value="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Description / Notes</label>
+                    <textarea name="description" rows="2" placeholder="Account purpose and signatories..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="addBankModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#1E5BFF] hover:bg-blue-600 text-white font-semibold shadow-sm">Save Bank Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

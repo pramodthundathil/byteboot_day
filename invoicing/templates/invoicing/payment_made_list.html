@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <span class="text-[#1E5BFF]">Disbursements</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="arrow-up-right" class="w-6 h-6 text-emerald-500"></i>
+                Payments Made (Vendor Disbursements)
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Track all outgoing payments to vendors, auto set-off against open bills, and bank withdrawals.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'invoicing:payment_made_create' %}" class="btn-primary flex items-center gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500">
+                <i data-lucide="plus" class="w-4 h-4"></i> Record Payment Made
+            </a>
+            <a href="{% url 'invoicing:bill_list' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Vendor Bills
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="card p-4">
+            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Disbursed to Vendors</span>
+            <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">₹{{ total_paid|floatformat:2 }}</span>
+            <span class="text-[11px] text-slate-400 block mt-1">{{ payments.count }} disbursement transaction(s)</span>
+        </div>
+
+        <div class="card p-4 flex items-center justify-between bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-900/60 border-blue-500/20">
+            <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Double-Entry Ledger Integration</span>
+                <span class="text-xs text-slate-600 dark:text-slate-300 mt-1 block">All disbursements automatically post Debit to Accounts Payable (2010) and Credit to Operating Bank / Cash.</span>
+            </div>
+            <i data-lucide="shield-check" class="w-8 h-8 text-[#1E5BFF]"></i>
+        </div>
+    </div>
+
+    <!-- Payments Made Table -->
+    <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Outgoing Disbursements Record</h3>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Payment #</th>
+                        <th>Vendor Name</th>
+                        <th>Payment Date</th>
+                        <th class="text-right">Amount</th>
+                        <th>Payment Mode</th>
+                        <th>Paid From Bank</th>
+                        <th>Reference / UTR</th>
+                        <th>Status</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in payments %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoicing:payment_made_detail' p.id %}" class="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
+                                {{ p.payment_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{% url 'invoicing:vendor_detail' p.vendor.id %}" class="font-semibold text-slate-800 dark:text-slate-200 hover:underline">
+                                {{ p.vendor.name }}
+                            </a>
+                        </td>
+                        <td>{{ p.payment_date }}</td>
+                        <td class="font-bold text-emerald-600 dark:text-emerald-400 text-right">₹{{ p.amount|floatformat:2 }}</td>
+                        <td>{{ p.get_payment_method_display }}</td>
+                        <td class="font-mono text-xs text-slate-400">{{ p.paid_from_bank.bank_name|default:"Operating Bank" }}</td>
+                        <td class="font-mono text-xs text-slate-400">{{ p.reference_number|default:"—" }}</td>
+                        <td>
+                            <span class="status-pill {% if p.status == 'POSTED' %}status-success{% else %}status-info{% endif %}">
+                                {{ p.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'invoicing:payment_made_detail' p.id %}" class="btn-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-8 text-slate-400 text-xs">
+                            No disbursements recorded yet. Click "+ Record Payment Made" to record a vendor disbursement.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

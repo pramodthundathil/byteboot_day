@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8]">Vendors</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="truck" class="w-6 h-6 text-[#1E5BFF]"></i>
+                Vendors & Suppliers Directory
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage Accounts Payable (AP) suppliers, procurement partners, GSTIN compliance, and vendor bill histories.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'invoicing:vendor_create' %}" class="btn-primary flex items-center gap-1.5 text-xs">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add New Vendor
+            </a>
+            <a href="{% url 'invoicing:bill_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+                <i data-lucide="file-plus" class="w-4 h-4"></i> Record Vendor Bill
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="card p-4 flex items-center justify-between bg-gradient-to-br from-slate-50 to-blue-50/20 dark:from-slate-900 dark:to-slate-900/60 border-blue-500/20">
+            <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Active Vendors</span>
+                <span class="text-2xl font-black text-slate-900 dark:text-white mt-1 block">{{ vendors.count }}</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center text-[#1E5BFF]">
+                <i data-lucide="users" class="w-5 h-5"></i>
+            </div>
+        </div>
+
+        <div class="card p-4 flex items-center justify-between bg-gradient-to-br from-slate-50 to-emerald-50/20 dark:from-slate-900 dark:to-slate-900/60 border-emerald-500/20">
+            <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Billed Purchases</span>
+                <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1 block">₹{{ total_purchases|floatformat:2 }}</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center text-emerald-500">
+                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+            </div>
+        </div>
+
+        <div class="card p-4 flex items-center justify-between bg-gradient-to-br from-slate-50 to-amber-50/20 dark:from-slate-900 dark:to-slate-900/60 border-amber-500/20">
+            <div>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Outstanding AP Balance</span>
+                <span class="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1 block">₹{{ total_payable|floatformat:2 }}</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-amber-500">
+                <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Table Card -->
+    <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Registered Suppliers</h3>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Vendor Code & Name</th>
+                        <th>Category</th>
+                        <th>Contact Info</th>
+                        <th>GSTIN / PAN</th>
+                        <th class="text-right">Total Billed</th>
+                        <th class="text-right">Total Paid</th>
+                        <th class="text-right">Balance Due</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vendors %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'invoicing:vendor_detail' v.id %}" class="font-bold text-[#1E5BFF] dark:text-[#38bdf8] hover:underline block">
+                                {{ v.name }}
+                            </a>
+                            <span class="text-[11px] font-mono text-slate-400">{{ v.vendor_code }}</span>
+                        </td>
+                        <td>
+                            <span class="status-pill status-info">
+                                {{ v.category }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ v.contact_person|default:"—" }}</div>
+                            <div class="text-[11px] text-slate-400">{{ v.email }} {% if v.phone %}| {{ v.phone }}{% endif %}</div>
+                        </td>
+                        <td>
+                            <div class="font-mono text-xs text-slate-600 dark:text-slate-300">{{ v.gstin|default:"No GSTIN" }}</div>
+                            {% if v.pan %}<div class="font-mono text-[10px] text-slate-400">PAN: {{ v.pan }}</div>{% endif %}
+                        </td>
+                        <td class="text-right font-medium text-slate-700 dark:text-slate-300">
+                            ₹{{ v.total_billed|floatformat:2 }}
+                        </td>
+                        <td class="text-right font-medium text-emerald-600 dark:text-emerald-400">
+                            ₹{{ v.total_paid|floatformat:2 }}
+                        </td>
+                        <td class="text-right font-bold {% if v.balance_due > 0 %}text-amber-500{% else %}text-slate-400{% endif %}">
+                            ₹{{ v.balance_due|floatformat:2 }}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'invoicing:vendor_detail' v.id %}" class="btn-secondary text-xs py-1 px-2.5 inline-flex items-center gap-1">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-slate-400 text-xs">
+                            No vendors registered yet. Click "+ Add New Vendor" to get started.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

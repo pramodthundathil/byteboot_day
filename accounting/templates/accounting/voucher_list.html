@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">Vouchers</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="receipt" class="w-6 h-6 text-[#1E5BFF]"></i> Accounting Vouchers
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage Sales, Purchase, Receipt, Payment, Journal, and Contra vouchers with auto set-off</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'accounting:voucher_create' %}" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center gap-1.5 transition shadow-sm">
+                <i data-lucide="plus" class="w-4 h-4"></i> Create Voucher
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider flex items-center justify-between">
+                Receipt Vouchers <i data-lucide="arrow-down-left" class="w-3.5 h-3.5 text-emerald-500"></i>
+            </span>
+            <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 block mt-1">₹{{ total_receipts }}</span>
+            <span class="text-[10px] text-slate-500">Customer payments & receipts</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider flex items-center justify-between">
+                Payment Vouchers <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-rose-500"></i>
+            </span>
+            <span class="text-lg font-extrabold text-rose-600 dark:text-rose-400 block mt-1">₹{{ total_payments }}</span>
+            <span class="text-[10px] text-slate-500">Vendor disbursements & expenses</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider flex items-center justify-between">
+                Contra Transfers <i data-lucide="repeat" class="w-3.5 h-3.5 text-blue-500"></i>
+            </span>
+            <span class="text-lg font-extrabold text-blue-600 dark:text-blue-400 block mt-1">₹{{ total_contras }}</span>
+            <span class="text-[10px] text-slate-500">Bank-Cash internal movements</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider flex items-center justify-between">
+                Total Vouchers <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-500"></i>
+            </span>
+            <span class="text-lg font-extrabold text-purple-600 dark:text-purple-400 block mt-1">{{ total_count }}</span>
+            <span class="text-[10px] text-slate-500">All posted & draft entries</span>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold">
+            <a href="{% url 'accounting:voucher_list' %}" class="px-3 py-1.5 rounded-xl border transition {% if not voucher_type %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                All Types
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=RECEIPT" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'RECEIPT' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Receipts (RV)
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=PAYMENT" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'PAYMENT' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Payments (PMT)
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=CONTRA" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'CONTRA' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Contra (CN)
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=JOURNAL" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'JOURNAL' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Journal (JV)
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=SALES" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'SALES' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Sales (SV)
+            </a>
+            <a href="{% url 'accounting:voucher_list' %}?type=PURCHASE" class="px-3 py-1.5 rounded-xl border transition {% if voucher_type == 'PURCHASE' %}bg-[#1E5BFF] text-white border-[#1E5BFF]{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                Purchase (PV)
+            </a>
+        </div>
+
+        <form method="GET" class="relative w-full sm:w-72">
+            {% if voucher_type %}<input type="hidden" name="type" value="{{ voucher_type }}">{% endif %}
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+            <input type="text" name="q" value="{{ query }}" placeholder="Search voucher #, ref, party..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-[#1E5BFF]">
+        </form>
+    </div>
+
+    <!-- Vouchers Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Voucher #</th>
+                        <th class="p-3.5">Date</th>
+                        <th class="p-3.5">Type</th>
+                        <th class="p-3.5">Party / Reference</th>
+                        <th class="p-3.5">Narration</th>
+                        <th class="p-3.5 text-right">Amount (₹)</th>
+                        <th class="p-3.5 text-center">Status</th>
+                        <th class="p-3.5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {% for v in vouchers %}
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <td class="p-3.5 font-mono font-bold text-[#1E5BFF] dark:text-[#38bdf8]">
+                            <a href="{% url 'accounting:voucher_detail' v.id %}" class="hover:underline">
+                                {{ v.voucher_number }}
+                            </a>
+                        </td>
+                        <td class="p-3.5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono">
+                            {{ v.date|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold
+                                {% if v.voucher_type == 'RECEIPT' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                {% elif v.voucher_type == 'PAYMENT' %}bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400
+                                {% elif v.voucher_type == 'CONTRA' %}bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400
+                                {% else %}bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400{% endif %}">
+                                {{ v.get_voucher_type_display }}
+                            </span>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="font-bold text-slate-900 dark:text-slate-100 block">{{ v.party_name|default:"—" }}</span>
+                            {% if v.reference_number %}
+                            <span class="text-[10px] font-mono text-slate-400 block">Ref: {{ v.reference_number }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3.5 text-slate-600 dark:text-slate-300 max-w-xs truncate">
+                            {{ v.narration }}
+                        </td>
+                        <td class="p-3.5 text-right font-extrabold text-slate-900 dark:text-slate-100">
+                            ₹{{ v.total_amount }}
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold
+                                {% if v.status == 'POSTED' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400
+                                {% elif v.status == 'CANCELLED' %}bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400
+                                {% else %}bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400{% endif %}">
+                                {{ v.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <a href="{% url 'accounting:voucher_detail' v.id %}" class="p-1.5 rounded-lg bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] hover:bg-blue-100 transition inline-flex items-center justify-center">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">
+                            No vouchers found. Click "+ Create Voucher" to record a new receipt, payment, or contra entry.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

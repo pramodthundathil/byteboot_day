@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ addAssetModalOpen: false }">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">Fixed Assets</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="package-check" class="w-6 h-6 text-[#1E5BFF]"></i> Fixed Assets & Depreciation
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Track capital assets, calculate straight-line depreciation, and post monthly journal schedules</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button @click="addAssetModalOpen = true" class="px-4 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white shadow-sm flex items-center gap-1.5 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add Fixed Asset
+            </button>
+        </div>
+    </div>
+
+    <!-- Asset Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Historical Asset Cost</span>
+            <span class="text-2xl font-black text-slate-900 dark:text-slate-100 block mt-1">₹{{ total_cost }}</span>
+            <span class="text-[11px] text-slate-500 mt-1 block">Gross purchase value of {{ assets.count }} assets</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Accumulated Depreciation</span>
+            <span class="text-2xl font-black text-rose-600 dark:text-rose-400 block mt-1">₹{{ total_depreciation }}</span>
+            <span class="text-[11px] text-slate-500 mt-1 block">Total written-off depreciation to date</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Net Book Value (NBV)</span>
+            <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">₹{{ total_book_value }}</span>
+            <span class="text-[11px] text-slate-500 mt-1 block">Remaining active balance sheet valuation</span>
+        </div>
+    </div>
+
+    <!-- Assets Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Asset Code</th>
+                        <th class="p-3.5">Asset Name & Category</th>
+                        <th class="p-3.5">Acquisition Date</th>
+                        <th class="p-3.5 text-right">Purchase Cost (₹)</th>
+                        <th class="p-3.5 text-right text-rose-600 dark:text-rose-400">Accum. Depr (₹)</th>
+                        <th class="p-3.5 text-right text-emerald-600 dark:text-emerald-400 font-bold">Book Value (₹)</th>
+                        <th class="p-3.5 text-center">Status</th>
+                        <th class="p-3.5 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    {% for a in assets %}
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <td class="p-3.5 font-mono font-bold text-[#1E5BFF] dark:text-[#38bdf8]">
+                            <a href="{% url 'accounting:fixed_asset_detail' a.id %}" class="hover:underline">
+                                {{ a.asset_code }}
+                            </a>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="font-bold text-slate-900 dark:text-slate-100 block">{{ a.name }}</span>
+                            <span class="text-[11px] text-slate-400 block">{{ a.category }} &bull; Loc: {{ a.location|default:"Head Office" }}</span>
+                        </td>
+                        <td class="p-3.5 text-slate-600 dark:text-slate-400 font-mono">
+                            {{ a.acquisition_date|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3.5 text-right font-extrabold text-slate-900 dark:text-slate-100">
+                            ₹{{ a.purchase_cost }}
+                        </td>
+                        <td class="p-3.5 text-right text-rose-600 dark:text-rose-400 font-bold">
+                            ₹{{ a.accumulated_depreciation }}
+                        </td>
+                        <td class="p-3.5 text-right text-emerald-600 dark:text-emerald-400 font-black text-sm">
+                            ₹{{ a.book_value }}
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {% if a.status == 'ACTIVE' %}bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400{% else %}bg-slate-100 text-slate-500{% endif %}">
+                                {{ a.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <a href="{% url 'accounting:fixed_asset_detail' a.id %}" class="p-1.5 rounded-lg bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] hover:bg-blue-100 transition inline-flex items-center justify-center">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="p-8 text-center text-slate-400">
+                            No fixed assets recorded yet. Click "+ Add Fixed Asset" to track business assets.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ADD FIXED ASSET MODAL -->
+    <div x-show="addAssetModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" x-cloak>
+        <div @click.away="addAssetModalOpen = false" class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="package-plus" class="w-5 h-5 text-[#1E5BFF]"></i> Add Business Fixed Asset
+                </h3>
+                <button @click="addAssetModalOpen = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form action="{% url 'accounting:fixed_asset_create' %}" method="POST" class="space-y-4 text-xs">
+                {% csrf_token %}
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Asset Code *</label>
+                        <input type="text" name="asset_code" required placeholder="e.g. AST-IT-001" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Asset Name *</label>
+                        <input type="text" name="name" required placeholder="e.g. Apple MacBook Pro M3" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Category</label>
+                        <input type="text" name="category" value="IT Equipment" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Location</label>
+                        <input type="text" name="location" value="Head Office" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Serial Number</label>
+                        <input type="text" name="serial_number" placeholder="Optional S/N" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Acquisition Date *</label>
+                        <input type="date" name="acquisition_date" required value="{{ today|date:'Y-m-d' }}" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Purchase Cost (₹) *</label>
+                        <input type="number" step="0.01" name="purchase_cost" required placeholder="0.00" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF] font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Useful Life (Months)</label>
+                        <input type="number" name="useful_life_months" value="36" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Asset GL Account *</label>
+                        <select name="asset_account" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            {% for gl in fixed_asset_gl_accounts %}
+                            <option value="{{ gl.id }}">{{ gl.code }} - {{ gl.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Accumulated Depr. GL</label>
+                        <select name="accumulated_depreciation_account" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                            {% for gl in accum_depr_gl_accounts %}
+                            <option value="{{ gl.id }}">{{ gl.code }} - {{ gl.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">Depreciation Expense GL</label>
+                    <select name="depreciation_account" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none focus:border-[#1E5BFF]">
+                        {% for gl in depr_expense_gl_accounts %}
+                        <option value="{{ gl.id }}">{{ gl.code }} - {{ gl.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" @click="addAssetModalOpen = false" class="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#1E5BFF] hover:bg-blue-600 text-white font-semibold shadow-sm">Save Fixed Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

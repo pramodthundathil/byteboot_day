@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6" x-data="billForm()" x-init="init()">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <a href="{% url 'invoicing:bill_list' %}" class="hover:text-white">Vendor Bills</a> / 
+                <span class="text-[#1E5BFF]">Record Bill</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="file-plus" class="w-6 h-6 text-emerald-500"></i>
+                Record Vendor Bill (Purchase)
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Capture supplier invoice, allocate expense accounts, and track Input Tax Credit (ITC).</p>
+        </div>
+        <a href="{% url 'invoicing:bill_list' %}" class="btn-secondary text-xs">Back to Bills</a>
+    </div>
+
+    <!-- Main Bill Form -->
+    <form method="POST" class="space-y-6" @submit="validateBeforeSubmit($event)">
+        {% csrf_token %}
+
+        <!-- Header Information -->
+        <div class="card space-y-4">
+            <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="truck" class="w-4 h-4 text-[#1E5BFF]"></i>
+                Vendor & Purchase Details
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Searchable Vendor Combobox -->
+                <div class="form-group md:col-span-2 relative" x-data="{
+                    vendOpen: false,
+                    vendSearch: '',
+                    get filteredVendors() {
+                        if (!this.vendSearch.trim()) {
+                            return catalogVendors.slice(0, 8); // Top 8 initial for high performance
+                        }
+                        const q = this.vendSearch.toLowerCase();
+                        return catalogVendors.filter(v => 
+                            v.name.toLowerCase().includes(q) || 
+                            (v.code && v.code.toLowerCase().includes(q)) || 
+                            (v.category && v.category.toLowerCase().includes(q)) ||
+                            (v.state && v.state.toLowerCase().includes(q))
+                        ).slice(0, 15);
+                    }
+                }" @click.away="vendOpen = false">
+                    <label class="form-label font-semibold">Select Vendor / Supplier <span class="text-red-500">*</span></label>
+                    
+                    <div @click="vendOpen = !vendOpen; if (vendOpen) $nextTick(() => $refs.vendSearchInput?.focus())"
+                         class="form-control flex items-center justify-between cursor-pointer text-xs py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-[#1E5BFF] transition">
+                        <span class="truncate font-semibold text-slate-800 dark:text-slate-100" x-text="selectedVendorLabel || '-- Click or Type to Search Vendor --'"></span>
+                        <i data-lucide="chevrons-up-down" class="w-4 h-4 text-slate-400 shrink-0"></i>
+                    </div>
+                    <input type="hidden" name="vendor_id" :value="selectedVendorId" required>
+
+                    <!-- Dropdown Panel -->
+                    <div x-show="vendOpen" x-cloak class="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-2">
+                        <div class="relative">
+                            <input x-ref="vendSearchInput" type="text" x-model="vendSearch" placeholder="Type vendor name, code, or category to filter..." class="form-control text-xs pl-8 py-1.5 w-full bg-slate-50 dark:bg-slate-800" @keydown.escape="vendOpen = false">
+                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+                        </div>
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                            <template x-for="v in filteredVendors" :key="v.id">
+                                <div @click="pickVendor(v); vendOpen = false; vendSearch = ''" class="p-2 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer flex items-center justify-between transition">
+                                    <div>
+                                        <div class="font-bold text-slate-900 dark:text-slate-100" x-text="v.name"></div>
+                                        <div class="text-[11px] text-slate-400 font-mono" x-text="v.code + ' • ' + v.category + ' (' + (v.state || 'Kerala') + ')'"></div>
+                                    </div>
+                                    <span x-show="selectedVendorId == v.id" class="text-emerald-500 font-bold">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                            </template>
+                            <div x-show="filteredVendors.length === 0" class="p-3 text-center text-slate-400 text-xs">
+                                No vendor matches "<span x-text="vendSearch"></span>".
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-slate-400 pt-1 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center px-1">
+                            <span x-text="vendSearch ? 'Filtered vendors' : 'Showing top ' + filteredVendors.length + ' suppliers for performance'"></span>
+                            <span class="text-slate-400">Search filters all</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Vendor's Original Invoice #</label>
+                    <input type="text" name="vendor_invoice_number" class="form-control font-mono" placeholder="e.g. AWS-2026-9812">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Bill / Invoice Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="bill_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Payment Due Date <span class="text-red-500">*</span></label>
+                    <input type="date" name="due_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Primary Expense GL Account</label>
+                    <select name="expense_account_id" class="form-control">
+                        {% for acc in expense_accounts %}
+                        <option value="{{ acc.id }}" {% if acc.code == '5030' %}selected{% endif %}>
+                            {{ acc.code }} — {{ acc.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group md:col-span-3 flex flex-wrap items-center gap-4 pt-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 cursor-pointer text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <input type="checkbox" name="is_interstate" x-model="isInterstate" class="rounded text-[#1E5BFF] focus:ring-[#1E5BFF] w-4 h-4">
+                        <span>Inter-State Purchase (Apply IGST Input Credit instead of CGST+SGST)</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 cursor-pointer text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        <input type="checkbox" name="post_immediately" checked class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4">
+                        <span>Post Immediately to General Ledger & Accounts Payable (AP)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill Line Items Table -->
+        <div class="card space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                <div>
+                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-emerald-500"></i>
+                        Bill Line Items & Expenses
+                    </h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Add items purchased, cloud services, office supplies, or professional fees.</p>
+                </div>
+                <button type="button" @click="addLine()" class="btn-primary flex items-center gap-1.5 text-xs">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    Add Line Item
+                </button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                            <th class="py-2.5 px-2 w-10 text-center">#</th>
+                            <th class="py-2.5 px-2 min-w-[240px]">Item / Catalog Product</th>
+                            <th class="py-2.5 px-2 min-w-[180px]">Description</th>
+                            <th class="py-2.5 px-2 w-24">HSN/SAC</th>
+                            <th class="py-2.5 px-2 w-20">Qty</th>
+                            <th class="py-2.5 px-2 w-28">Rate (₹)</th>
+                            <th class="py-2.5 px-2 w-24">GST %</th>
+                            <th class="py-2.5 px-2 w-28 text-right">Taxable</th>
+                            <th class="py-2.5 px-2 w-28 text-right">Total (₹)</th>
+                            <th class="py-2.5 px-2 w-12 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                        <template x-for="(line, index) in lines" :key="index">
+                            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                                <td class="py-3 px-2 text-center font-bold text-slate-400" x-text="index + 1"></td>
+                                
+                                <!-- Product combobox for bill -->
+                                <td class="py-3 px-2 relative" x-data="{
+                                    prodOpen: false,
+                                    prodSearch: '',
+                                    get filteredProducts() {
+                                        if (!this.prodSearch.trim()) {
+                                            return catalogProducts.slice(0, 8); // Top 8 initial for high performance
+                                        }
+                                        const q = this.prodSearch.toLowerCase();
+                                        return catalogProducts.filter(p => 
+                                            p.name.toLowerCase().includes(q) || 
+                                            (p.sku && p.sku.toLowerCase().includes(q))
+                                        ).slice(0, 15);
+                                    }
+                                }" @click.away="prodOpen = false">
+                                    <div @click="prodOpen = !prodOpen; if (prodOpen) $nextTick(() => $refs.prodSearchInput?.focus())"
+                                         class="form-control flex items-center justify-between cursor-pointer text-xs py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 hover:border-[#1E5BFF]">
+                                        <span class="truncate font-semibold text-slate-800 dark:text-slate-100" x-text="line.selectedProductLabel || '-- Custom / Select Item --'"></span>
+                                        <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                    </div>
+                                    <input type="hidden" name="line_product_id[]" :value="line.product_id">
+
+                                    <!-- Dropdown Menu -->
+                                    <div x-show="prodOpen" x-cloak class="absolute left-0 z-50 w-72 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-2 space-y-1.5">
+                                        <div class="relative">
+                                            <input x-ref="prodSearchInput" type="text" x-model="prodSearch" placeholder="Type product name or SKU..." class="form-control text-xs pl-7 py-1.5 w-full bg-slate-50 dark:bg-slate-800">
+                                            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2"></i>
+                                        </div>
+
+                                        <div class="max-h-52 overflow-y-auto space-y-0.5 divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                            <div @click="pickCustomBillProduct(line); prodOpen = false; prodSearch = ''" class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg cursor-pointer flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-semibold border-b border-slate-100 dark:border-slate-800">
+                                                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                                                <span>-- Custom Expense / Manual Item --</span>
+                                            </div>
+
+                                            <template x-for="p in filteredProducts" :key="p.id">
+                                                <div @click="pickBillProduct(line, p); prodOpen = false; prodSearch = ''" class="p-2 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="font-bold text-slate-800 dark:text-slate-100 truncate" x-text="p.name"></span>
+                                                        <span class="font-bold text-slate-900 dark:text-white shrink-0 ml-1">₹<span x-text="formatCurrency(p.rate)"></span></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <input type="text" name="line_item_name[]" x-model="line.item_name" placeholder="Item Name / Category" class="form-control text-xs py-1 mt-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                                </td>
+                                
+                                <td class="py-3 px-2">
+                                    <input type="text" name="line_description[]" x-model="line.description" placeholder="Description of goods or service" class="form-control text-xs py-1.5" required>
+                                </td>
+
+                                <td class="py-3 px-2">
+                                    <input type="text" name="line_hsn[]" x-model="line.hsn" placeholder="998314" class="form-control text-xs py-1.5 font-mono">
+                                </td>
+
+                                <td class="py-3 px-2">
+                                    <input type="number" step="0.01" min="0.01" name="line_qty[]" x-model.number="line.qty" @input="recalcLine(line)" class="form-control text-xs py-1.5 font-semibold text-center" required>
+                                </td>
+
+                                <td class="py-3 px-2">
+                                    <input type="number" step="0.01" min="0" name="line_rate[]" x-model.number="line.rate" @input="recalcLine(line)" class="form-control text-xs py-1.5 font-semibold" required>
+                                </td>
+
+                                <td class="py-3 px-2">
+                                    <select name="line_tax_rate[]" x-model.number="line.tax_rate" @change="recalcLine(line)" class="form-control text-xs py-1.5">
+                                        <option value="0">0% (Nil / Exempt)</option>
+                                        <option value="5">5% GST</option>
+                                        <option value="12">12% GST</option>
+                                        <option value="18">18% GST</option>
+                                        <option value="28">28% GST</option>
+                                    </select>
+                                </td>
+
+                                <td class="py-3 px-2 text-right font-medium text-slate-700 dark:text-slate-300">
+                                    ₹<span x-text="formatCurrency(line.taxable_amount)"></span>
+                                </td>
+
+                                <td class="py-3 px-2 text-right font-bold text-emerald-600 dark:text-emerald-400">
+                                    ₹<span x-text="formatCurrency(line.total_amount)"></span>
+                                    <div class="text-[10px] font-normal text-slate-400" x-text="'Tax: ₹' + formatCurrency(line.tax_amount)"></div>
+                                </td>
+
+                                <td class="py-3 px-2 text-center">
+                                    <button type="button" @click="removeLine(index)" :disabled="lines.length <= 1" class="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-500/10 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-slate-400 transition" title="Remove line">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pt-2 flex justify-start">
+                <button type="button" @click="addLine()" class="btn-secondary text-xs flex items-center gap-1.5">
+                    <i data-lucide="plus" class="w-3.5 h-3.5 text-emerald-500"></i>
+                    Add Another Item
+                </button>
+            </div>
+        </div>
+
+        <!-- Bill Footer Calculations Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-7 card space-y-3">
+                <div class="form-group">
+                    <label class="form-label font-semibold">Vendor Bill Notes / Remarks</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Procurement reference, department notes, or approval remarks..."></textarea>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 card space-y-3 bg-gradient-to-br from-slate-50 to-emerald-50/20 dark:from-slate-900 dark:to-slate-900/90 border-emerald-500/20">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-2">
+                    Bill Grand Summary
+                </h3>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60">
+                        <span class="text-slate-500">Taxable Subtotal (Expense)</span>
+                        <span class="font-bold text-slate-900 dark:text-slate-100">₹<span x-text="formatCurrency(subtotal())"></span></span>
+                    </div>
+
+                    <div class="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800/60 text-slate-500">
+                        <span>Input Tax Credit (ITC GST)</span>
+                        <span class="font-medium text-emerald-600 dark:text-emerald-400">₹<span x-text="formatCurrency(totalTax())"></span></span>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between mt-3">
+                        <div>
+                            <span class="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block tracking-wider">Total Bill Amount (INR)</span>
+                            <span class="text-xl font-extrabold text-emerald-600 dark:text-white">
+                                ₹<span x-text="formatCurrency(grandTotal())"></span>
+                            </span>
+                        </div>
+                        <i data-lucide="file-check" class="w-7 h-7 text-emerald-500"></i>
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" class="w-full btn-primary py-3 font-bold text-sm bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        Record & Save Vendor Bill
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Alpine.js Bill Form Controller -->
+<script>
+function billForm() {
+    return {
+        selectedVendorId: '',
+        selectedVendorLabel: '',
+        isInterstate: false,
+        catalogVendors: {{ vendors_json|safe|default:'[]' }},
+        catalogProducts: {{ products_json|safe|default:'[]' }},
+        lines: [
+            {
+                product_id: '',
+                selectedProductLabel: '-- Custom Expense / Manual Item --',
+                item_name: 'Cloud Hosting & Infrastructure',
+                description: 'Cloud Infrastructure & Managed Server Hosting',
+                hsn: '998314',
+                qty: 1,
+                rate: 35000,
+                tax_rate: 18,
+                taxable_amount: 35000,
+                tax_amount: 6300,
+                total_amount: 41300
+            }
+        ],
+
+        init() {
+            if (this.catalogVendors.length > 0) {
+                this.pickVendor(this.catalogVendors[0]);
+            }
+            this.recalcAll();
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        pickVendor(v) {
+            this.selectedVendorId = v.id;
+            this.selectedVendorLabel = v.code + ' — ' + v.name + ' (' + v.category + ')';
+            const state = v.state || 'Kerala';
+            this.isInterstate = (state.toLowerCase().trim() !== 'kerala');
+            this.recalcAll();
+        },
+
+        pickBillProduct(line, p) {
+            line.product_id = p.id;
+            line.selectedProductLabel = p.name + ' — ₹' + Number(p.rate).toLocaleString();
+            line.item_name = p.name;
+            line.description = p.description || p.name;
+            line.hsn = p.hsn || '998314';
+            line.rate = parseFloat(p.rate) || 0;
+            line.tax_rate = parseFloat(p.tax_rate) !== undefined ? parseFloat(p.tax_rate) : 18;
+            this.recalcLine(line);
+        },
+
+        pickCustomBillProduct(line) {
+            line.product_id = '';
+            line.selectedProductLabel = '-- Custom Expense / Manual Item --';
+            this.recalcLine(line);
+        },
+
+        addLine() {
+            this.lines.push({
+                product_id: '',
+                selectedProductLabel: '-- Custom Expense / Manual Item --',
+                item_name: '',
+                description: '',
+                hsn: '998314',
+                qty: 1,
+                rate: 0,
+                tax_rate: 18,
+                taxable_amount: 0,
+                tax_amount: 0,
+                total_amount: 0
+            });
+            this.$nextTick(() => {
+                if (window.lucide) lucide.createIcons();
+            });
+        },
+
+        removeLine(index) {
+            if (this.lines.length > 1) {
+                this.lines.splice(index, 1);
+                this.recalcAll();
+            }
+        },
+
+        recalcLine(line) {
+            const qty = parseFloat(line.qty) || 0;
+            const rate = parseFloat(line.rate) || 0;
+            const taxRate = parseFloat(line.tax_rate);
+            const effectiveTaxRate = (!isNaN(taxRate) && taxRate >= 0) ? taxRate : 0;
+
+            line.taxable_amount = Math.round((qty * rate) * 100) / 100;
+            if (effectiveTaxRate > 0) {
+                line.tax_amount = Math.round((line.taxable_amount * (effectiveTaxRate / 100)) * 100) / 100;
+            } else {
+                line.tax_amount = 0;
+            }
+            line.total_amount = Math.round((line.taxable_amount + line.tax_amount) * 100) / 100;
+        },
+
+        recalcAll() {
+            this.lines.forEach(l => this.recalcLine(l));
+        },
+
+        subtotal() {
+            return this.lines.reduce((sum, l) => sum + (parseFloat(l.taxable_amount) || 0), 0);
+        },
+
+        totalTax() {
+            return this.lines.reduce((sum, l) => sum + (parseFloat(l.tax_amount) || 0), 0);
+        },
+
+        grandTotal() {
+            return Math.round(this.subtotal() + this.totalTax());
+        },
+
+        formatCurrency(val) {
+            const num = parseFloat(val) || 0;
+            return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        validateBeforeSubmit(e) {
+            if (!this.selectedVendorId) {
+                alert('Please select a vendor.');
+                e.preventDefault();
+                return;
+            }
+            if (this.lines.length === 0) {
+                alert('Please add at least one line item.');
+                e.preventDefault();
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

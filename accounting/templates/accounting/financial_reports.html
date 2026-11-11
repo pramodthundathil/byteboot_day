@@ -1,56 +1,418 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="mb-6 flex justify-between items-center">
-    <div>
-        <h1 class="text-xl font-bold text-gray-100">Financial Statements & Trial Balance</h1>
-        <p class="text-xs text-gray-400">Reconciled double-entry financial statements for {{ current_company.name }}</p>
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <a href="{% url 'accounting:general_ledger' %}" class="hover:text-blue-500">Accounting</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">Financial Reports</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="bar-chart-3" class="w-6 h-6 text-[#1E5BFF]"></i> Financial Statements & Analytics
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Reconciled Profit & Loss, Balance Sheet, Trial Balance, and Banking overview for {{ current_company.name }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print
+            </button>
+            <a href="{% url 'accounting:financial_reports_export' report_type %}" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center gap-1.5 transition shadow-sm">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+            </a>
+        </div>
     </div>
-</div>
 
-<!-- Financial Summary Cards -->
-<div class="stat-grid mb-6">
-    <div class="stat-card">
-        <div class="stat-label">Total Assets</div>
-        <div class="stat-val text-blue-400">₹{{ total_assets }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Liabilities</div>
-        <div class="stat-val text-red-400">₹{{ total_liabilities }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Total Operating Revenue</div>
-        <div class="stat-val text-emerald-400">₹{{ total_income }}</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-label">Net Profit / Loss</div>
-        <div class="stat-val {% if net_profit >= 0 %}text-emerald-400{% else %}text-red-400{% endif %}">₹{{ net_profit }}</div>
-    </div>
-</div>
+    <!-- Statement Selection & Date Filter Bar -->
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <!-- Report Type Tabs -->
+        <div class="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold">
+            <a href="{% url 'accounting:financial_reports' %}?report=pl&preset={{ date_preset }}" class="px-3.5 py-2 rounded-xl border transition flex items-center gap-1.5 {% if report_type == 'pl' %}bg-[#1E5BFF] text-white border-[#1E5BFF] shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Profit & Loss (P&L)
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report=balance_sheet&preset={{ date_preset }}" class="px-3.5 py-2 rounded-xl border transition flex items-center gap-1.5 {% if report_type == 'balance_sheet' %}bg-[#1E5BFF] text-white border-[#1E5BFF] shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <i data-lucide="scale" class="w-3.5 h-3.5"></i> Balance Sheet
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report=trial_balance&preset={{ date_preset }}" class="px-3.5 py-2 rounded-xl border transition flex items-center gap-1.5 {% if report_type == 'trial_balance' %}bg-[#1E5BFF] text-white border-[#1E5BFF] shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <i data-lucide="check-square" class="w-3.5 h-3.5"></i> Trial Balance
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report=banking&preset={{ date_preset }}" class="px-3.5 py-2 rounded-xl border transition flex items-center gap-1.5 {% if report_type == 'banking' %}bg-[#1E5BFF] text-white border-[#1E5BFF] shadow-sm{% else %}bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                <i data-lucide="landmark" class="w-3.5 h-3.5"></i> Banking Overview
+            </a>
+        </div>
 
-<div class="card">
-    <h3 class="text-sm font-bold text-gray-200 mb-4">Trial Balance Summary</h3>
-    <div class="table-wrap">
-        <table class="app-table">
-            <thead>
-                <tr>
-                    <th>Account Code</th>
-                    <th>Account Name</th>
-                    <th>Type</th>
-                    <th>Calculated Balance (₹)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in trial_balance %}
-                <tr>
-                    <td class="font-mono text-emerald-400 font-bold">{{ item.account.code }}</td>
-                    <td class="font-semibold">{{ item.account.name }}</td>
-                    <td><span class="text-xs text-gray-400">{{ item.account.get_account_type_display }}</span></td>
-                    <td class="font-bold text-gray-100">₹{{ item.balance }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Date Range Presets -->
+        <div class="flex items-center gap-1 text-xs font-semibold">
+            <a href="{% url 'accounting:financial_reports' %}?report={{ report_type }}&preset=month" class="px-2.5 py-1.5 rounded-lg {% if date_preset == 'month' %}bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] font-bold{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                This Month
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report={{ report_type }}&preset=quarter" class="px-2.5 py-1.5 rounded-lg {% if date_preset == 'quarter' %}bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] font-bold{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                This Quarter
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report={{ report_type }}&preset=year" class="px-2.5 py-1.5 rounded-lg {% if date_preset == 'year' %}bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] font-bold{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                FY 2026-27
+            </a>
+            <a href="{% url 'accounting:financial_reports' %}?report={{ report_type }}&preset=all" class="px-2.5 py-1.5 rounded-lg {% if date_preset == 'all' %}bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] font-bold{% else %}text-slate-500 hover:text-slate-900 dark:hover:text-white{% endif %}">
+                All Time
+            </a>
+        </div>
     </div>
+
+    <!-- ========================================================================= -->
+    <!-- 1. PROFIT & LOSS STATEMENT -->
+    <!-- ========================================================================= -->
+    {% if report_type == 'pl' %}
+    <div class="space-y-6">
+        <!-- Top Metrics Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Operating Revenue</span>
+                <span class="text-xl font-black text-emerald-600 dark:text-emerald-400 block mt-1">₹{{ statements.total_revenue }}</span>
+                <span class="text-[10px] text-slate-500">Sales, Consulting, SaaS</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Gross Profit</span>
+                <span class="text-xl font-black text-blue-600 dark:text-blue-400 block mt-1">₹{{ statements.gross_profit }}</span>
+                <span class="text-[10px] text-slate-500">Gross Margin: {{ statements.gross_margin_pct }}%</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Operating Expenses</span>
+                <span class="text-xl font-black text-rose-600 dark:text-rose-400 block mt-1">₹{{ statements.operating_expenses }}</span>
+                <span class="text-[10px] text-slate-500">Salaries, Rent, Utilities, Tools</span>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Net Profit / Loss</span>
+                <span class="text-xl font-black {% if statements.net_profit >= 0 %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %} block mt-1">
+                    ₹{{ statements.net_profit }}
+                </span>
+                <span class="text-[10px] text-slate-500">Net Margin: {{ statements.net_margin_pct }}%</span>
+            </div>
+        </div>
+
+        <!-- Detailed P&L Statement Canvas -->
+        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 max-w-4xl mx-auto">
+            <h2 class="text-base font-extrabold text-slate-900 dark:text-slate-100 pb-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <span>Profit & Loss Statement (Income Statement)</span>
+                <span class="text-xs font-normal text-slate-400">Currency: INR (₹)</span>
+            </h2>
+
+            <div class="space-y-4 text-xs">
+                <!-- REVENUE SECTION -->
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] mb-2 text-[#1E5BFF]">1. Operating Revenue</h3>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium pl-3">
+                        {% for item in statements.income_accounts %}
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-700 dark:text-slate-300">{{ item.account.code }} - {{ item.account.name }}</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ item.balance }}</span>
+                        </div>
+                        {% empty %}
+                        <div class="flex justify-between py-1.5 text-slate-400">
+                            <span>Operating Sales & Consulting</span>
+                            <span>₹0.00</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="flex justify-between py-2 border-t border-slate-200 dark:border-slate-700 font-bold bg-slate-50 dark:bg-slate-800/40 px-3 rounded-xl mt-1">
+                        <span>Total Operating Revenue</span>
+                        <span class="text-emerald-600 dark:text-emerald-400">₹{{ statements.total_revenue }}</span>
+                    </div>
+                </div>
+
+                <!-- COST OF GOODS / DIRECT SERVICES -->
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] mb-2 text-[#1E5BFF]">2. Cost of Sales & Direct Costs</h3>
+                    <div class="flex justify-between py-1.5 pl-3 text-slate-700 dark:text-slate-300">
+                        <span>Direct Project & Infrastructure Delivery Costs</span>
+                        <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.cost_of_sales }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-t border-slate-200 dark:border-slate-700 font-extrabold bg-blue-50/50 dark:bg-blue-950/20 px-3 rounded-xl mt-1">
+                        <span>Gross Profit</span>
+                        <span class="text-blue-600 dark:text-blue-400">₹{{ statements.gross_profit }}</span>
+                    </div>
+                </div>
+
+                <!-- OPERATING EXPENSES -->
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wider text-[11px] mb-2 text-[#1E5BFF]">3. Operating Expenses</h3>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium pl-3">
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-700 dark:text-slate-300">Employee Salaries, Wages & Benefits</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.salary_expenses }}</span>
+                        </div>
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-700 dark:text-slate-300">Office Rent & Facilities</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.rent_expenses }}</span>
+                        </div>
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-700 dark:text-slate-300">Bank Charges & Processing Fees</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.financial_expenses }}</span>
+                        </div>
+                        <div class="flex justify-between py-1.5">
+                            <span class="text-slate-700 dark:text-slate-300">Other General & Administrative Expenses</span>
+                            <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.other_expenses }}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between py-2 border-t border-slate-200 dark:border-slate-700 font-bold bg-slate-50 dark:bg-slate-800/40 px-3 rounded-xl mt-1">
+                        <span>Total Operating Expenses</span>
+                        <span class="text-rose-600 dark:text-rose-400">₹{{ statements.operating_expenses }}</span>
+                    </div>
+                </div>
+
+                <!-- EBITDA, DEPRECIATION & NET PROFIT -->
+                <div class="pt-3 border-t-2 border-slate-200 dark:border-slate-700 space-y-2">
+                    <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200 px-3">
+                        <span>Operating Income (EBITDA)</span>
+                        <span>₹{{ statements.ebitda }}</span>
+                    </div>
+                    <div class="flex justify-between text-slate-600 dark:text-slate-400 px-3">
+                        <span>Less: Depreciation & Amortization</span>
+                        <span>₹{{ statements.depreciation_expenses }}</span>
+                    </div>
+                    <div class="flex justify-between py-3 font-black text-sm px-3 rounded-2xl {% if statements.net_profit >= 0 %}bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800{% else %}bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-800{% endif %}">
+                        <span class="uppercase">Net Profit / (Loss) for the Period</span>
+                        <span>₹{{ statements.net_profit }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========================================================================= -->
+    <!-- 2. BALANCE SHEET -->
+    <!-- ========================================================================= -->
+    {% if report_type == 'balance_sheet' %}
+    <div class="space-y-6">
+        <!-- Balance Check Banner -->
+        <div class="p-4 rounded-2xl border flex items-center justify-between {% if statements.bs_is_balanced %}bg-emerald-50/70 border-emerald-200 text-emerald-800 dark:bg-emerald-950/30 dark:border-emerald-800 dark:text-emerald-300{% else %}bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/30 dark:border-rose-800 dark:text-rose-300{% endif %}">
+            <div class="flex items-center gap-3">
+                {% if statements.bs_is_balanced %}
+                <i data-lucide="check-circle" class="w-5 h-5 text-emerald-600"></i>
+                <div>
+                    <span class="font-bold text-xs block">Balance Sheet in Equilibrium</span>
+                    <span class="text-[11px] opacity-80">Total Assets (₹{{ statements.total_assets }}) strictly equals Total Liabilities + Equity (₹{{ statements.total_liabilities_and_equity }}).</span>
+                </div>
+                {% else %}
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-600"></i>
+                <div>
+                    <span class="font-bold text-xs block">Unbalanced Difference Detected</span>
+                    <span class="text-[11px] opacity-80">Assets: ₹{{ statements.total_assets }} vs Liabilities & Equity: ₹{{ statements.total_liabilities_and_equity }}.</span>
+                </div>
+                {% endif %}
+            </div>
+            <span class="font-mono text-xs font-bold px-3 py-1 rounded-xl bg-white dark:bg-slate-900 shadow-sm">
+                Assets = Liabilities + Equity
+            </span>
+        </div>
+
+        <!-- 2-Column Balance Sheet Canvas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            <!-- ASSETS COLUMN -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <h2 class="text-sm font-extrabold uppercase tracking-wider text-[#1E5BFF] pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span>Assets</span>
+                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                </h2>
+
+                <div class="space-y-4 text-xs font-medium">
+                    <!-- Current Assets -->
+                    <div>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-[10px] tracking-wider block mb-1.5">Current Assets</span>
+                        <div class="space-y-1.5 pl-2 text-slate-600 dark:text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Cash & Bank Balances</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.cash_and_bank }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Accounts Receivable (Debtors)</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.accounts_receivable }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Inventories & Stock</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.inventory }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-t border-slate-100 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 mt-2">
+                            <span>Subtotal Current Assets</span>
+                            <span>₹{{ statements.current_assets }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Assets -->
+                    <div>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-[10px] tracking-wider block mb-1.5">Fixed / Non-Current Assets</span>
+                        <div class="space-y-1.5 pl-2 text-slate-600 dark:text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Gross Fixed Assets Cost</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.fixed_assets_gross }}</span>
+                            </div>
+                            <div class="flex justify-between text-rose-500">
+                                <span>Less: Accumulated Depreciation</span>
+                                <span class="font-bold">-₹{{ statements.accumulated_depreciation }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-t border-slate-100 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 mt-2">
+                            <span>Net Fixed Assets</span>
+                            <span>₹{{ statements.net_fixed_assets }}</span>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL ASSETS -->
+                    <div class="pt-3 border-t-2 border-slate-200 dark:border-slate-700 flex justify-between font-black text-sm text-[#1E5BFF] bg-blue-50/50 dark:bg-blue-950/20 p-3 rounded-2xl">
+                        <span>TOTAL ASSETS</span>
+                        <span>₹{{ statements.total_assets }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIABILITIES & EQUITY COLUMN -->
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <h2 class="text-sm font-extrabold uppercase tracking-wider text-purple-600 dark:text-purple-400 pb-2 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                    <span>Liabilities & Equity</span>
+                    <i data-lucide="scale" class="w-4 h-4"></i>
+                </h2>
+
+                <div class="space-y-4 text-xs font-medium">
+                    <!-- Current Liabilities -->
+                    <div>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-[10px] tracking-wider block mb-1.5">Current Liabilities</span>
+                        <div class="space-y-1.5 pl-2 text-slate-600 dark:text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Accounts Payable (Creditors)</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.accounts_payable }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Taxes Payable (GST & Dues)</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.taxes_payable }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Salaries & Statutory Payables</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.statutory_dues }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-t border-slate-100 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 mt-2">
+                            <span>Subtotal Liabilities</span>
+                            <span>₹{{ statements.total_liabilities }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Owner Equity -->
+                    <div>
+                        <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-[10px] tracking-wider block mb-1.5">Owner Equity & Capital</span>
+                        <div class="space-y-1.5 pl-2 text-slate-600 dark:text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Share Capital / Capital Account</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.owner_equity }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Retained Earnings</span>
+                                <span class="font-bold text-slate-900 dark:text-slate-100">₹{{ statements.retained_earnings }}</span>
+                            </div>
+                            <div class="flex justify-between {% if statements.current_period_profit >= 0 %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                                <span>Current Period Net Profit</span>
+                                <span class="font-bold">₹{{ statements.current_period_profit }}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-t border-slate-100 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-200 mt-2">
+                            <span>Total Equity</span>
+                            <span>₹{{ statements.total_equity }}</span>
+                        </div>
+                    </div>
+
+                    <!-- TOTAL LIABILITIES & EQUITY -->
+                    <div class="pt-3 border-t-2 border-slate-200 dark:border-slate-700 flex justify-between font-black text-sm text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-950/20 p-3 rounded-2xl">
+                        <span>TOTAL LIABILITIES & EQUITY</span>
+                        <span>₹{{ statements.total_liabilities_and_equity }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========================================================================= -->
+    <!-- 3. TRIAL BALANCE -->
+    <!-- ========================================================================= -->
+    {% if report_type == 'trial_balance' %}
+    <div class="space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-slate-100">Reconciled Trial Balance</h2>
+                <span class="inline-flex items-center gap-1.5 text-xs font-bold {% if statements.tb_is_balanced %}text-emerald-600 dark:text-emerald-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+                    {% if statements.tb_is_balanced %}
+                    <i data-lucide="check-circle" class="w-4 h-4"></i> Double-Entry Proved Balanced
+                    {% else %}
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i> Debits != Credits
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider">
+                            <th class="p-3.5">Code</th>
+                            <th class="p-3.5">Account Name</th>
+                            <th class="p-3.5">Classification</th>
+                            <th class="p-3.5 text-right text-blue-600 dark:text-blue-400">Debit Balance (₹)</th>
+                            <th class="p-3.5 text-right text-purple-600 dark:text-purple-400">Credit Balance (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                        {% for item in statements.trial_balance %}
+                        <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                            <td class="p-3.5 font-mono text-[#1E5BFF] font-bold">
+                                {{ item.account.code }}
+                            </td>
+                            <td class="p-3.5">
+                                <a href="{% url 'accounting:account_detail' item.account.id %}" class="font-bold text-slate-900 dark:text-slate-100 hover:text-blue-500">
+                                    {{ item.account.name }}
+                                </a>
+                            </td>
+                            <td class="p-3.5 text-slate-500">
+                                {{ item.account.get_sub_category_display }}
+                            </td>
+                            <td class="p-3.5 text-right font-bold text-blue-600 dark:text-blue-400">
+                                {% if item.debit > 0 %}₹{{ item.debit }}{% else %}—{% endif %}
+                            </td>
+                            <td class="p-3.5 text-right font-bold text-purple-600 dark:text-purple-400">
+                                {% if item.credit > 0 %}₹{{ item.credit }}{% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-slate-50 dark:bg-slate-800/80 font-black border-t-2 border-slate-300 dark:border-slate-700 text-xs">
+                        <tr>
+                            <td colspan="3" class="p-3.5 text-right uppercase text-slate-500">Total Double-Entry Balance:</td>
+                            <td class="p-3.5 text-right text-blue-600 dark:text-blue-400 text-sm">₹{{ statements.total_tb_debit }}</td>
+                            <td class="p-3.5 text-right text-purple-600 dark:text-purple-400 text-sm">₹{{ statements.total_tb_credit }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ========================================================================= -->
+    <!-- 4. BANKING SUMMARY -->
+    <!-- ========================================================================= -->
+    {% if report_type == 'banking' %}
+    <div class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {% for b in statements.bank_accounts %}
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ b.bank_name }}</span>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-slate-100">{{ b.account_name }}</h3>
+                <span class="text-xs font-mono text-slate-500 block">Acc: {{ b.account_number }}</span>
+                <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400 block pt-2">₹{{ b.current_balance }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

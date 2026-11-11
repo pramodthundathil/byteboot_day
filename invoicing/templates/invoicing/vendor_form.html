@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'invoicing:vendor_list' %}" class="hover:text-white">Vendors</a> / 
+                <span class="text-[#1E5BFF]">Create Supplier</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <i data-lucide="truck" class="w-5 h-5 text-[#1E5BFF]"></i>
+                Register New Vendor
+            </h1>
+        </div>
+        <a href="{% url 'invoicing:vendor_list' %}" class="btn-secondary text-xs">Back to Directory</a>
+    </div>
+
+    <form method="POST" class="card space-y-6">
+        {% csrf_token %}
+
+        <!-- Basic Vendor Info -->
+        <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">General Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label class="form-label font-semibold">Vendor / Company Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" class="form-control" placeholder="e.g. Amazon Web Services Inc." required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Vendor Code</label>
+                    <input type="text" name="vendor_code" class="form-control" placeholder="Auto-generated e.g. VEND-1001">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Procurement Category</label>
+                    <select name="category" class="form-control">
+                        {% for code, label in categories %}
+                        <option value="{{ code }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Contact Person</label>
+                    <input type="text" name="contact_person" class="form-control" placeholder="e.g. Jane Doe (Account Rep)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Email Address</label>
+                    <input type="email" name="email" class="form-control" placeholder="billing@vendor.com">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Phone / Mobile</label>
+                    <input type="text" name="phone" class="form-control" placeholder="+91 98765 43210">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tax & Legal Details -->
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Statutory & GST Compliance</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-group">
+                    <label class="form-label font-semibold">GSTIN</label>
+                    <input type="text" name="gstin" class="form-control font-mono" placeholder="32AAAAA0000A1Z5">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">PAN</label>
+                    <input type="text" name="pan" class="form-control font-mono" placeholder="ABCDE1234F">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Payment Terms</label>
+                    <input type="text" name="payment_terms" class="form-control" value="Net 30">
+                </div>
+            </div>
+        </div>
+
+        <!-- Address & Banking -->
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-4">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Address & Remittance Bank Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-group md:col-span-3">
+                    <label class="form-label font-semibold">Billing Address</label>
+                    <textarea name="address" rows="2" class="form-control" placeholder="Office / Premise Address"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">City</label>
+                    <input type="text" name="city" class="form-control" placeholder="Bengaluru">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">State</label>
+                    <input type="text" name="state" class="form-control" value="Kerala">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">PIN Code</label>
+                    <input type="text" name="pincode" class="form-control" placeholder="560001">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Remittance Bank Name</label>
+                    <input type="text" name="bank_name" class="form-control" placeholder="e.g. HDFC / SBI">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">Account Number</label>
+                    <input type="text" name="account_number" class="form-control font-mono" placeholder="000123456789">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label font-semibold">IFSC Code</label>
+                    <input type="text" name="ifsc_code" class="form-control font-mono" placeholder="HDFC0001234">
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+            <button type="submit" class="btn-primary flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Save Vendor
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

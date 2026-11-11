@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-white">Workspace</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8]">Products & Services</span>
+            </div>
+            <h1 class="text-2xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <i data-lucide="package" class="w-6 h-6 text-[#1E5BFF]"></i>
+                Products & Services Catalog
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Manage catalog offerings, default pricing, HSN/SAC classification, and standard GST tax rates.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'invoicing:product_create' %}" class="btn-primary flex items-center gap-1.5 text-xs">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add New Product
+            </a>
+            <a href="{% url 'invoicing:invoice_create' %}" class="btn-secondary text-xs flex items-center gap-1.5">
+                <i data-lucide="receipt" class="w-4 h-4"></i> Create Invoice
+            </a>
+        </div>
+    </div>
+
+    <!-- Products Table Card -->
+    <div class="card p-0 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Catalog Items ({{ products.count }})</h3>
+        </div>
+        <div class="table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Item & SKU</th>
+                        <th>Type</th>
+                        <th>HSN/SAC</th>
+                        <th>Unit</th>
+                        <th>Unit Price</th>
+                        <th>Default GST %</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in products %}
+                    <tr>
+                        <td>
+                            <div class="font-bold text-slate-900 dark:text-slate-100">{{ p.name }}</div>
+                            <div class="text-[11px] text-slate-400 font-mono">{{ p.sku|default:"No SKU" }}</div>
+                            {% if p.description %}
+                            <div class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">{{ p.description }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-pill {% if p.item_type == 'SERVICE' %}status-info{% else %}status-success{% endif %}">
+                                {{ p.get_item_type_display }}
+                            </span>
+                        </td>
+                        <td class="font-mono text-xs text-slate-500">{{ p.hsn_sac_code }}</td>
+                        <td class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ p.unit }}</td>
+                        <td class="font-bold text-slate-900 dark:text-slate-100">₹{{ p.unit_price|floatformat:2 }}</td>
+                        <td>
+                            <span class="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-[#1E5BFF] dark:text-[#38bdf8]">
+                                {{ p.tax_rate }}% GST
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status-pill {% if p.is_active %}status-success{% else %}status-warning{% endif %}">
+                                {% if p.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-8 text-slate-400 text-xs">
+                            No products or services registered yet. Click "+ Add New Product" to populate your catalog.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

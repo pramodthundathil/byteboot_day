@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{% url 'dashboard:index' %}" class="hover:text-blue-500">Workspace</a> / 
+                <a href="{% url 'accounting:chart_of_accounts' %}" class="hover:text-blue-500">Chart of Accounts</a> / 
+                <span class="text-[#1E5BFF] dark:text-[#38bdf8] font-semibold">{{ account.code }}</span>
+            </div>
+            <h1 class="text-xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
+                <span class="font-mono text-[#1E5BFF]">{{ account.code }}</span> — {{ account.name }}
+            </h1>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ account.get_account_type_display }} &bull; {{ account.get_sub_category_display }}
+                {% if account.cuenta_espanol %}&bull; <span class="italic">ES: {{ account.cuenta_espanol }}</span>{% endif %}
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button onclick="window.print()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 transition">
+                <i data-lucide="printer" class="w-3.5 h-3.5"></i> Print Statement
+            </button>
+            <a href="{% url 'accounting:chart_of_accounts' %}" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#1E5BFF] hover:bg-blue-600 text-white flex items-center gap-1.5 transition">
+                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Accounts
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Opening Balance</span>
+            <span class="text-lg font-extrabold text-slate-900 dark:text-slate-100 block mt-1">₹{{ opening_balance }}</span>
+            <span class="text-[10px] text-slate-500">Prior to filtered period</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Period Debits</span>
+            <span class="text-lg font-extrabold text-blue-600 dark:text-blue-400 block mt-1">₹{{ total_period_debit }}</span>
+            <span class="text-[10px] text-slate-500">Incoming / Increases</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Period Credits</span>
+            <span class="text-lg font-extrabold text-purple-600 dark:text-purple-400 block mt-1">₹{{ total_period_credit }}</span>
+            <span class="text-[10px] text-slate-500">Outgoing / Decreases</span>
+        </div>
+        <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Closing Ledger Balance</span>
+            <span class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400 block mt-1">₹{{ closing_balance }}</span>
+            <span class="text-[10px] text-slate-500">Current reconciled status</span>
+        </div>
+    </div>
+
+    <!-- Date Filter Form -->
+    <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <form method="GET" class="flex flex-wrap items-center gap-3 text-xs w-full sm:w-auto">
+            <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-semibold">From:</span>
+                <input type="date" name="start_date" value="{{ start_date }}" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-[#1E5BFF]">
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-slate-500 font-semibold">To:</span>
+                <input type="date" name="end_date" value="{{ end_date }}" class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 outline-none focus:border-[#1E5BFF]">
+            </div>
+            <button type="submit" class="px-3.5 py-1.5 rounded-xl bg-[#1E5BFF] text-white font-semibold">Apply Filter</button>
+            {% if start_date or end_date %}
+            <a href="{% url 'accounting:account_detail' account.id %}" class="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Ledger Transactions Table -->
+    <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-500 font-semibold uppercase tracking-wider">
+                        <th class="p-3.5">Date</th>
+                        <th class="p-3.5">Journal / Ref #</th>
+                        <th class="p-3.5">Source</th>
+                        <th class="p-3.5">Description & Party</th>
+                        <th class="p-3.5 text-right text-blue-600 dark:text-blue-400">Debit (₹)</th>
+                        <th class="p-3.5 text-right text-purple-600 dark:text-purple-400">Credit (₹)</th>
+                        <th class="p-3.5 text-right">Running Balance (₹)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                    <!-- Opening Row -->
+                    <tr class="bg-slate-50/50 dark:bg-slate-800/20 italic text-slate-500">
+                        <td class="p-3.5">{{ start_date|default:account.created_at|date:"Y-m-d" }}</td>
+                        <td class="p-3.5 font-mono">—</td>
+                        <td class="p-3.5"><span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px]">OPENING</span></td>
+                        <td class="p-3.5">Opening Balance as of start date</td>
+                        <td class="p-3.5 text-right">—</td>
+                        <td class="p-3.5 text-right">—</td>
+                        <td class="p-3.5 text-right font-bold text-slate-700 dark:text-slate-300">₹{{ opening_balance }}</td>
+                    </tr>
+
+                    {% for item in entries %}
+                    <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                        <td class="p-3.5 whitespace-nowrap text-slate-600 dark:text-slate-400 font-mono">
+                            {{ item.journal.date|date:"Y-m-d" }}
+                        </td>
+                        <td class="p-3.5 font-mono font-bold text-[#1E5BFF] dark:text-[#38bdf8]">
+                            <a href="{% url 'accounting:journal_detail' item.journal.id %}" class="hover:underline">
+                                {{ item.journal.entry_number }}
+                            </a>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="px-2 py-0.5 rounded-full bg-blue-50 text-[#1E5BFF] dark:bg-blue-950/40 dark:text-[#38bdf8] text-[10px] font-bold">
+                                {{ item.journal.get_source_module_display }}
+                            </span>
+                        </td>
+                        <td class="p-3.5">
+                            <span class="text-slate-900 dark:text-slate-100 block">{{ item.line.description|default:item.journal.description }}</span>
+                            {% if item.line.party_type %}
+                            <span class="text-[11px] text-slate-400 block">{{ item.line.party_type }}: {{ item.line.party_id }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-blue-600 dark:text-blue-400">
+                            {% if item.debit > 0 %}₹{{ item.debit }}{% else %}—{% endif %}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-purple-600 dark:text-purple-400">
+                            {% if item.credit > 0 %}₹{{ item.credit }}{% else %}—{% endif %}
+                        </td>
+                        <td class="p-3.5 text-right font-bold text-slate-900 dark:text-slate-100">
+                            ₹{{ item.running_balance }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="p-6 text-center text-slate-400">
+                            No ledger transactions recorded for this account in the selected period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

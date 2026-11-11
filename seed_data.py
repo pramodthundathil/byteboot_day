@@ -141,7 +141,7 @@ def seed():
             "reference_number": "UTR9988776655"
         }
     )
-    if created_pay:
+    if created_pay and inv1.balance_due >= Decimal("236000.00"):
         process_and_allocate_payment(pay1, inv1, Decimal("236000.00"), admin_user)
 
     # 7. HR Employees & Leaves
@@ -220,24 +220,65 @@ def seed():
         defaults={"hours_spent": Decimal("8.00"), "description": "Completed accounting engine and verified debit/credit balance tests."}
     )
 
-    # WhatsApp-style Project Messages with Entity Links
-    ProjectMessage.objects.get_or_create(
-        project=prj1,
-        message_text="Hi team! The Tax Invoice INV-1001 for Policybazar Investments has been generated and posted to the General Ledger.",
-        related_entity_type="INVOICE",
-        related_entity_id="INV-1001",
-        defaults={"sender": admin_user}
+    # 9. Fixed Assets & Depreciation
+    asset_acc = ensure_default_chart_of_accounts(byteboot_comp)
+    gl_asset = byteboot_comp.accounts.filter(code='1500').first()
+    gl_accum = byteboot_comp.accounts.filter(code='1550').first()
+    gl_depr = byteboot_comp.accounts.filter(code='5090').first()
+
+    from accounting.models import FixedAsset
+    from accounting.services import create_and_post_voucher, post_asset_depreciation
+
+    ast1, _ = FixedAsset.objects.get_or_create(
+        company=byteboot_comp,
+        asset_code="AST-IT-001",
+        defaults={
+            "name": "Apple MacBook Pro M3 Max 64GB",
+            "category": "IT Equipment",
+            "location": "Infopark Kochi Campus",
+            "acquisition_date": timezone.now().date(),
+            "purchase_cost": Decimal("249000.00"),
+            "salvage_value": Decimal("25000.00"),
+            "useful_life_months": 36,
+            "asset_account": gl_asset,
+            "accumulated_depreciation_account": gl_accum,
+            "depreciation_account": gl_depr,
+            "status": "ACTIVE"
+        }
     )
 
-    ProjectMessage.objects.get_or_create(
-        project=prj1,
-        message_text="Great! Task TSK-501 for double-entry accounting engine is completed and fully verified with unit tests.",
-        related_entity_type="TASK",
-        related_entity_id="TSK-501",
-        defaults={"sender": staff_user}
-    )
+    # Post initial depreciation month
+    if ast1.accumulated_depreciation == Decimal('0.00'):
+        try:
+            post_asset_depreciation(ast1, admin_user)
+        except Exception as e:
+            print(f"Depr seed notice: {e}")
 
-    print("Successfully seeded B ONE Platform database!")
+    # 10. Sample Vouchers (Receipt & Contra)
+    gl_bank = byteboot_comp.accounts.filter(code='1010').first()
+    gl_cash = byteboot_comp.accounts.filter(code='1020').first()
+    gl_ar = byteboot_comp.accounts.filter(code='1200').first()
+
+    if gl_bank and gl_cash:
+        # Contra transfer from Bank to Petty Cash
+        try:
+            create_and_post_voucher(
+                company=byteboot_comp,
+                voucher_type="CONTRA",
+                date=timezone.now().date(),
+                narration="Office Petty Cash Withdrawal from HDFC Bank",
+                lines_data=[
+                    {"account_id": gl_cash.id, "entry_type": "DEBIT", "amount": Decimal("15000.00"), "description": "Petty Cash replenished"},
+                    {"account_id": gl_bank.id, "entry_type": "CREDIT", "amount": Decimal("15000.00"), "description": "Cheque withdrawal #5021"}
+                ],
+                user=admin_user,
+                reference_number="CHQ-5021",
+                party_name="Head Office Cash Vault"
+            )
+        except Exception as e:
+            print(f"Contra voucher notice: {e}")
+
+    print("Successfully seeded B ONE Platform database with complete accounting setup!")
 
 if __name__ == "__main__":
     seed()

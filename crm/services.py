@@ -1819,10 +1819,11 @@ def generate_crm_pdf_report(company, report_type='360_master', start_date=None, 
         # Executive Insights Box
         top_src = max(data['lead_sources'], key=lambda s: s['won_value']) if data['lead_sources'] and any(s['won_value'] > 0 for s in data['lead_sources']) else None
         top_rate_src = max(data['lead_sources'], key=lambda s: s['conversion_rate']) if data['lead_sources'] and any(s['conversion_rate'] > 0 for s in data['lead_sources']) else None
+        top_src_won_val = float(top_src['won_value']) if top_src else 0.0
         insights_text = f"""
         <b>Executive Intelligence Highlights:</b><br/>
         • <b>Top Converting Channel:</b> {top_rate_src['source'] if top_rate_src else 'N/A'} with a win rate of <b>{top_rate_src['conversion_rate'] if top_rate_src else '0'}%</b>.<br/>
-        • <b>Highest Revenue Generator:</b> {top_src['source'] if top_src else 'N/A'} yielding <b>₹ {float(top_src['won_value']):,.2f}</b> in converted customer value.<br/>
+        • <b>Highest Revenue Generator:</b> {top_src['source'] if top_src else 'N/A'} yielding <b>₹ {top_src_won_val:,.2f}</b> in converted customer value.<br/>
         • <b>Follow-up Compliance:</b> {kpis['overdue_count']} leads currently overdue across the sales team. Prioritize resolving backlog to prevent deal attrition.
         """
         insight_table = Table([[Paragraph(insights_text, td_p)]], colWidths=[732])
